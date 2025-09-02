@@ -71,7 +71,7 @@
             </div>
             <div class="card-body pt-0">
                 <!-- Desktop Table -->
-                <div class="table-responsive d-none d-md-block">
+                <div class="table-responsive">
                     <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_area_table">
                         <thead>
                             <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -261,7 +261,7 @@
                 </div>
                 
                 <!-- Mobile Cards -->
-                <div class="d-md-none">
+                <div class="d-md-none d-none">
                     @forelse ($areas as $area)
                         <div class="card mb-5 mb-xl-8 border border-gray-300">
                             <div class="card-header border-0 pt-5">

@@ -22,7 +22,7 @@
                 <div class="card-title">
                     <!-- Search and filters - responsive layout -->
                     <div class="d-flex flex-column flex-md-row align-items-md-center position-relative my-1">
-                        <div class="d-flex align-items-center position-relative mb-3 mb-md-0">
+                        <div class=1"d-flex align-items-center position-relative mb-3 mb-md-0">
                             <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
                                 <span class="path1"></span>
                                 <span class="path2"></span>

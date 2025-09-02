@@ -35,6 +35,7 @@
                 </div>
             </div>
             <div class="card-body pt-0">
+                <div class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_lga_table">
                     <thead>
                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -206,6 +207,7 @@
                 </table>
                 {{ $lgas->appends(['search_lga' => request('search_lga')])->links() }}
             </div>
+            </div>
         </div>
 
         <!-- Wards Table -->
@@ -227,6 +229,7 @@
                 </div>
             </div>
             <div class="card-body pt-0">
+                <div class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_ward_table">
                     <thead>
                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -402,6 +405,7 @@
                 </table>
                 {{ $wards->appends(['search_ward' => request('search_ward')])->links() }}
             </div>
+            </div>
         </div>
 
         <!-- Areas Table -->
@@ -423,6 +427,7 @@
                 </div>
             </div>
             <div class="card-body pt-0">
+                <div class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_area_table">
                     <thead>
                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -598,6 +603,7 @@
                     </tbody>
                 </table>
                 {{ $areas->appends(['search_area' => request('search_area')])->links() }}
+            </div>
             </div>
         </div>
 
