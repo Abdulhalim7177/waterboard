@@ -1,0 +1,1276 @@
+<?php
+
+namespace App\Http\Controllers\Staff;
+
+use App\Models\Lga;
+use App\Models\Area;
+use App\Models\Ward;
+use App\Models\Tariff;
+use App\Models\Category;
+use App\Models\Customer;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Models\PendingCustomerUpdate;
+use App\Exports\Staff\CustomersExport;
+use App\Imports\Staff\CustomersImport;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Auth\Access\AuthorizationException;
+
+class CustomerCreationController extends Controller
+{
+    public function index(Request $request)
+    {
+        $stats = [
+            'total' => Customer::count(),
+            'pending' => Customer::where('status', 'pending')->count(),
+            'approved' => Customer::where('status', 'approved')->count(),
+            'rejected' => Customer::where('status', 'rejected')->count(),
+        ];
+        try {
+            $this->authorize('view-customers', Customer::class);
+            $customers = Customer::with(['lga', 'ward', 'area', 'category', 'tariff'])
+                ->when($request->search_customer, function ($query, $search) {
+                    return $query->where(function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%{$search}%")
+                          ->orWhere('surname', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%")
+                          ->orWhere('billing_id', 'like', "%{$search}%");
+                    });
+                })
+                ->when($request->lga_filter, function ($query, $lga_id) {
+                    return $query->where('lga_id', $lga_id);
+                })
+                ->when($request->ward_filter, function ($query, $ward_id) {
+                    return $query->where('ward_id', $ward_id);
+                })
+                ->when($request->area_filter, function ($query, $area_id) {
+                    return $query->where('area_id', $area_id);
+                })
+                ->when($request->category_filter, function ($query, $category_id) {
+                    return $query->where('category_id', $category_id);
+                })
+                ->when($request->tariff_filter, function ($query, $tariff_id) {
+                    return $query->where('tariff_id', $tariff_id);
+                })
+                ->when($request->status_filter, function ($query, $status) {
+                    return $query->where('status', $status);
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+
+            return view('staff.customers.index', compact('customers', 'stats'))
+                ->with('search_customer', $request->search_customer)
+                ->with('lga_filter', $request->lga_filter)
+                ->with('ward_filter', $request->ward_filter)
+                ->with('area_filter', $request->area_filter)
+                ->with('category_filter', $request->category_filter)
+                ->with('tariff_filter', $request->tariff_filter)
+                ->with('status_filter', $request->status_filter);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to customer index', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to view customers.');
+        }
+    }
+
+    public function import(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+
+            $request->validate([
+                'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
+            ]);
+
+            $import = new CustomersImport();
+            Excel::import($import, $request->file('file'));
+
+            $errors = $import->getErrors();
+            if (!empty($errors)) {
+                Log::warning('Customer import completed with errors', [
+                    'staff_id' => Auth::guard('staff')->id(),
+                    'errors' => $errors
+                ]);
+                return redirect()->route('staff.customers.index')
+                    ->with('warning', 'Import completed with errors: ' . implode(', ', $errors));
+            }
+
+            Log::info('Customer import completed successfully', ['staff_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.customers.index')
+                ->with('success', 'Customers imported successfully and are pending approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to import customers', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.customers.index')
+                ->with('error', 'You are not authorized to import customers.');
+        } catch (\Exception $e) {
+            Log::error('Customer import failed', ['user_id' => Auth::guard('staff')->id(), 'error' => $e->getMessage()]);
+            return redirect()->route('staff.customers.index')
+                ->with('error', 'Failed to import customers: ' . $e->getMessage());
+        }
+    }
+
+    public function export(Request $request)
+    {
+        try {
+            $this->authorize('view-customers', Customer::class);
+
+            $filters = [
+                'status' => $request->input('status'),
+                'lga' => $request->input('lga_filter'),
+                'ward' => $request->input('ward_filter'),
+                'area' => $request->input('area_filter'),
+                'category' => $request->input('category_filter'),
+                'tariff' => $request->input('tariff_filter'),
+                'search' => $request->input('search_customer'), 
+            ];
+
+            $format = $request->input('format', 'csv');
+            if (!in_array($format, ['csv', 'xlsx'])) {
+                return response()->json(['error' => 'Invalid export format. Only CSV and Excel are supported.'], 400);
+            }
+
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $filename = 'customers_' . now()->format('Ymd_His') . '.' . $extension;
+
+            Log::info('Customer export initiated', [
+                'staff_id' => Auth::guard('staff')->id(),
+                'filters' => $filters,
+                'format' => $format
+            ]);
+
+            return Excel::download(new CustomersExport($filters), $filename);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to export customers', ['user_id' => Auth::guard('staff')->id()]);
+            return response()->json(['error' => 'You are not authorized to export customers.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Customer export failed', ['user_id' => Auth::guard('staff')->id(), 'error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to export customers: ' . $e->getMessage()], 500);
+        }
+    }
+
+     public function edit(Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $lgas = Lga::where('status', 'approved')->get();
+            $categories = Category::where('status', 'approved')->get();
+            return view('staff.customers.edit', compact('customer', 'lgas', 'categories'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to edit customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+       public function getEditSection(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $request->validate([
+                'part' => 'required|in:personal,address,billing,location',
+                'lga_id' => 'nullable|exists:lgas,id',
+                'ward_id' => 'nullable|exists:wards,id',
+                'category_id' => 'nullable|exists:categories,id',
+            ]);
+
+            $part = $request->input('part');
+            $data = compact('customer');
+
+            if ($part === 'address') {
+                $lgas = Lga::where('status', 'approved')->get();
+                $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : ($customer->lga_id ? Ward::where('lga_id', $customer->lga_id)->where('status', 'approved')->get() : collect());
+                $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : ($customer->ward_id ? Area::where('ward_id', $customer->ward_id)->where('status', 'approved')->get() : collect());
+                $selectedLgaId = $request->lga_id ?? $customer->lga_id;
+                $selectedWardId = $request->ward_id ?? $customer->ward_id;
+                $data = array_merge($data, compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
+            } elseif ($part === 'billing') {
+                $categories = Category::where('status', 'approved')->get();
+                $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : ($customer->category_id ? Tariff::where('category_id', $customer->category_id)->where('status', 'approved')->get() : collect());
+                $selectedCategoryId = $request->category_id ?? $customer->category_id;
+                $data = array_merge($data, compact('categories', 'tariffs', 'selectedCategoryId'));
+            }
+
+            return response()->json([
+                'html' => view("staff.customers.partials.edit_{$part}", $data)->render(),
+            ]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to get edit section', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return response()->json(['error' => 'You are not authorized to edit this customer.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Error fetching edit section', ['customer_id' => $customer->id, 'part' => $part, 'error' => $e->getMessage()]);
+            return response()->json(['error' => 'An error occurred while fetching the section: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+
+    public function redirectEdit(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $request->validate([
+                'part' => 'required|in:personal,address,billing,location',
+            ]);
+
+            $part = $request->input('part');
+            return redirect()->route("staff.customers.edit.{$part}", $customer);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to redirect edit', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+
+  public function update(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $request->validate([
+                'part' => 'required|in:personal,address,billing,location',
+            ]);
+
+            $part = $request->input('part');
+            $rules = $this->getValidationRules($part);
+            if (!$rules) {
+                return response()->json(['error' => 'Invalid section selected.', 'status' => 'error'], 400);
+            }
+
+            $validated = $request->validate($rules['rules']);
+            if (isset($rules['extraValidation'])) {
+                $extraResult = $rules['extraValidation']($validated);
+                if ($extraResult && isset($extraResult['error'])) {
+                    return response()->json(['errors' => $extraResult['error'], 'status' => 'error'], 422);
+                }
+            }
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if (in_array($field, ['password_confirmation', 'status', 'lga_id', 'ward_id', 'category_id'])) {
+                    continue; // Skip non-updatable fields
+                }
+                $oldValue = $customer->$field ?? null;
+                if ($field === 'password' && !$newValue) {
+                    continue; // Skip empty password
+                }
+                if ($newValue != $oldValue) { // Use != to handle null comparisons
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : ($field === 'password' ? Hash::make($newValue) : $newValue),
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', [
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => $oldValue,
+                            'new_value' => $newValue,
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', [
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                        return response()->json(['error' => "Failed to create pending update for {$field}: {$e->getMessage()}", 'status' => 'error'], 500);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                return response()->json(['message' => 'No changes detected to submit for approval.', 'status' => 'info'], 200);
+            }
+
+            Log::info('Customer update submitted', [
+                'customer_id' => $customer->id,
+                'part' => $part,
+                'updated_by' => Auth::guard('staff')->id(),
+            ]);
+            return response()->json(['message' => 'Update submitted for approval.', 'status' => 'success'], 200);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update customer', [
+                'user_id' => Auth::guard('staff')->id(),
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'You are not authorized to edit this customer.', 'status' => 'error'], 403);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Validation failed for customer update', [
+                'customer_id' => $customer->id,
+                'part' => $part,
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+            return response()->json(['errors' => $e->errors(), 'status' => 'error'], 422);
+        } catch (\Exception $e) {
+            Log::error('Error submitting customer update', [
+                'customer_id' => $customer->id,
+                'part' => $part,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'An unexpected error occurred while submitting the update: ' . $e->getMessage(), 'status' => 'error'], 500);
+        }
+    }
+
+    public function personal()
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            return view('staff.customers.create.personal');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to create customer', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        }
+    }
+
+    public function storePersonal(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'surname' => 'required|string|max:255',
+                'middle_name' => 'nullable|string|max:255',
+                'email' => 'required|email|unique:customers,email',
+                'phone_number' => 'required|string|min:10|regex:/^[0-9]+$/|unique:customers,phone_number',
+                'alternate_phone_number' => 'nullable|string|min:10|regex:/^[0-9]+$/|unique:customers,alternate_phone_number',
+            ]);
+
+            Session::put('customer_creation.personal', $validated);
+            return redirect()->route('staff.customers.create.address')->with('success', 'Personal information saved.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to store personal info', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        } catch (\Exception $e) {
+            Log::error('Error storing personal info', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while saving personal information: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function address(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $lgas = Lga::where('status', 'approved')->get();
+            $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : collect();
+            $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : collect();
+            $selectedLgaId = $request->lga_id;
+            $selectedWardId = $request->ward_id;
+            return view('staff.customers.create.address', compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to customer address form', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        }
+    }
+
+    public function storeAddress(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'lga_id' => 'required|exists:lgas,id',
+                'ward_id' => 'required|exists:wards,id',
+                'area_id' => 'required|exists:areas,id',
+                'street_name' => 'required|string|max:255',
+                'house_number' => 'required|string|max:255',
+                'landmark' => 'required|string|max:255',
+            ]);
+
+            $ward = Ward::where('id', $validated['ward_id'])->where('lga_id', $validated['lga_id'])->first();
+            if (!$ward) {
+                return back()->withErrors(['ward_id' => 'Selected ward does not belong to the chosen LGA.'])->withInput();
+            }
+
+            $area = Area::where('id', $validated['area_id'])->where('ward_id', $validated['ward_id'])->first();
+            if (!$area) {
+                return back()->withErrors(['area_id' => 'Selected area does not belong to the chosen ward.'])->withInput();
+            }
+
+            Session::put('customer_creation.address', $validated);
+            return redirect()->route('staff.customers.create.billing')->with('success', 'Address information saved.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to store address info', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        } catch (\Exception $e) {
+            Log::error('Error storing address info', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while saving address information: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function billing(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $categories = Category::where('status', 'approved')->get();
+            $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : collect();
+            $selectedCategoryId = $request->category_id;
+            return view('staff.customers.create.billing', compact('categories', 'tariffs', 'selectedCategoryId'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to customer billing form', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        }
+    }
+
+    public function storeBilling(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'tariff_id' => 'required|exists:tariffs,id',
+                'delivery_code' => 'nullable|string|max:255',
+                'billing_condition' => 'required|in:Metered,Non-Metered',
+                'water_supply_status' => 'required|in:Functional,Non-Functional',
+            ]);
+
+            $tariff = Tariff::where('id', $validated['tariff_id'])->where('category_id', $validated['category_id'])->first();
+            if (!$tariff) {
+                return back()->withErrors(['tariff_id' => 'Selected tariff does not belong to the chosen category.'])->withInput();
+            }
+
+            Session::put('customer_creation.billing', $validated);
+            return redirect()->route('staff.customers.create.location')->with('success', 'Billing information saved.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to store billing info', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        } catch (\Exception $e) {
+            Log::error('Error storing billing info', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while saving billing information: ' . $e->getMessage())->withInput();
+        }
+    }
+
+ public function filterTariffs(Request $request)
+    {
+        try {
+            $this->authorize('edit-customer', Customer::class);
+            $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'customer_id' => 'required|exists:customers,id',
+            ]);
+
+            $customer = Customer::findOrFail($request->customer_id);
+            $selectedCategoryId = $request->category_id;
+            $categories = Category::where('status', 'approved')->get();
+            $tariffs = Tariff::where('category_id', $selectedCategoryId)->where('status', 'approved')->get();
+            return response()->json([
+                'html' => view('staff.customers.partials.edit_billing', compact('customer', 'categories', 'tariffs', 'selectedCategoryId'))->render(),
+            ]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter tariffs', ['user_id' => Auth::guard('staff')->id()]);
+            return response()->json(['error' => 'You are not authorized to perform this action.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Error filtering tariffs', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'An error occurred while filtering tariffs: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function filterWardsForCreate(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'lga_id' => 'required|exists:lgas,id',
+            ]);
+
+            Session::put('customer_creation.address.lga_id', $validated['lga_id']);
+            Session::forget('customer_creation.address.ward_id');
+            Session::forget('customer_creation.address.area_id');
+
+            return redirect()->route('staff.customers.create.address', ['lga_id' => $validated['lga_id']]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter wards for create', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to perform this action.');
+        } catch (\Exception $e) {
+            Log::error('Error filtering wards for create', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while filtering wards: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function filterAreasForCreate(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'lga_id' => 'required|exists:lgas,id',
+                'ward_id' => 'required|exists:wards,id',
+            ]);
+
+            Session::put('customer_creation.address.lga_id', $validated['lga_id']);
+            Session::put('customer_creation.address.ward_id', $validated['ward_id']);
+
+            return redirect()->route('staff.customers.create.address', ['lga_id' => $validated['lga_id'], 'ward_id' => $validated['ward_id']]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter areas for create', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to perform this action.');
+        } catch (\Exception $e) {
+            Log::error('Error filtering areas for create', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while filtering areas: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function filterTariffsForCreate(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+            ]);
+
+            Session::put('customer_creation.billing.category_id', $validated['category_id']);
+            Session::forget('customer_creation.billing.tariff_id');
+
+            return redirect()->route('staff.customers.create.billing', ['category_id' => $validated['category_id']]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter tariffs for create', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to perform this action.');
+        } catch (\Exception $e) {
+            Log::error('Error filtering tariffs for create', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while filtering tariffs: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function location()
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            if (
+                !Session::has('customer_creation.personal') ||
+                !Session::has('customer_creation.address') ||
+                !Session::has('customer_creation.billing')
+            ) {
+                return redirect()->route('staff.customers.create.personal')
+                    ->with('error', 'Please complete all previous steps.');
+            }
+
+            return view('staff.customers.create.location');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to customer location form', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        }
+    }
+
+    public function storeLocation(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            if (
+                !Session::has('customer_creation.personal') ||
+                !Session::has('customer_creation.address') ||
+                !Session::has('customer_creation.billing')
+            ) {
+                return redirect()->route('staff.customers.create.personal')
+                    ->with('error', 'Please complete all previous steps.');
+            }
+
+            $validated = $request->validate([
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'altitude' => 'nullable|numeric',
+                'pipe_path' => 'nullable|json',
+                'polygon_coordinates' => 'nullable|json',
+                'password' => 'nullable|string|min:8|confirmed',
+            ]);
+
+            if ($validated['polygon_coordinates']) {
+                $coords = json_decode($validated['polygon_coordinates'], true);
+                $invalid = false;
+                if (!is_array($coords)) {
+                    $invalid = true;
+                } elseif (!empty($coords)) {
+                    foreach ($coords as $point) {
+                        if (!is_array($point) || count($point) !== 2 || !is_numeric($point[0]) || !is_numeric($point[1])) {
+                            $invalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($invalid) {
+                    return back()->withErrors(['polygon_coordinates' => 'Invalid polygon coordinates format. Must be an array of [lat, lng] pairs.'])->withInput();
+                }
+            }
+
+            if ($validated['pipe_path']) {
+                $pipePath = json_decode($validated['pipe_path'], true);
+                $invalid = false;
+                if (!is_array($pipePath)) {
+                    $invalid = true;
+                } elseif (!empty($pipePath)) {
+                    foreach ($pipePath as $point) {
+                        if (!is_array($point) || count($point) !== 2 || !is_numeric($point[0]) || !is_numeric($point[1])) {
+                            $invalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($invalid) {
+                    return back()->withErrors(['pipe_path' => 'Invalid pipe path format. Must be an array of [lat, lng] pairs.'])->withInput();
+                }
+            }
+
+            $customerData = array_merge(
+                Session::get('customer_creation.personal', []),
+                Session::get('customer_creation.address', []),
+                Session::get('customer_creation.billing', []),
+                $validated
+            );
+
+            $customerData['password'] = $customerData['password'] ? Hash::make($customerData['password']) : Hash::make('default123');
+            $customerData['status'] = 'pending';
+            $customerData['created_by'] = Auth::guard('staff')->id();
+
+            $customer = Customer::create($customerData);
+
+            if ($customer->status === 'approved') {
+                $customer->billing_id = Customer::generateBillingId($customer);
+                $customer->save();
+            }
+
+            Session::forget('customer_creation');
+            Log::info('Customer created successfully', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Customer created successfully and is pending approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to store location info', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to create customers.');
+        } catch (\Exception $e) {
+            Log::error('Error creating customer', ['error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while creating the customer: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function editPersonal(Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            return view('staff.customers.edit_personal', compact('customer'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to edit personal info', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+
+    public function updatePersonal(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'surname' => 'required|string|max:255',
+                'middle_name' => 'nullable|string|max:255',
+                'email' => 'required|email|max:255|unique:customers,email,' . $customer->id,
+                'phone_number' => 'required|string|min:10|regex:/^[0-9]+$/|unique:customers,phone_number,' . $customer->id,
+                'alternate_phone_number' => 'nullable|string|min:10|regex:/^[0-9]+$/|unique:customers,alternate_phone_number,' . $customer->id . ',id',
+            ]);
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if ($field === 'password_confirmation' || $field === 'status') continue;
+                $oldValue = $customer->$field ?? null;
+                if ($newValue != $oldValue) {
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : $newValue,
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', ['customer_id' => $customer->id, 'field' => $field, 'old_value' => $oldValue, 'new_value' => $newValue]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', ['customer_id' => $customer->id, 'field' => $field, 'error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                return redirect()->route('staff.customers.index')->with('info', 'No changes detected to submit for approval.');
+            }
+
+            Log::info('Personal information update submitted', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Personal information update submitted for approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update personal info', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error submitting personal update', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while submitting the update: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function editAddress(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $lgas = Lga::where('status', 'approved')->get();
+            $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : ($customer->lga_id ? Ward::where('lga_id', $customer->lga_id)->where('status', 'approved')->get() : collect());
+            $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : ($customer->ward_id ? Area::where('ward_id', $customer->ward_id)->where('status', 'approved')->get() : collect());
+            $selectedLgaId = $request->lga_id ?? $customer->lga_id;
+            $selectedWardId = $request->ward_id ?? $customer->ward_id;
+            return view('staff.customers.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to edit address', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+
+    public function updateAddress(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $validated = $request->validate([
+                'lga_id' => 'required|exists:lgas,id',
+                'ward_id' => 'required|exists:wards,id',
+                'area_id' => 'required|exists:areas,id',
+                'street_name' => 'required|string|max:255',
+                'house_number' => 'required|string|max:255',
+                'landmark' => 'required|string|max:255',
+            ]);
+
+            $ward = Ward::where('id', $validated['ward_id'])->where('lga_id', $validated['lga_id'])->first();
+            if (!$ward) {
+                return back()->withErrors(['ward_id' => 'Selected ward does not belong to the chosen LGA.'])->withInput();
+            }
+
+            $area = Area::where('id', $validated['area_id'])->where('ward_id', $validated['ward_id'])->first();
+            if (!$area) {
+                return back()->withErrors(['area_id' => 'Selected area does not belong to the chosen ward.'])->withInput();
+            }
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if ($field === 'password_confirmation' || $field === 'status') continue;
+                $oldValue = $customer->$field ?? null;
+                if ($newValue != $oldValue) {
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : $newValue,
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', ['customer_id' => $customer->id, 'field' => $field, 'old_value' => $oldValue, 'new_value' => $newValue]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', ['customer_id' => $customer->id, 'field' => $field, 'error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                return redirect()->route('staff.customers.index')->with('info', 'No changes detected to submit for approval.');
+            }
+
+            Log::info('Address update submitted', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Address update submitted for approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update address', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error submitting address update', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while submitting the update: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function editBilling(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $categories = Category::where('status', 'approved')->get();
+            $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : ($customer->category_id ? Tariff::where('category_id', $customer->category_id)->where('status', 'approved')->get() : collect());
+            $selectedCategoryId = $request->category_id ?? $customer->category_id;
+            return view('staff.customers.edit_billing', compact('customer', 'categories', 'tariffs', 'selectedCategoryId'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to edit billing', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+
+    public function updateBilling(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'tariff_id' => 'required|exists:tariffs,id',
+                'delivery_code' => 'nullable|string|max:255',
+                'billing_condition' => 'required|in:Metered,Non-Metered',
+                'water_supply_status' => 'required|in:Functional,Non-Functional',
+            ]);
+
+            $tariff = Tariff::where('id', $validated['tariff_id'])->where('category_id', $validated['category_id'])->first();
+            if (!$tariff) {
+                return back()->withErrors(['tariff_id' => 'Selected tariff does not belong to the chosen category.'])->withInput();
+            }
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if ($field === 'password_confirmation' || $field === 'status') continue;
+                $oldValue = $customer->$field ?? null;
+                if ($newValue != $oldValue) {
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : $newValue,
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', ['customer_id' => $customer->id, 'field' => $field, 'old_value' => $oldValue, 'new_value' => $newValue]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', ['customer_id' => $customer->id, 'field' => $field, 'error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                return redirect()->route('staff.customers.index')->with('info', 'No changes detected to submit for approval.');
+            }
+
+            Log::info('Billing update submitted', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Billing update submitted for approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update billing', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error submitting billing update', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while submitting the update: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function editLocation(Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            return view('staff.customers.edit_location', compact('customer'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to edit location', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        }
+    }
+
+    public function updateLocation(Request $request, Customer $customer)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            $validated = $request->validate([
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'altitude' => 'nullable|numeric',
+                'pipe_path' => 'nullable|json',
+                'polygon_coordinates' => 'nullable|json',
+                'password' => 'nullable|string|min:8|confirmed',
+            ]);
+
+            if ($validated['polygon_coordinates']) {
+                $coords = json_decode($validated['polygon_coordinates'], true);
+                $invalid = false;
+                if (!is_array($coords)) {
+                    $invalid = true;
+                } elseif (!empty($coords)) {
+                    foreach ($coords as $point) {
+                        if (!is_array($point) || count($point) !== 2 || !is_numeric($point[0]) || !is_numeric($point[1])) {
+                            $invalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($invalid) {
+                    return back()->withErrors(['polygon_coordinates' => 'Invalid polygon coordinates format. Must be an array of [lat, lng] pairs.'])->withInput();
+                }
+            }
+
+            if ($validated['pipe_path']) {
+                $pipePath = json_decode($validated['pipe_path'], true);
+                $invalid = false;
+                if (!is_array($pipePath)) {
+                    $invalid = true;
+                } elseif (!empty($pipePath)) {
+                    foreach ($pipePath as $point) {
+                        if (!is_array($point) || count($point) !== 2 || !is_numeric($point[0]) || !is_numeric($point[1])) {
+                            $invalid = true;
+                            break;
+                        }
+                    }
+                }
+                if ($invalid) {
+                    return back()->withErrors(['pipe_path' => 'Invalid pipe path format. Must be an array of [lat, lng] pairs.'])->withInput();
+                }
+            }
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if ($field === 'password_confirmation' || $field === 'status') continue;
+                $oldValue = $customer->$field ?? null;
+                if ($field === 'password' && !$newValue) continue;
+                if ($newValue != $oldValue) {
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : ($field === 'password' ? Hash::make($newValue) : $newValue),
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', ['customer_id' => $customer->id, 'field' => $field, 'old_value' => $oldValue, 'new_value' => $newValue]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', ['customer_id' => $customer->id, 'field' => $field, 'error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                return redirect()->route('staff.customers.index')->with('info', 'No changes detected to submit for approval.');
+            }
+
+            Log::info('Location update submitted', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Location update submitted for approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update location', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error submitting location update', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while submitting the update: ' . $e->getMessage())->withInput();
+        }
+    }
+
+   public function filterWards(Request $request)
+    {
+        try {
+            $this->authorize('edit-customer', Customer::class);
+            $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'lga_id' => 'required|exists:lgas,id',
+            ]);
+
+            $customer = Customer::findOrFail($request->customer_id);
+            $selectedLgaId = $request->lga_id;
+            $lgas = Lga::where('status', 'approved')->get();
+            $wards = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved')->get();
+            $areas = collect();
+            $selectedWardId = null;
+            return response()->json([
+                'html' => view('staff.customers.partials.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'))->render(),
+            ]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter wards', ['user_id' => Auth::guard('staff')->id()]);
+            return response()->json(['error' => 'You are not authorized to perform this action.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Error filtering wards', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'An error occurred while filtering wards: ' . $e->getMessage()], 500);
+        }
+    }
+
+   
+    public function filterAreas(Request $request)
+    {
+        try {
+            $this->authorize('edit-customer', Customer::class);
+            $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'lga_id' => 'required|exists:lgas,id',
+                'ward_id' => 'required|exists:wards,id',
+            ]);
+
+            $customer = Customer::findOrFail($request->customer_id);
+            $selectedLgaId = $request->lga_id;
+            $selectedWardId = $request->ward_id;
+            $lgas = Lga::where('status', 'approved')->get();
+            $wards = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved')->get();
+            $areas = Area::where('ward_id', $selectedWardId)->where('status', 'approved')->get();
+            return response()->json([
+                'html' => view('staff.customers.partials.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'))->render(),
+            ]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter areas', ['user_id' => Auth::guard('staff')->id()]);
+            return response()->json(['error' => 'You are not authorized to perform this action.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Error filtering areas', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'An error occurred while filtering areas: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function pending()
+    {
+        try {
+            $this->authorize('approve-customer', Customer::class);
+            $pendingUpdates = PendingCustomerUpdate::with(['customer', 'staff'])
+                ->where('status', 'pending')
+                ->paginate(10);
+            return view('staff.customers.pending_changes', compact('pendingUpdates'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to pending updates', ['user_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to view pending updates.');
+        } catch (\Exception $e) {
+            Log::error('Error fetching pending updates', ['error' => $e->getMessage()]);
+            return redirect()->route('staff.dashboard')->with('error', 'An error occurred while fetching pending updates: ' . $e->getMessage());
+        }
+    }
+
+    public function approvePending(PendingCustomerUpdate $update)
+    {
+        try {
+            $this->authorize('approve-customer', Customer::class);
+            $customer = $update->customer;
+            $field = $update->field;
+            $newValue = $update->new_value;
+
+            if (in_array($field, ['polygon_coordinates', 'pipe_path']) && $newValue) {
+                $newValue = json_decode($newValue, true);
+            }
+
+            $customer->update([$field => $newValue]);
+            $update->update(['status' => 'approved']);
+
+            Log::info('Pending update approved', ['customer_id' => $customer->id, 'field' => $field, 'staff_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.customers.pending')->with('success', 'Update approved successfully.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to approve update', ['user_id' => Auth::guard('staff')->id(), 'update_id' => $update->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to approve updates.');
+        } catch (\Exception $e) {
+            Log::error('Error approving update', ['update_id' => $update->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while approving the update: ' . $e->getMessage());
+        }
+    }
+
+    public function rejectPending(PendingCustomerUpdate $update)
+    {
+        try {
+            $this->authorize('reject-customer', Customer::class);
+            $update->update(['status' => 'rejected']);
+
+            Log::info('Pending update rejected', ['update_id' => $update->id, 'staff_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.customers.pending')->with('success', 'Update rejected.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to reject pending update', ['user_id' => Auth::guard('staff')->id(), 'update_id' => $update->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to reject updates.');
+        } catch (\Exception $e) {
+            Log::error('Error rejecting update', ['update_id' => $update->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while rejecting the update: ' . $e->getMessage());
+        }
+    }
+
+    public function show(Customer $customer)
+    {
+        try {
+            $this->authorize('view-customer', $customer);
+            return view('staff.customers.show', compact('customer'));
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized access attempt to view customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to view this customer.');
+        }
+    }
+
+    public function destroy(Customer $customer)
+    {
+        try {
+            $this->authorize('delete-customer', $customer);
+            $customer->delete();
+            Log::info('Customer deleted', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Customer deleted successfully.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to delete customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to delete this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting customer', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while deleting the customer: ' . $e->getMessage());
+        }
+    }
+
+    public function approve(Customer $customer)
+    {
+        try {
+            $this->authorize('approve-customer', Customer::class);
+            $customer->update(['status' => 'approved']);
+            if (!$customer->billing_id) {
+                $customer->billing_id = Customer::generateBillingId($customer);
+                $customer->save();
+            }
+
+            PendingCustomerUpdate::where('customer_id', $customer->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'approved']);
+
+            Log::info('Customer approved', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Customer approved successfully.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to approve customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to approve customers.');
+        } catch (\Exception $e) {
+            Log::error('Error approving customer', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while approving the customer: ' . $e->getMessage());
+        }
+    }
+
+    public function reject(Customer $customer)
+    {
+        try {
+            $this->authorize('reject-customer', Customer::class);
+            $customer->update(['status' => 'rejected']);
+
+            PendingCustomerUpdate::where('customer_id', $customer->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
+
+            Log::info('Customer rejected', ['customer_id' => $customer->id]);
+            return redirect()->route('staff.customers.index')->with('success', 'Customer rejected successfully.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to reject customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to reject customers.');
+        } catch (\Exception $e) {
+            Log::error('Error rejecting customer', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while rejecting the customer: ' . $e->getMessage());
+        }
+    }
+
+    protected function updateSection(Request $request, Customer $customer, string $part, array $rules, callable $extraValidation = null)
+    {
+        try {
+            $this->authorize('edit-customer', $customer);
+            Log::debug('Update request received', ['customer_id' => $customer->id, 'part' => $part, 'input' => $request->all()]);
+
+            try {
+                $validated = $request->validate($rules);
+                Log::debug('Validation passed', ['customer_id' => $customer->id, 'validated' => $validated]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                Log::error('Validation failed', ['customer_id' => $customer->id, 'errors' => $e->errors()]);
+                return back()->withErrors($e->errors())->withInput();
+            }
+
+            if ($extraValidation) {
+                $extraResult = $extraValidation($validated);
+                if ($extraResult && isset($extraResult['error'])) {
+                    Log::warning('Extra validation failed', ['customer_id' => $customer->id, 'errors' => $extraResult['error']]);
+                    return back()->withErrors($extraResult['error'])->withInput();
+                }
+            }
+
+            $updatesCreated = false;
+            foreach ($validated as $field => $newValue) {
+                if ($field === 'password_confirmation' || $field === 'status') continue;
+                $oldValue = $customer->$field ?? null;
+                if ($field === 'password' && !$newValue) continue;
+                if ($newValue != $oldValue) {
+                    try {
+                        PendingCustomerUpdate::create([
+                            'customer_id' => $customer->id,
+                            'field' => $field,
+                            'old_value' => is_array($oldValue) ? json_encode($oldValue) : $oldValue,
+                            'new_value' => is_array($newValue) ? json_encode($newValue) : ($field === 'password' ? Hash::make($newValue) : $newValue),
+                            'updated_by' => Auth::guard('staff')->id(),
+                        ]);
+                        $updatesCreated = true;
+                        Log::debug('Pending update created', ['customer_id' => $customer->id, 'field' => $field, 'old_value' => $oldValue, 'new_value' => $newValue]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create pending update', ['customer_id' => $customer->id, 'field' => $field, 'error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            if (!$updatesCreated) {
+                Log::warning('No updates created, no fields changed', ['customer_id' => $customer->id]);
+                return redirect()->route('staff.customers.index')->with('info', 'No changes detected to submit for approval.');
+            }
+
+            Log::info('Customer update submitted', ['customer_id' => $customer->id, 'part' => $part]);
+            return redirect()->route('staff.customers.index')->with('success', 'Update submitted for approval.');
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to update customer', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
+        } catch (\Exception $e) {
+            Log::error('Error submitting customer update', ['customer_id' => $customer->id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'An error occurred while submitting the update: ' . $e->getMessage())->withInput();
+        }
+    }
+
+ protected function getValidationRules(string $part)
+    {
+        $rules = [
+            'personal' => [
+                'rules' => [
+                    'first_name' => 'required|string|max:255',
+                    'surname' => 'required|string|max:255',
+                    'middle_name' => 'nullable|string|max:255',
+                    'email' => 'required|email|unique:customers,email,' . request()->route('customer')->id,
+                    'phone_number' => 'required|string|min:10|regex:/^[0-9]+$/|unique:customers,phone_number,' . request()->route('customer')->id,
+                    'alternate_phone_number' => 'nullable|string|min:10|regex:/^[0-9]+$/|unique:customers,alternate_phone_number,' . request()->route('customer')->id . ',id',
+                ],
+            ],
+            'address' => [
+                'rules' => [
+                    'lga_id' => 'required|exists:lgas,id',
+                    'ward_id' => 'required|exists:wards,id',
+                    'area_id' => 'required|exists:areas,id',
+                    'street_name' => 'required|string|max:255',
+                    'house_number' => 'required|string|max:255',
+                    'landmark' => 'required|string|max:255',
+                ],
+                'extraValidation' => function ($validated) {
+                    $ward = Ward::where('id', $validated['ward_id'])->where('lga_id', $validated['lga_id'])->first();
+                    if (!$ward) {
+                        return ['error' => ['ward_id' => 'Selected ward does not belong to the chosen LGA.']];
+                    }
+                    $area = Area::where('id', $validated['area_id'])->where('ward_id', $validated['ward_id'])->first();
+                    if (!$area) {
+                        return ['error' => ['area_id' => 'Selected area does not belong to the chosen ward.']];
+                    }
+                    return null;
+                },
+            ],
+            'billing' => [
+                'rules' => [
+                    'category_id' => 'required|exists:categories,id',
+                    'tariff_id' => 'required|exists:tariffs,id',
+                    'delivery_code' => 'nullable|string|max:255',
+                    'billing_condition' => 'required|in:Normal,Special,Exempt', // Updated to match edit_billing.blade.php
+                    'water_supply_status' => 'required|in:Functional,Non-Functional',
+                ],
+                'extraValidation' => function ($validated) {
+                    $tariff = Tariff::where('id', $validated['tariff_id'])->where('category_id', $validated['category_id'])->first();
+                    if (!$tariff) {
+                        return ['error' => ['tariff_id' => 'Selected tariff does not belong to the chosen category.']];
+                    }
+                    return null;
+                },
+            ],
+            'location' => [
+                'rules' => [
+                    'latitude' => 'required|numeric|between:-90,90',
+                    'longitude' => 'required|numeric|between:-180,180',
+                    'altitude' => 'nullable|numeric',
+                    'pipe_path' => 'nullable|json',
+                    'polygon_coordinates' => 'nullable|json',
+                    'password' => 'nullable|string|min:8|confirmed',
+                ],
+                'extraValidation' => function ($validated) {
+                    if ($validated['polygon_coordinates']) {
+                        $coords = json_decode($validated['polygon_coordinates'], true);
+                        if (!is_array($coords) || (!empty($coords) && !collect($coords)->every(function($point) {
+                            return is_array($point) && count($point) === 2 && is_numeric($point[0]) && is_numeric($point[1]);
+                        }))) {
+                            return ['error' => ['polygon_coordinates' => 'Invalid polygon coordinates format. Must be an array of [lat, lng] pairs.']];
+                        }
+                    }
+                    if ($validated['pipe_path']) {
+                        $pipePath = json_decode($validated['pipe_path'], true);
+                        if (!is_array($pipePath) || (!empty($pipePath) && !collect($pipePath)->every(function($point) {
+                            return is_array($point) && count($point) === 2 && is_numeric($point[0]) && is_numeric($point[1]);
+                        }))) {
+                            return ['error' => ['pipe_path' => 'Invalid pipe path format. Must be an array of [lat, lng] pairs.']];
+                        }
+                    }
+                    return null;
+                },
+            ],
+        ];
+
+        return $rules[$part] ?? null;
+    }
+}
