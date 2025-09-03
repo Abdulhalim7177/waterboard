@@ -11,6 +11,11 @@ class RestrictLoginAccess
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip this middleware for API routes
+        if ($request->is('api/*')) {
+            return $next($request);
+        }
+
         // Check if the user is authenticated with any guard
         if (Auth::guard('staff')->check()) {
             // Prevent access to staff login and other guard routes

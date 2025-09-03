@@ -2,11 +2,12 @@
 
 namespace App\Models;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Ward extends Model
 {
-    use Auditable;
+    use HasFactory, Auditable;
     protected $fillable = ['code', 'name', 'lga_id', 'status'];
 
     public function lga()

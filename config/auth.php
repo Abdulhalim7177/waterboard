@@ -39,6 +39,10 @@ return [
     'customer' => ['driver' => 'session', 'provider' => 'customers'],
     'vendor' => ['driver' => 'session', 'provider' => 'vendors'],
     'staff' => ['driver' => 'session', 'provider' => 'staff'],
+    'sanctum' => [
+        'driver' => 'sanctum',
+        'provider' => 'staff',
+    ],
 ],
 'providers' => [
     'users' => ['driver' => 'eloquent', 'model' => App\Models\User::class],

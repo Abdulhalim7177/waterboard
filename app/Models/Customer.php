@@ -1,13 +1,14 @@
 <?php
 namespace App\Models;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Customer extends Authenticatable
 {
-    use Auditable;
+    use HasFactory, Auditable;
 
     protected $fillable = [
         'first_name', 'surname', 'email', 'phone_number', 'alternate_phone_number',
