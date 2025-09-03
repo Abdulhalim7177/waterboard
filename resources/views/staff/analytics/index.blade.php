@@ -51,25 +51,27 @@
                         <span class="text-gray-400 mt-1 fw-semibold fs-6">System overview and key metrics</span>
                     </h3>
                     <form id="analytics_filter_form" method="GET" class="d-flex align-items-center gap-3 flex-wrap">
-                        <div class="w-150px">
-                            <label for="start_date" class="form-label fs-7 fw-bold text-gray-600">Start Date</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm form-control-solid" value="{{ request('start_date') }}" />
-                        </div>
-                        <div class="w-150px">
-                            <label for="end_date" class="form-label fs-7 fw-bold text-gray-600">End Date</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm form-control-solid" value="{{ request('end_date') }}" />
-                        </div>
-                        <div class="w-150px">
-                            <label for="status_filter" class="form-label fs-7 fw-bold text-gray-600">Status</label>
-                            <select name="status_filter" id="status_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All Statuses">
-                                <option value="">All</option>
-                                <option value="pending" {{ request('status_filter') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="approved" {{ request('status_filter') == 'approved' ? 'selected' : '' }}>Approved</option>
-                                <option value="rejected" {{ request('status_filter') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                                <option value="overdue" {{ request('status_filter') == 'overdue' ? 'selected' : '' }}>Overdue</option>
-                                <option value="in_progress" {{ request('status_filter') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="resolved" {{ request('status_filter') == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                            </select>
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div class="w-150px">
+                                <label for="start_date" class="form-label fs-7 fw-bold text-gray-600">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm form-control-solid" value="{{ request('start_date') }}" />
+                            </div>
+                            <div class="w-150px">
+                                <label for="end_date" class="form-label fs-7 fw-bold text-gray-600">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm form-control-solid" value="{{ request('end_date') }}" />
+                            </div>
+                            <div class="w-150px">
+                                <label for="status_filter" class="form-label fs-7 fw-bold text-gray-600">Status</label>
+                                <select name="status_filter" id="status_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All Statuses">
+                                    <option value="">All</option>
+                                    <option value="pending" {{ request('status_filter') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="approved" {{ request('status_filter') == 'approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="rejected" {{ request('status_filter') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                    <option value="overdue" {{ request('status_filter') == 'overdue' ? 'selected' : '' }}>Overdue</option>
+                                    <option value="in_progress" {{ request('status_filter') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                    <option value="resolved" {{ request('status_filter') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-sm btn-primary">Filter</button>

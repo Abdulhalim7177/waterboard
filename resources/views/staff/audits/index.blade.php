@@ -46,56 +46,50 @@
                             <div class="px-7 py-5">
                                 <!--begin::Form-->
                                 <form method="GET" action="{{ route('staff.audits.index') }}">
-                                    <!--begin::Input group-->
-                                    <div class="mb-10">
-                                        <label class="form-label fs-5 fw-semibold mb-3">Event:</label>
-                                        <select name="event" class="form-select form-select-solid fw-bold" data-kt-select2="true" data-placeholder="Select option" data-allow-clear="true" data-kt-audit-table-filter="event" data-dropdown-parent="#kt-toolbar-filter">
-                                            <option value="">All Events</option>
-                                            <option value="created" {{ request('event') === 'created' ? 'selected' : '' }}>Created</option>
-                                            <option value="updated" {{ request('event') === 'updated' ? 'selected' : '' }}>Updated</option>
-                                            <option value="approved" {{ request('event') === 'approved' ? 'selected' : '' }}>Approved</option>
-                                            <option value="rejected" {{ request('event') === 'rejected' ? 'selected' : '' }}>Rejected</option>
-                                            <option value="deleted" {{ request('event') === 'deleted' ? 'selected' : '' }}>Deleted</option>
-                                            <option value="create_requested" {{ request('event') === 'create_requested' ? 'selected' : '' }}>Create Requested</option>
-                                            <option value="update_requested" {{ request('event') === 'update_requested' ? 'selected' : '' }}>Update Requested</option>
-                                            <option value="delete_requested" {{ request('event') === 'delete_requested' ? 'selected' : '' }}>Deletion Requested</option>
-                                            <option value="deletion_approved" {{ request('event') === 'deletion_approved' ? 'selected' : '' }}>Deletion Approved</option>
-                                            <option value="deletion_rejected" {{ request('event') === 'deletion_rejected' ? 'selected' : '' }}>Deletion Rejected</option>
-                                            <option value="roles_assigned" {{ request('event') === 'roles_assigned' ? 'selected' : '' }}>Roles Assigned</option>
-                                            <option value="roles_removed" {{ request('event') === 'roles_removed' ? 'selected' : '' }}>Roles Removed</option>
-                                        </select>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fs-5 fw-semibold mb-3">Event:</label>
+                                            <select name="event" class="form-select form-select-solid fw-bold" data-kt-select2="true" data-placeholder="Select option" data-allow-clear="true" data-kt-audit-table-filter="event" data-dropdown-parent="#kt-toolbar-filter">
+                                                <option value="">All Events</option>
+                                                <option value="created" {{ request('event') === 'created' ? 'selected' : '' }}>Created</option>
+                                                <option value="updated" {{ request('event') === 'updated' ? 'selected' : '' }}>Updated</option>
+                                                <option value="approved" {{ request('event') === 'approved' ? 'selected' : '' }}>Approved</option>
+                                                <option value="rejected" {{ request('event') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                                <option value="deleted" {{ request('event') === 'deleted' ? 'selected' : '' }}>Deleted</option>
+                                                <option value="create_requested" {{ request('event') === 'create_requested' ? 'selected' : '' }}>Create Requested</option>
+                                                <option value="update_requested" {{ request('event') === 'update_requested' ? 'selected' : '' }}>Update Requested</option>
+                                                <option value="delete_requested" {{ request('event') === 'delete_requested' ? 'selected' : '' }}>Deletion Requested</option>
+                                                <option value="deletion_approved" {{ request('event') === 'deletion_approved' ? 'selected' : '' }}>Deletion Approved</option>
+                                                <option value="deletion_rejected" {{ request('event') === 'deletion_rejected' ? 'selected' : '' }}>Deletion Rejected</option>
+                                                <option value="roles_assigned" {{ request('event') === 'roles_assigned' ? 'selected' : '' }}>Roles Assigned</option>
+                                                <option value="roles_removed" {{ request('event') === 'roles_removed' ? 'selected' : '' }}>Roles Removed</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fs-5 fw-semibold mb-3">Auditable Type:</label>
+                                            <select name="search_model" class="form-select form-select-solid fw-bold" data-kt-select2="true" data-placeholder="Select option" data-allow-clear="true" data-kt-audit-table-filter="auditable_type" data-dropdown-parent="#kt-toolbar-filter">
+                                                <option value="">All Types</option>
+                                                <option value="App\Models\Staff" {{ request('search_model') === 'App\Models\Staff' ? 'selected' : '' }}>Staff</option>
+                                                <option value="App\Models\Role" {{ request('search_model') === 'App\Models\Role' ? 'selected' : '' }}>Role</option>
+                                                <option value="App\Models\Permission" {{ request('search_model') === 'App\Models\Permission' ? 'selected' : '' }}>Permission</option>
+                                                <option value="App\Models\Lga" {{ request('search_model') === 'App\Models\Lga' ? 'selected' : '' }}>LGA</option>
+                                                <option value="App\Models\Ward" {{ request('search_model') === 'App\Models\Ward' ? 'selected' : '' }}>Ward</option>
+                                                <option value="App\Models\Area" {{ request('search_model') === 'App\Models\Area' ? 'selected' : '' }}>Area</option>
+                                                <option value="App\Models\Category" {{ request('search_model') === 'App\Models\Category' ? 'selected' : '' }}>Category</option>
+                                                <option value="App\Models\Tariff" {{ request('search_model') === 'App\Models\Tariff' ? 'selected' : '' }}>Tariff</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fs-5 fw-semibold mb-3">Date From:</label>
+                                            <input type="date" name="date_from" class="form-control form-control-solid" value="{{ request('date_from') }}" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fs-5 fw-semibold mb-3">Date To:</label>
+                                            <input type="date" name="date_to" class="form-control form-control-solid" value="{{ request('date_to') }}" />
+                                        </div>
                                     </div>
-                                    <!--end::Input group-->
-                                    <!--begin::Input group-->
-                                    <div class="mb-10">
-                                        <label class="form-label fs-5 fw-semibold mb-3">Auditable Type:</label>
-                                        <select name="search_model" class="form-select form-select-solid fw-bold" data-kt-select2="true" data-placeholder="Select option" data-allow-clear="true" data-kt-audit-table-filter="auditable_type" data-dropdown-parent="#kt-toolbar-filter">
-                                            <option value="">All Types</option>
-                                            <option value="App\Models\Staff" {{ request('search_model') === 'App\Models\Staff' ? 'selected' : '' }}>Staff</option>
-                                            <option value="App\Models\Role" {{ request('search_model') === 'App\Models\Role' ? 'selected' : '' }}>Role</option>
-                                            <option value="App\Models\Permission" {{ request('search_model') === 'App\Models\Permission' ? 'selected' : '' }}>Permission</option>
-                                            <option value="App\Models\Lga" {{ request('search_model') === 'App\Models\Lga' ? 'selected' : '' }}>LGA</option>
-                                            <option value="App\Models\Ward" {{ request('search_model') === 'App\Models\Ward' ? 'selected' : '' }}>Ward</option>
-                                            <option value="App\Models\Area" {{ request('search_model') === 'App\Models\Area' ? 'selected' : '' }}>Area</option>
-                                            <option value="App\Models\Category" {{ request('search_model') === 'App\Models\Category' ? 'selected' : '' }}>Category</option>
-                                            <option value="App\Models\Tariff" {{ request('search_model') === 'App\Models\Tariff' ? 'selected' : '' }}>Tariff</option>
-                                        </select>
-                                    </div>
-                                    <!--end::Input group-->
-                                    <!--begin::Input group-->
-                                    <div class="mb-10">
-                                        <label class="form-label fs-5 fw-semibold mb-3">Date From:</label>
-                                        <input type="date" name="date_from" class="form-control form-control-solid" value="{{ request('date_from') }}" />
-                                    </div>
-                                    <!--end::Input group-->
-                                    <!--begin::Input group-->
-                                    <div class="mb-10">
-                                        <label class="form-label fs-5 fw-semibold mb-3">Date To:</label>
-                                        <input type="date" name="date_to" class="form-control form-control-solid" value="{{ request('date_to') }}" />
-                                    </div>
-                                    <!--end::Input group-->
                                     <!--begin::Actions-->
-                                    <div class="d-flex justify-content-end">
+                                    <div class="d-flex justify-content-end mt-5">
                                         <a href="{{ route('staff.audits.index') }}" class="btn btn-light btn-active-light-primary me-2" data-kt-menu-dismiss="true">Reset</a>
                                         <button type="submit" class="btn btn-primary" data-kt-menu-dismiss="true" data-kt-audit-table-filter="filter">Apply</button>
                                     </div>

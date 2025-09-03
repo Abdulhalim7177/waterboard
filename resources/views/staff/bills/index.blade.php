@@ -27,67 +27,69 @@
             <div class="card-body pt-0">
                 <form id="report-form" class="d-flex flex-wrap align-items-end gap-4">
                     @csrf
-                    <div class="position-relative">
-                        <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-solid w-200px">
-                    </div>
-                    <div class="position-relative">
-                        <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-solid w-200px">
-                    </div>
-                    <div class="position-relative">
-                        <label for="customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
-                        <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
-                            <option value="">All Customers</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="position-relative">
-                        <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
-                        <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Categories</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="position-relative">
-                        <label for="tariff_id" class="block text-sm font-medium text-gray-700">Tariff</label>
-                        <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Tariffs</option>
-                            @foreach ($tariffs as $tariff)
-                                <option value="{{ $tariff->id }}">{{ $tariff->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="position-relative">
-                        <label for="lga_id" class="block text-sm font-medium text-gray-700">LGA</label>
-                        <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All LGAs</option>
-                            @foreach ($lgas as $lga)
-                                <option value="{{ $lga->id }}">{{ $lga->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="position-relative">
-                        <label for="ward_id" class="block text-sm font-medium text-gray-700">Ward</label>
-                        <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Wards</option>
-                            @foreach ($wards as $ward)
-                                <option value="{{ $ward->id }}">{{ $ward->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="position-relative">
-                        <label for="area_id" class="block text-sm font-medium text-gray-700">Area</label>
-                        <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Areas</option>
-                            @foreach ($areas as $area)
-                                <option value="{{ $area->id }}">{{ $area->name }}</option>
-                            @endforeach
-                        </select>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control form-control-solid w-200px">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control form-control-solid w-200px">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
+                            <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
+                                <option value="">All Customers</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}">{{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                            <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Categories</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tariff_id" class="block text-sm font-medium text-gray-700">Tariff</label>
+                            <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Tariffs</option>
+                                @foreach ($tariffs as $tariff)
+                                    <option value="{{ $tariff->id }}">{{ $tariff->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lga_id" class="block text-sm font-medium text-gray-700">LGA</label>
+                            <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All LGAs</option>
+                                @foreach ($lgas as $lga)
+                                    <option value="{{ $lga->id }}">{{ $lga->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ward_id" class="block text-sm font-medium text-gray-700">Ward</label>
+                            <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Wards</option>
+                                @foreach ($wards as $ward)
+                                    <option value="{{ $ward->id }}">{{ $ward->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="area_id" class="block text-sm font-medium text-gray-700">Area</label>
+                            <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Areas</option>
+                                @foreach ($areas as $area)
+                                    <option value="{{ $area->id }}">{{ $area->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="position-relative align-self-end">
                         <button type="submit" formaction="{{ route('staff.reports.combined') }}" class="btn btn-primary btn-sm">Combined Report</button>
@@ -110,75 +112,77 @@
                 <div class="d-flex flex-stack flex-wrap gap-4">
                     <!-- Filter Form -->
                     <form method="GET" action="{{ route('staff.bills.index') }}" class="d-flex flex-wrap align-items-end gap-4" id="filter-form">
-                        <div class="position-relative">
-                            <select name="year_month" id="year_month" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All Months</option>
-                                @foreach ($yearMonths as $ym)
-                                    <option value="{{ $ym }}" {{ request('year_month') == $ym ? 'selected' : '' }}>
-                                        {{ \Carbon\Carbon::createFromFormat('Ym', $ym)->format('F Y') }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="customer_id" id="customer_id_filter" class="form-control form-control-solid w-250px" data-control="select2">
-                                <option value="">All Customers</option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                                        {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="category_id" id="category_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All Categories</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="tariff_id" id="tariff_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All Tariffs</option>
-                                @foreach ($tariffs as $tariff)
-                                    <option value="{{ $tariff->id }}" {{ request('tariff_id') == $tariff->id ? 'selected' : '' }}>
-                                        {{ $tariff->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="lga_id" id="lga_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All LGAs</option>
-                                @foreach ($lgas as $lga)
-                                    <option value="{{ $lga->id }}" {{ request('lga_id') == $lga->id ? 'selected' : '' }}>
-                                        {{ $lga->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="ward_id" id="ward_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All Wards</option>
-                                @foreach ($wards as $ward)
-                                    <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected' : '' }}>
-                                        {{ $ward->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="position-relative">
-                            <select name="area_id" id="area_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
-                                <option value="">All Areas</option>
-                                @foreach ($areas as $area)
-                                    <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
-                                        {{ $area->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <select name="year_month" id="year_month" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All Months</option>
+                                    @foreach ($yearMonths as $ym)
+                                        <option value="{{ $ym }}" {{ request('year_month') == $ym ? 'selected' : '' }}>
+                                            {{ \Carbon\Carbon::createFromFormat('Ym', $ym)->format('F Y') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="customer_id" id="customer_id_filter" class="form-control form-control-solid w-250px" data-control="select2">
+                                    <option value="">All Customers</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
+                                            {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="category_id" id="category_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All Categories</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="tariff_id" id="tariff_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All Tariffs</option>
+                                    @foreach ($tariffs as $tariff)
+                                        <option value="{{ $tariff->id }}" {{ request('tariff_id') == $tariff->id ? 'selected' : '' }}>
+                                            {{ $tariff->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="lga_id" id="lga_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All LGAs</option>
+                                    @foreach ($lgas as $lga)
+                                        <option value="{{ $lga->id }}" {{ request('lga_id') == $lga->id ? 'selected' : '' }}>
+                                            {{ $lga->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="ward_id" id="ward_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All Wards</option>
+                                    @foreach ($wards as $ward)
+                                        <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected' : '' }}>
+                                            {{ $ward->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="area_id" id="area_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
+                                    <option value="">All Areas</option>
+                                    @foreach ($areas as $area)
+                                        <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
+                                            {{ $area->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         <div class="position-relative align-self-end">
                             <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>

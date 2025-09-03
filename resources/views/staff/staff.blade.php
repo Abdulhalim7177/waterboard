@@ -60,6 +60,7 @@
             </div>
         </div>
         <div class="card-body pt-0">
+            <div class="table-responsive">
             <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_staff_table">
                 <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -415,6 +416,7 @@
                     @endif
                 </ul>
             </nav>
+        </div>
         </div>
     </div>
 

@@ -26,87 +26,90 @@
             </h3>
             <div class="card-toolbar">
                 <form method="GET" action="{{ route('staff.payments.index') }}" class="d-flex flex-stack flex-wrap gap-4">
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
-                            <option value="">All Customers</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                                    {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="status" id="status" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Statuses</option>
-                            @foreach ($statuses as $status)
-                                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Categories</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Tariffs</option>
-                            @foreach ($tariffs as $tariff)
-                                <option value="{{ $tariff->id }}" {{ request('tariff_id') == $tariff->id ? 'selected' : '' }}>
-                                    {{ $tariff->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All LGAs</option>
-                            @foreach ($lgas as $lga)
-                                <option value="{{ $lga->id }}" {{ request('lga_id') == $lga->id ? 'selected' : '' }}>
-                                    {{ $lga->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Wards</option>
-                            @foreach ($wards as $ward)
-                                <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected' : '' }}>
-                                    {{ $ward->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
-                            <option value="">All Areas</option>
-                            @foreach ($areas as $area)
-                                <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
-                                    {{ $area->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
-                               class="form-control form-control-solid w-200px" placeholder="Start Date" />
-                    </div>
-                    <div class="d-flex align-items-center position-relative my-1">
-                        <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
-                               class="form-control form-control-solid w-200px" placeholder="End Date" />
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
+                                <option value="">All Customers</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
+                                        {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="status" id="status" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Statuses</option>
+                                @foreach ($statuses as $status)
+                                    <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Categories</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Tariffs</option>
+                                @foreach ($tariffs as $tariff)
+                                    <option value="{{ $tariff->id }}" {{ request('tariff_id') == $tariff->id ? 'selected' : '' }}>
+                                        {{ $tariff->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All LGAs</option>
+                                @foreach ($lgas as $lga)
+                                    <option value="{{ $lga->id }}" {{ request('lga_id') == $lga->id ? 'selected' : '' }}>
+                                        {{ $lga->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Wards</option>
+                                @foreach ($wards as $ward)
+                                    <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected' : '' }}>
+                                        {{ $ward->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Areas</option>
+                                @foreach ($areas as $area)
+                                    <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
+                                        {{ $area->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
+                                   class="form-control form-control-solid w-200px" placeholder="Start Date" />
+                        </div>
+                        <div class="col-md-4">
+                            <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
+                                   class="form-control form-control-solid w-200px" placeholder="End Date" />
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 </form>
             </div>
         </div>
         <div class="card-body pt-0">
+            <div class="table-responsive">
             <table class="table align-middle table-row-dashed fs-6 gy-3" id="kt_payment_table">
                 <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
@@ -170,6 +173,7 @@
                     @endif
                 </ul>
             </nav>
+        </div>
         </div>
     </div>
     </div>
