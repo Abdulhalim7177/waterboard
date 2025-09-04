@@ -120,7 +120,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' : 'Customer created successfully and is pending approval.',
+                'message' => 'Customer created successfully and is pending approval.',
                 'data' => $customer
             ], 201);
         } catch (\Exception $e) {
@@ -387,7 +387,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' : 'Customer rejected successfully'
+                'message' => 'Customer rejected successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -490,7 +490,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' : 'Update approved successfully.'
+                'message' => 'Update approved successfully.'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -532,12 +532,12 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' : 'Update rejected successfully.'
+                'message' => 'Update rejected successfully.'
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' : 'Error rejecting pending update: ' . $e->getMessage()
+                'message' => 'Error rejecting pending update: ' . $e->getMessage()
             ], 500);
         }
     }
