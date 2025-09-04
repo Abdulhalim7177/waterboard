@@ -15,7 +15,7 @@ class Customer extends Authenticatable
         'street_name', 'house_number', 'landmark', 'area_id', 'lga_id', 'ward_id',
         'category_id', 'tariff_id', 'delivery_code', 'billing_id', 'billing_condition',
         'water_supply_status', 'latitude', 'longitude', 'polygon_coordinates', 'altitude', 'pipe_path',
-        'password', 'status', 'account_balance', 'created_at'
+        'password', 'status', 'account_balance', 'created_at', 'created_by'
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -59,6 +59,11 @@ class Customer extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'created_by');
     }
 
     public function getTotalBillAttribute()

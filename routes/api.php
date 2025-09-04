@@ -23,7 +23,8 @@ Route::prefix('v1/staff')->name('api.staff.')->group(function () {
         Route::prefix('customers')->name('customers.')->group(function () {
             Route::get('/', [StaffCustomerController::class, 'index'])->name('index');
             Route::post('/', [StaffCustomerController::class, 'store'])->name('store');
-            Route::get('/pending', [StaffCustomerController::class, 'pending'])->name('pending');
+            Route::get('/pending-customers', [StaffCustomerController::class, 'pendingCustomers'])->name('pending.customers');
+            Route::get('/pending-updates', [StaffCustomerController::class, 'pendingUpdates'])->name('pending.updates');
             Route::get('/{customer}', [StaffCustomerController::class, 'show'])->name('show');
             Route::put('/{customer}', [StaffCustomerController::class, 'update'])->name('update');
             Route::delete('/{customer}', [StaffCustomerController::class, 'destroy'])->name('destroy');
