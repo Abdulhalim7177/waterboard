@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class PendingCustomerUpdate extends Model
 {
+    use Auditable;
+    
     protected $fillable = ['customer_id', 'field', 'old_value', 'new_value', 'updated_by', 'status'];
 
     public function customer()

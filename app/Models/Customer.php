@@ -66,6 +66,11 @@ class Customer extends Authenticatable
         return $this->belongsTo(Staff::class, 'created_by');
     }
 
+    public function audits()
+    {
+        return $this->morphMany(Audit::class, 'auditable');
+    }
+
     public function getTotalBillAttribute()
     {
         return $this->bills()
