@@ -309,6 +309,20 @@
                                 </a>
                                 </div>
                             @endcan
+                            @can('view-analytics', 'staff')
+                            <div class="menu-item">
+                                <a class="menu-link" href="{{ route('staff.analytics.index') }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-graph fs-2x">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                    </span>
+                                    <span class="menu-title">Analytics</span>
+                                </a>
+                                </div>
+                            @endcan
                             @can('approve-actions', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.approvals.index') }}">
