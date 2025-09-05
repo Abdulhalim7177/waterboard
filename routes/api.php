@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CustomerController;
 use App\Http\Controllers\API\Staff\AuthController;
 use App\Http\Controllers\API\Staff\CustomerController as StaffCustomerController;
+use App\Http\Controllers\Api\VendorController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -33,6 +34,18 @@ Route::prefix('v1/staff')->name('api.staff.')->group(function () {
             Route::post('/pending/{update}/approve', [StaffCustomerController::class, 'approvePending'])->name('pending.approve');
             Route::post('/pending/{update}/reject', [StaffCustomerController::class, 'rejectPending'])->name('pending.reject');
         });
+    });
+});
+
+// Vendor Authentication and Payment Routes
+Route::prefix('v1/vendor')->name('api.vendor.')->group(function () {
+    Route::post('/register', [VendorController::class, 'register'])->name('register');
+    Route::post('/login', [VendorController::class, 'login'])->name('login');
+    
+    Route::middleware('vendor.auth')->group(function () {
+        Route::post('/logout', [VendorController::class, 'logout'])->name('logout');
+        Route::get('/profile', [VendorController::class, 'profile'])->name('profile');
+        Route::post('/payment', [VendorController::class, 'makePayment'])->name('payment');
     });
 });
 

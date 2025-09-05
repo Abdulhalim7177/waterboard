@@ -38,6 +38,17 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
+        // Check if vendor exists and is approved
+        $vendor = \App\Models\Vendor::where('email', $request->email)->first();
+        
+        if (!$vendor) {
+            return back()->withErrors(['email' => 'Invalid email or password'])->withInput($request->only('email', 'remember'));
+        }
+        
+        if (!$vendor->approved) {
+            return back()->withErrors(['email' => 'Your account is not approved yet. Please contact the administrator.'])->withInput($request->only('email', 'remember'));
+        }
+
         if (Auth::guard('vendor')->attempt(['email' => $request->email, 'password' => $request->password], $request->filled('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('vendor.dashboard'));
