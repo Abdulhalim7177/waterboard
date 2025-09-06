@@ -174,4 +174,14 @@ class Customer extends Authenticatable
             throw $e;
         }
     }
+
+    /**
+     * Add amount to customer account balance
+     */
+    public function addAccountBalance($amount)
+    {
+        $this->account_balance += $amount;
+        $this->save();
+        return true;
+    }
 }

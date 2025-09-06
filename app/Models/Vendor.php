@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\Auditable;
+use Illuminate\Support\Facades\Log;
+use App\Models\Payment;
 
 class Vendor extends Authenticatable
 {
@@ -21,6 +23,7 @@ class Vendor extends Authenticatable
         'email',
         'password',
         'approved',
+        'account_balance',
     ];
 
     /**
@@ -42,6 +45,7 @@ class Vendor extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'approved' => 'boolean',
+        'account_balance' => 'decimal:2',
     ];
 
     /**
@@ -50,5 +54,45 @@ class Vendor extends Authenticatable
     public function getGuardName(): string
     {
         return 'vendor';
+    }
+
+    /**
+     * Add amount to vendor account balance
+     */
+    public function addAccountBalance($amount)
+    {
+        $this->account_balance += $amount;
+        $this->save();
+        return true;
+    }
+
+    /**
+     * Deduct amount from vendor account balance
+     */
+    public function deductAccountBalance($amount)
+    {
+        if ($this->account_balance >= $amount) {
+            $this->account_balance -= $amount;
+            $this->save();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fund vendor account through NABRoll payment
+     */
+    public function fundAccount($amount)
+    {
+        // This method will be called after successful NABRoll payment
+        return $this->addAccountBalance($amount);
+    }
+
+    /**
+     * Get vendor payments
+     */
+    public function vendorPayments()
+    {
+        return $this->hasMany(VendorPayment::class);
     }
 }

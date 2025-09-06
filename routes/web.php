@@ -16,6 +16,7 @@ use App\Http\Controllers\Staff\ComplaintController;
 use App\Http\Controllers\Staff\AnalyticsController;
 use App\Http\Controllers\Staff\CustomerCreationController;
 use App\Http\Controllers\Staff\VendorController as StaffVendorController;
+use App\Http\Controllers\VendorPaymentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -107,7 +108,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::post('/{customer}/approve', [CustomerCreationController::class, 'approve'])->name('approve');
         Route::post('/{customer}/reject', [CustomerCreationController::class, 'reject'])->name('reject');
         Route::post('/pending/{update}/approve', [CustomerCreationController::class, 'approvePending'])->name('pending.approve');
-        Route::put('/pending/{update}/reject', [CustomerCreationController::class, 'rejectPending'])->name('pending.reject');
+        Route::post('/pending/{update}/reject', [CustomerCreationController::class, 'rejectPending'])->name('pending.reject');
 
         // Edit Routes
         Route::get('/{customer}/edit', [CustomerCreationController::class, 'edit'])->name('edit');
@@ -140,15 +141,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::put('complaints/{complaint}', [ComplaintController::class, 'update'])->name('complaints.update');
     Route::delete('/complaints/{complaint}', [ComplaintController::class, 'destroy'])->name('complaints.destroy');
 
-    Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
-    Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
-});
-
-
-// Add this within the staff middleware group where other resource routes are defined
-Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 'restrict.login'])->group(function () {
-    // ... existing routes ...
-
     // Vendor Management Routes
     Route::prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', [StaffVendorController::class, 'index'])->name('index');
@@ -161,6 +153,24 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::post('/{vendor}/approve', [StaffVendorController::class, 'approve'])->name('approve');
         Route::post('/{vendor}/reject', [StaffVendorController::class, 'reject'])->name('reject');
     });
+
+    Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
+    Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
+});
+
+
+// Move these outside the staff group
+Route::prefix('mngr-secure-9374')->middleware(['auth:staff', 'restrict.login'])->group(function () {
+    Route::get('bills', [BillingController::class, 'index'])->name('staff.bills.index');
+    Route::post('bills/generate', [BillingController::class, 'generateBills'])->name('staff.bills.generate');
+    Route::post('bills/approve-all', [BillingController::class, 'approveAll'])->name('staff.bills.approve-all');
+    Route::post('bills/{bill}/approve', [BillingController::class, 'approve'])->name('staff.bills.approve');
+    Route::post('bills/{bill}/reject', [BillingController::class, 'reject'])->name('staff.bills.reject');
+    Route::get('bills/download-bulk', [BillingController::class, 'downloadBulkPdf'])->name('staff.bills.download-bulk');
+    Route::get('gis', [App\Http\Controllers\GisController::class, 'index'])->name('staff.gis');
+    Route::get('gis/filter', [App\Http\Controllers\GisController::class, 'filter'])->name('staff.gis.filter');
+    Route::get('gis/export/csv', [App\Http\Controllers\GisController::class, 'exportCsv'])->name('staff.gis.export.csv');
+    Route::get('gis/export/excel', [App\Http\Controllers\GisController::class, 'exportExcel'])->name('staff.gis.export.excel');
 });
 
 Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->group(function () {
@@ -184,8 +194,12 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
 
 Route::prefix('vendor')->middleware(['auth:vendor', 'restrict.login'])->group(function () {
     Route::get('/dashboard', [VendorController::class, 'dashboard'])->name('vendor.dashboard');
-    Route::post('/payment/process', [VendorController::class, 'processPayment'])->name('vendor.payment.process');
-    Route::get('/payments', [VendorController::class, 'payments'])->name('vendor.payments');
+    Route::post('/payment/fund', [VendorPaymentController::class, 'fundAccount'])->name('vendor.payments.fund');
+    Route::get('/payment/fund/callback', [VendorPaymentController::class, 'fundCallback'])->name('vendor.payments.fund.callback');
+    Route::post('/payment/process', [VendorPaymentController::class, 'initiatePayment'])->name('vendor.payments.initiate');
+    Route::get('/payments/callback', [VendorPaymentController::class, 'callback'])->name('vendor.payments.callback');
+    Route::get('/payments', [VendorPaymentController::class, 'index'])->name('vendor.payments.index');
+    Route::get('/payments/funding', [VendorPaymentController::class, 'fundingHistory'])->name('vendor.payments.funding');
     Route::post('/logout', [LoginController::class, 'vendorLogout'])->name('vendor.logout');
 });
 

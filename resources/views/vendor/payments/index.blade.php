@@ -1,6 +1,6 @@
 @extends('layouts.vendor')
 
-@section('title', 'Payment History')
+@section('title', 'Vendor Payment History')
 @section('page-title', 'Payment History')
 @section('breadcrumb', 'Payment History')
 
@@ -10,11 +10,11 @@
     <div class="card-header border-0 pt-5">
         <h3 class="card-title align-items-start flex-column">
             <span class="card-label fw-bold fs-3 mb-1">Payment History</span>
-            <span class="text-muted mt-1 fw-semibold fs-7">View all payments processed by your vendor account</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">View all payments processed through your vendor account</span>
         </h3>
     </div>
     <div class="card-body py-3">
-        @if (isset($payments) && $payments->count() > 0)
+        @if (isset($vendorPayments) && $vendorPayments->count() > 0)
             <div class="table-responsive">
                 <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
                     <thead>
@@ -28,34 +28,40 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($payments as $payment)
+                        @foreach ($vendorPayments as $payment)
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="d-flex justify-content-start flex-column">
-                                            <span class="text-dark fw-bold text-hover-primary fs-6">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</span>
-                                            <span class="text-muted fw-semibold text-muted d-block fs-7">{{ \Carbon\Carbon::parse($payment->payment_date)->format('H:i') }}</span>
+                                            <span class="text-dark fw-bold text-hover-primary fs-6">{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : $payment->created_at->format('Y-m-d') }}</span>
+                                            <span class="text-muted fw-semibold text-muted d-block fs-7">{{ $payment->payment_date ? $payment->payment_date->format('H:i') : $payment->created_at->format('H:i') }}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="d-flex justify-content-start flex-column">
-                                            <span class="text-dark fw-bold text-hover-primary fs-6">{{ $payment->customer->first_name }} {{ $payment->customer->surname }}</span>
+                                            <span class="text-dark fw-bold text-hover-primary fs-6">{{ $payment->customer->first_name ?? '' }} {{ $payment->customer->surname ?? '' }}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="text-dark fw-bold text-hover-primary d-block fs-6">{{ $payment->customer->billing_id }}</span>
+                                    <span class="text-dark fw-bold text-hover-primary d-block fs-6">{{ $payment->billing_id ?? 'N/A' }}</span>
                                 </td>
                                 <td>
                                     <span class="text-dark fw-bold d-block fs-6">₦{{ number_format($payment->amount, 2) }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-light-primary fs-7 fw-semibold">{{ ucfirst($payment->method) }}</span>
+                                    <span class="badge badge-light-primary fs-7 fw-semibold">{{ $payment->method ?? 'N/A' }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-light-success fs-7 fw-semibold">{{ $payment->payment_status }}</span>
+                                    @if($payment->payment_status === 'SUCCESSFUL')
+                                        <span class="badge badge-light-success fs-7 fw-semibold">{{ $payment->payment_status }}</span>
+                                    @elseif($payment->payment_status === 'FAILED')
+                                        <span class="badge badge-light-danger fs-7 fw-semibold">{{ $payment->payment_status }}</span>
+                                    @else
+                                        <span class="badge badge-light-warning fs-7 fw-semibold">{{ $payment->payment_status }}</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -64,7 +70,7 @@
             </div>
             
             <div class="d-flex justify-content-center">
-                {{ $payments->links() }}
+                {{ $vendorPayments->links() }}
             </div>
         @else
             <div class="alert alert-info">
