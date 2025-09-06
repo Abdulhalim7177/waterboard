@@ -50,6 +50,7 @@ class VendorPaymentController extends Controller
                 'payment_status' => 'pending',
                 'payer_ref_no' => $payerRefNo,
                 'channel' => 'Vendor Account Funding',
+                'transaction_type' => 'funding', // Mark as funding transaction
             ]);
 
             // Initiate NABRoll transaction for funding
@@ -244,6 +245,21 @@ class VendorPaymentController extends Controller
             'payment_status' => 'SUCCESSFUL',
             'payer_ref_no' => 'ACCOUNT_PAYMENT_' . now()->format('YmdHis') . '_' . uniqid(),
             'channel' => 'Vendor Account Payment',
+            'transaction_type' => 'payment', // Mark as payment transaction
+        ]);
+
+        // Also create a record in the customer's payment table
+        $customerPayment = \App\Models\Payment::create([
+            'customer_id' => $customer->id,
+            'amount' => $amount,
+            'payment_date' => now(),
+            'method' => 'Vendor Account',
+            'status' => 'successful',
+            'payment_status' => 'SUCCESSFUL',
+            'payer_ref_no' => 'VENDOR_ACCOUNT_' . now()->format('YmdHis') . '_' . uniqid(),
+            'channel' => 'Vendor Payment',
+            'transaction_ref' => 'VENDOR_PAYMENT_' . $vendorPayment->id,
+            'payment_code' => 'VP_' . $vendorPayment->id,
         ]);
 
         // Apply account balance to outstanding bills
@@ -251,6 +267,7 @@ class VendorPaymentController extends Controller
 
         Log::info('Vendor account payment processed successfully', [
             'vendor_payment_id' => $vendorPayment->id,
+            'customer_payment_id' => $customerPayment->id,
             'vendor_id' => $vendor->id,
             'customer_id' => $customer->id,
             'amount' => $amount,
@@ -283,6 +300,7 @@ class VendorPaymentController extends Controller
                 'payment_status' => 'pending',
                 'payer_ref_no' => $payerRefNo,
                 'channel' => 'Vendor Online Payment',
+                'transaction_type' => 'payment', // Mark as payment transaction
             ]);
 
             // Initiate NABRoll transaction
@@ -402,6 +420,20 @@ class VendorPaymentController extends Controller
                 'new_account_balance' => $customer->account_balance,
             ]);
 
+            // Also create a record in the customer's payment table
+            $customerPayment = \App\Models\Payment::create([
+                'customer_id' => $customer->id,
+                'amount' => $vendorPayment->amount,
+                'payment_date' => now(),
+                'method' => 'Vendor Online',
+                'status' => 'successful',
+                'payment_status' => 'SUCCESSFUL',
+                'payer_ref_no' => 'VENDOR_ONLINE_' . now()->format('YmdHis') . '_' . uniqid(),
+                'channel' => 'Vendor Payment',
+                'transaction_ref' => $vendorPayment->transaction_ref,
+                'payment_code' => $vendorPayment->payment_code,
+            ]);
+
             // Apply account balance to outstanding bills
             $customer->applyAccountBalanceToBills();
 
@@ -415,6 +447,7 @@ class VendorPaymentController extends Controller
             DB::commit();
             Log::info('Vendor payment processed successfully', [
                 'vendor_payment_id' => $vendorPayment->id,
+                'customer_payment_id' => $customerPayment->id,
                 'transaction_ref' => $transactionRef,
                 'customer_new_account_balance' => $customer->account_balance,
                 'customer_total_bill_after_payment' => $customer->total_bill,
@@ -433,6 +466,7 @@ class VendorPaymentController extends Controller
     {
         $vendor = Auth::guard('vendor')->user();
         $vendorPayments = $vendor->vendorPayments()
+            ->payments() // Only payment transactions
             ->with('customer')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -444,8 +478,7 @@ class VendorPaymentController extends Controller
     {
         $vendor = Auth::guard('vendor')->user();
         $vendorPayments = $vendor->vendorPayments()
-            ->where('channel', 'Vendor Account Funding')
-            ->with('customer')
+            ->funding() // Only funding transactions
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         

@@ -24,6 +24,7 @@ class VendorPayment extends Model
         'payer_ref_no',
         'nabroll_ref',
         'nabroll_response',
+        'transaction_type', // 'funding' or 'payment'
     ];
 
     protected $casts = [
@@ -39,5 +40,21 @@ class VendorPayment extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Scope a query to only include funding transactions.
+     */
+    public function scopeFunding($query)
+    {
+        return $query->where('transaction_type', 'funding');
+    }
+
+    /**
+     * Scope a query to only include payment transactions.
+     */
+    public function scopePayments($query)
+    {
+        return $query->where('transaction_type', 'payment');
     }
 }

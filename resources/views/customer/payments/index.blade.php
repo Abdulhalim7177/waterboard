@@ -66,6 +66,7 @@
                             <th class="text-end pe-3 min-w-100px">Method</th>
                             <th class="text-end pe-3 min-w-100px">Status</th>
                             <th class="text-end pe-0 min-w-150px">Transaction Ref</th>
+                            <th class="text-end pe-0 min-w-150px">Source</th>
                         </tr>
                     </thead>
                     <tbody class="fw-bold text-gray-600">
@@ -73,7 +74,7 @@
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d H:i:s') }}</td>
                                 <td class="text-end">{{ $payment->bill_id ? $payment->bill->billing_id : ($payment->bill_ids ? 'Multiple (' . $payment->bill_ids . ')' : 'N/A') }}</td>
-                                <td class="text-end">{{ number_format($payment->amount, 2) }}</td>
+                                <td class="text-end">₦{{ number_format($payment->amount, 2) }}</td>
                                 <td class="text-end">{{ $payment->method }}</td>
                                 <td class="text-end">
                                     <span class="badge py-3 px-4 fs-7 
@@ -83,6 +84,13 @@
                                     </span>
                                 </td>
                                 <td class="text-end">{{ $payment->transaction_ref ?? 'N/A' }}</td>
+                                <td class="text-end">
+                                    @if ($payment->channel === 'Vendor Payment')
+                                        <span class="badge badge-light-success">Vendor Payment</span>
+                                    @else
+                                        <span class="badge badge-light-primary">Direct Payment</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

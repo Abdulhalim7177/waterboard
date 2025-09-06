@@ -124,7 +124,7 @@
                                             <span class="path3"></span>
                                         </i>
                                     </span>
-                                    <span class="menu-title">Payment History</span>
+                                    <span class="menu-title">Transaction History</span>
                                 </a>
                             </div>
                             <div class="menu-item">

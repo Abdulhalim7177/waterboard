@@ -1,8 +1,8 @@
 @extends('layouts.vendor')
 
-@section('title', 'Vendor Payment History')
-@section('page-title', 'Payment History')
-@section('breadcrumb', 'Payment History')
+@section('title', 'Vendor Transaction History')
+@section('page-title', 'Transaction History')
+@section('breadcrumb', 'Transaction History')
 
 @section('content')
 <!--begin::Card-->
@@ -52,7 +52,7 @@
                                     <span class="text-dark fw-bold d-block fs-6">₦{{ number_format($payment->amount, 2) }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-light-primary fs-7 fw-semibold">{{ $payment->method ?? 'N/A' }}</span>
+                                    <span class="badge badge-light-primary fs-7 fw-semibold">{{ $payment->method ?? 'NABRoll' }}</span>
                                 </td>
                                 <td>
                                     @if($payment->payment_status === 'SUCCESSFUL')
