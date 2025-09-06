@@ -194,6 +194,7 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
 
 Route::prefix('vendor')->middleware(['auth:vendor', 'restrict.login'])->group(function () {
     Route::get('/dashboard', [VendorController::class, 'dashboard'])->name('vendor.dashboard');
+    Route::get('/customer/info/{billingId}', [VendorController::class, 'getCustomerInfo'])->name('vendor.customer.info');
     Route::post('/payment/fund', [VendorPaymentController::class, 'fundAccount'])->name('vendor.payments.fund');
     Route::get('/payment/fund/callback', [VendorPaymentController::class, 'fundCallback'])->name('vendor.payments.fund.callback');
     Route::post('/payment/process', [VendorPaymentController::class, 'initiatePayment'])->name('vendor.payments.initiate');

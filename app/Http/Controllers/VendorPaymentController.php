@@ -462,25 +462,84 @@ class VendorPaymentController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $vendor = Auth::guard('vendor')->user();
-        $vendorPayments = $vendor->vendorPayments()
-            ->payments() // Only payment transactions
-            ->with('customer')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
         
-        return view('vendor.payments.index', compact('vendorPayments'));
+        $query = $vendor->vendorPayments()
+            ->payments() // Only payment transactions
+            ->with('customer');
+            
+        // Apply filters
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+        
+        if ($request->has('customer_id') && $request->customer_id) {
+            $query->where('customer_id', $request->customer_id);
+        }
+        
+        if ($request->has('status') && $request->status) {
+            $query->where('payment_status', $request->status);
+        }
+        
+        if ($request->has('min_amount') && $request->min_amount) {
+            $query->where('amount', '>=', $request->min_amount);
+        }
+        
+        if ($request->has('max_amount') && $request->max_amount) {
+            $query->where('amount', '<=', $request->max_amount);
+        }
+        
+        $vendorPayments = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        
+        // Get customers for filter dropdown
+        $customers = $vendor->vendorPayments()
+            ->payments()
+            ->whereHas('customer')
+            ->with('customer')
+            ->get()
+            ->pluck('customer')
+            ->unique('id')
+            ->sortBy('first_name');
+        
+        return view('vendor.payments.index', compact('vendorPayments', 'customers'));
     }
 
-    public function fundingHistory()
+    public function fundingHistory(Request $request)
     {
         $vendor = Auth::guard('vendor')->user();
-        $vendorPayments = $vendor->vendorPayments()
+        
+        $query = $vendor->vendorPayments()
             ->funding() // Only funding transactions
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at', 'desc');
+            
+        // Apply filters
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+        
+        if ($request->has('status') && $request->status) {
+            $query->where('payment_status', $request->status);
+        }
+        
+        if ($request->has('min_amount') && $request->min_amount) {
+            $query->where('amount', '>=', $request->min_amount);
+        }
+        
+        if ($request->has('max_amount') && $request->max_amount) {
+            $query->where('amount', '<=', $request->max_amount);
+        }
+        
+        $vendorPayments = $query->paginate(10)->appends($request->except('page'));
         
         return view('vendor.payments.funding', compact('vendorPayments'));
     }
