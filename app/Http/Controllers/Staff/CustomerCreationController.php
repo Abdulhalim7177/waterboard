@@ -1229,7 +1229,7 @@ class CustomerCreationController extends Controller
                     'category_id' => 'required|exists:categories,id',
                     'tariff_id' => 'required|exists:tariffs,id',
                     'delivery_code' => 'nullable|string|max:255',
-                    'billing_condition' => 'required|in:Normal,Special,Exempt', // Updated to match edit_billing.blade.php
+                    'billing_condition' => 'required|in:Metered,Non-Metered',
                     'water_supply_status' => 'required|in:Functional,Non-Functional',
                 ],
                 'extraValidation' => function ($validated) {

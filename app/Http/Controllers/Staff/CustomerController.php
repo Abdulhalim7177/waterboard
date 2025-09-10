@@ -59,7 +59,7 @@ class CustomerController extends Controller
             'category_id' => 'nullable|exists:categories,id',
             'tariff_id' => 'nullable|exists:tariffs,id',
             'delivery_code' => 'nullable',
-            'billing_condition' => 'nullable',
+            'billing_condition' => 'nullable|in:Metered,Non-Metered',
             'water_supply_status' => 'nullable',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',

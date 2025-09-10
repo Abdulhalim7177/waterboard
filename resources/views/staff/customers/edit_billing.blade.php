@@ -87,9 +87,8 @@
                                 <label for="billing_condition" class="form-label required">Billing Condition</label>
                                 <select class="form-select form-select-solid @error('billing_condition') is-invalid @enderror" id="billing_condition" name="billing_condition" required>
                                     <option value="">Select Billing Condition</option>
-                                    <option value="Normal" {{ old('billing_condition', $customer->billing_condition) == 'Normal' ? 'selected' : '' }}>Normal</option>
-                                    <option value="Special" {{ old('billing_condition', $customer->billing_condition) == 'Special' ? 'selected' : '' }}>Special</option>
-                                    <option value="Exempt" {{ old('billing_condition', $customer->billing_condition) == 'Exempt' ? 'selected' : '' }}>Exempt</option>
+                                    <option value="Metered" {{ old('billing_condition', $customer->billing_condition) == 'Metered' ? 'selected' : '' }}>Metered</option>
+                                    <option value="Non-Metered" {{ old('billing_condition', $customer->billing_condition) == 'Non-Metered' ? 'selected' : '' }}>Non-Metered</option>
                                 </select>
                                 @error('billing_condition')
                                     <div class="invalid-feedback">{{ $message }}</div>

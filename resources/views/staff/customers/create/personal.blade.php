@@ -136,7 +136,7 @@
                     <div class="text-center">
                         <a href="{{ route('staff.customers.index') }}" class="btn btn-light me-3">Cancel</a>
                         <button type="submit" class="btn btn-primary">
-                            <span class="indicator-label">Next: Address</span>
+                            <span class="indicator-label">Save and Continue</span>
                             <span class="indicator-progress">Please wait...
                                 <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                             </span>

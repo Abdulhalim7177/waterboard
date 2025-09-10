@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="card-header border-0 pt-6">
                     <div class="card-title">
-                        <h2>Edit Customer: {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->billing_id ?? 'Pending' }})</h2>
+                        <h2>Edit Customer - Personal Information</h2>
                     </div>
                     <div class="card-toolbar">
                         <a href="{{ route('staff.customers.index') }}" class="btn btn-secondary">Back to Customers</a>

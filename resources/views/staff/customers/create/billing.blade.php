@@ -168,7 +168,7 @@
                         <div class="text-center">
                             <a href="{{ route('staff.customers.create.address') }}" class="btn btn-light me-3">Previous</a>
                             <button type="submit" class="btn btn-primary" @if ($tariffs->isEmpty()) disabled @endif>
-                                <span class="indicator-label">Next: Location</span>
+                                <span class="indicator-label">Save and Continue</span>
                                 <span class="indicator-progress">Please wait...
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                                 </span>

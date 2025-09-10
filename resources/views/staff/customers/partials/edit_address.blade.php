@@ -5,7 +5,7 @@
         <input type="hidden" name="customer_id" value="{{ $customer->id }}">
         <div class="row">
             <div class="col-md-6 fv-row">
-                <label for="lga_id" class="form-label required">LGA</label>
+                <label for="lga_id" class="form-label required">Local Government Area</label>
                 <select class="form-select form-select-solid @error('lga_id') is-invalid @enderror" id="lga_id" name="lga_id" required>
                     <option value="">Select LGA</option>
                     @foreach ($lgas as $lga)

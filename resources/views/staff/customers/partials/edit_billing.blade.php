@@ -5,7 +5,7 @@
         <input type="hidden" name="customer_id" value="{{ $customer->id }}">
         <div class="row">
             <div class="col-md-6 fv-row">
-                <label for="category_id" class="form-label required">Category</label>
+                <label for="category_id" class="form-label required">Tariff Category</label>
                 <select class="form-select form-select-solid @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
                     <option value="">Select Category</option>
                     @foreach ($categories as $category)
@@ -40,8 +40,8 @@
                     @enderror
                 </div>
                 <div class="col-md-6 fv-row">
-                    <label for="delivery_code" class="form-label required">Delivery Code</label>
-                    <input type="text" class="form-control form-control-solid @error('delivery_code') is-invalid @enderror" id="delivery_code" name="delivery_code" value="{{ old('delivery_code', $customer->delivery_code) }}" required>
+                    <label for="delivery_code" class="form-label">Delivery Code</label>
+                    <input type="text" class="form-control form-control-solid @error('delivery_code') is-invalid @enderror" id="delivery_code" name="delivery_code" value="{{ old('delivery_code', $customer->delivery_code) }}">
                     @error('delivery_code')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -52,9 +52,8 @@
                     <label for="billing_condition" class="form-label required">Billing Condition</label>
                     <select class="form-select form-select-solid @error('billing_condition') is-invalid @enderror" id="billing_condition" name="billing_condition" required>
                         <option value="">Select Billing Condition</option>
-                        <option value="Normal" {{ old('billing_condition', $customer->billing_condition) == 'Normal' ? 'selected' : '' }}>Normal</option>
-                        <option value="Special" {{ old('billing_condition', $customer->billing_condition) == 'Special' ? 'selected' : '' }}>Special</option>
-                        <option value="Exempt" {{ old('billing_condition', $customer->billing_condition) == 'Exempt' ? 'selected' : '' }}>Exempt</option>
+                        <option value="Metered" {{ old('billing_condition', $customer->billing_condition) == 'Metered' ? 'selected' : '' }}>Metered</option>
+                        <option value="Non-Metered" {{ old('billing_condition', $customer->billing_condition) == 'Non-Metered' ? 'selected' : '' }}>Non-Metered</option>
                     </select>
                     @error('billing_condition')
                         <div class="invalid-feedback">{{ $message }}</div>
