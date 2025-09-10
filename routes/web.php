@@ -114,14 +114,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/{customer}/edit', [CustomerCreationController::class, 'edit'])->name('edit');
         Route::post('/{customer}/edit/section', [CustomerCreationController::class, 'getEditSection'])->name('edit.section');
         Route::put('/{customer}/update', [CustomerCreationController::class, 'update'])->name('update');
-        Route::post('/filter/wards', [CustomerCreationController::class, 'filterWards'])->name('filter.wards');
-        Route::post('/filter/areas', [CustomerCreationController::class, 'filterAreas'])->name('filter.areas');
-        Route::post('/filter/tariffs', [CustomerCreationController::class, 'filterTariffs'])->name('filter.tariffs');
-
-        // Filter Routes for Creation
-        Route::post('/create/filter/wards', [CustomerCreationController::class, 'filterWardsForCreate'])->name('create.filter.wards');
-        Route::post('/create/filter/areas', [CustomerCreationController::class, 'filterAreasForCreate'])->name('create.filter.areas');
-        Route::post('/create/filter/tariffs', [CustomerCreationController::class, 'filterTariffsForCreate'])->name('create.filter.tariffs');
     });
 
     // Billing and Payments route

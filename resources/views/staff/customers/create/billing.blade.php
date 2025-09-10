@@ -83,43 +83,40 @@
 
             <!--begin::Forms-->
             <div class="scroll-y me-n7 pe-7" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_customer_header" data-kt-scroll-wrappers="#kt_modal_add_customer_scroll" data-kt-scroll-offset="300px">
-                <!--begin::Category Filter Form-->
-                <form action="{{ route('staff.customers.create.filter.tariffs') }}" method="POST" class="mb-7">
-                    @csrf
-                    <div class="fv-row mb-7">
-                        <label for="category_id" class="fs-6 fw-semibold mb-2 required">Tariff Category</label>
-                        <select class="form-select form-select-solid @error('category_id') is-invalid @enderror" id="category_id" name="category_id" onchange="this.form.submit()" required>
-                            <option value="">Select Category</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id', session('customer_creation.billing.category_id')) == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }} ({{ $category->description }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        @if ($categories->isEmpty())
-                            <div class="alert alert-warning mt-2">
-                                No categories available. Please contact an administrator to add categories.
-                            </div>
-                        @endif
-                    </div>
-                </form>
-                <!--end::Category Filter Form-->
+                <!--begin::Category Selection-->
+                <div class="fv-row mb-7">
+                    <label for="category_id" class="fs-6 fw-semibold mb-2 required">Tariff Category</label>
+                    <select class="form-select form-select-solid @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
+                        <option value="">Select Category</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', session('customer_creation.billing.category_id')) == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }} ({{ $category->description }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('category_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    @if ($categories->isEmpty())
+                        <div class="alert alert-warning mt-2">
+                            No categories available. Please contact an administrator to add categories.
+                        </div>
+                    @endif
+                </div>
+                <!--end::Category Selection-->
 
                 <!--begin::Billing Form-->
                 @if ($categories->isNotEmpty())
                     <form action="{{ route('staff.customers.store.billing') }}" method="POST">
                         @csrf
-                        <input type="hidden" name="category_id" value="{{ old('category_id', session('customer_creation.billing.category_id')) }}">
+                        <input type="hidden" name="category_id" id="hidden_category_id" value="{{ old('category_id', session('customer_creation.billing.category_id')) }}">
                         <div class="row g-9 mb-7">
                             <div class="col-md-6 fv-row">
                                 <label for="tariff_id" class="fs-6 fw-semibold mb-2 required">Tariff</label>
                                 <select class="form-select form-select-solid @error('tariff_id') is-invalid @enderror" id="tariff_id" name="tariff_id" required>
                                     <option value="">Select Tariff</option>
                                     @foreach ($tariffs as $tariff)
-                                        <option value="{{ $tariff->id }}" {{ old('tariff_id', session('customer_creation.billing.tariff_id')) == $tariff->id ? 'selected' : '' }}>
+                                        <option value="{{ $tariff->id }}" data-category="{{ $tariff->category_id }}" {{ old('tariff_id', session('customer_creation.billing.tariff_id')) == $tariff->id ? 'selected' : '' }}>
                                             {{ $tariff->name }} (Catcode: {{ $tariff->catcode }}, Amount: {{ $tariff->amount }})
                                         </option>
                                     @endforeach
@@ -167,7 +164,7 @@
                         </div>
                         <div class="text-center">
                             <a href="{{ route('staff.customers.create.address') }}" class="btn btn-light me-3">Previous</a>
-                            <button type="submit" class="btn btn-primary" @if ($tariffs->isEmpty()) disabled @endif>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <span class="indicator-label">Save and Continue</span>
                                 <span class="indicator-progress">Please wait...
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
@@ -185,4 +182,46 @@
     </div>
     <!--end::Card-->
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const categorySelect = document.getElementById('category_id');
+        const tariffSelect = document.getElementById('tariff_id');
+        const hiddenCategoryInput = document.getElementById('hidden_category_id');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Store all tariff options for filtering
+        const allTariffs = Array.from(tariffSelect.querySelectorAll('option[data-category]'));
+
+        // Filter tariffs based on selected category
+        function filterTariffs() {
+            const selectedCategoryId = categorySelect.value;
+            
+            // Update hidden input
+            hiddenCategoryInput.value = selectedCategoryId;
+            
+            // Clear tariff selection
+            tariffSelect.value = '';
+            
+            // Disable submit button if no category is selected
+            submitBtn.disabled = selectedCategoryId === '';
+            
+            // Show/hide tariffs based on category
+            allTariffs.forEach(option => {
+                if (selectedCategoryId === '' || option.dataset.category === selectedCategoryId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        // Event listeners
+        categorySelect.addEventListener('change', filterTariffs);
+
+        // Initialize filtering on page load
+        filterTariffs();
+    });
+</script>
 @endsection

@@ -83,54 +83,47 @@
 
             <!--begin::Forms-->
             <div class="scroll-y me-n7 pe-7" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_customer_header" data-kt-scroll-wrappers="#kt_modal_add_customer_scroll" data-kt-scroll-offset="300px">
-                <!--begin::LGA Form-->
-                <form action="{{ route('staff.customers.create.filter.wards') }}" method="POST" id="lgaForm" class="mb-7">
-                    @csrf
-                    <div class="fv-row mb-7">
-                        <label for="lga_id" class="fs-6 fw-semibold mb-2 required">Local Government Area</label>
-                        <select name="lga_id" id="lga_id" class="form-select form-select-solid @error('lga_id') is-invalid @enderror" required>
-                            <option value="">Select LGA</option>
-                            @foreach ($lgas as $lga)
-                                <option value="{{ $lga->id }}" {{ old('lga_id', session('customer_creation.address.lga_id')) == $lga->id ? 'selected' : '' }}>{{ $lga->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('lga_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </form>
-                <!--end::LGA Form-->
+                <!--begin::LGA Selection-->
+                <div class="fv-row mb-7">
+                    <label for="lga_id" class="fs-6 fw-semibold mb-2 required">Local Government Area</label>
+                    <select name="lga_id" id="lga_id" class="form-select form-select-solid @error('lga_id') is-invalid @enderror" required>
+                        <option value="">Select LGA</option>
+                        @foreach ($lgas as $lga)
+                            <option value="{{ $lga->id }}" {{ old('lga_id', session('customer_creation.address.lga_id')) == $lga->id ? 'selected' : '' }}>{{ $lga->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('lga_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <!--end::LGA Selection-->
 
-                <!--begin::Ward Form-->
-                <form action="{{ route('staff.customers.create.filter.areas') }}" method="POST" id="wardForm" class="mb-7">
-                    @csrf
-                    <input type="hidden" name="lga_id" value="{{ old('lga_id', session('customer_creation.address.lga_id')) }}">
-                    <div class="fv-row mb-7">
-                        <label for="ward_id" class="fs-6 fw-semibold mb-2 required">Ward</label>
-                        <select name="ward_id" id="ward_id" class="form-select form-select-solid @error('ward_id') is-invalid @enderror" required>
-                            <option value="">Select Ward</option>
-                            @foreach ($wards as $ward)
-                                <option value="{{ $ward->id }}" {{ old('ward_id', session('customer_creation.address.ward_id')) == $ward->id ? 'selected' : '' }}>{{ $ward->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('ward_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </form>
-                <!--end::Ward Form-->
+                <!--begin::Ward Selection-->
+                <div class="fv-row mb-7">
+                    <label for="ward_id" class="fs-6 fw-semibold mb-2 required">Ward</label>
+                    <select name="ward_id" id="ward_id" class="form-select form-select-solid @error('ward_id') is-invalid @enderror" required>
+                        <option value="">Select Ward</option>
+                        @foreach ($wards as $ward)
+                            <option value="{{ $ward->id }}" data-lga="{{ $ward->lga_id }}" {{ old('ward_id', session('customer_creation.address.ward_id')) == $ward->id ? 'selected' : '' }}>{{ $ward->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('ward_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <!--end::Ward Selection-->
 
                 <!--begin::Address Form-->
                 <form action="{{ route('staff.customers.store.address') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="lga_id" value="{{ old('lga_id', session('customer_creation.address.lga_id')) }}">
-                    <input type="hidden" name="ward_id" value="{{ old('ward_id', session('customer_creation.address.ward_id')) }}">
+                    <input type="hidden" name="lga_id" id="hidden_lga_id" value="{{ old('lga_id', session('customer_creation.address.lga_id')) }}">
+                    <input type="hidden" name="ward_id" id="hidden_ward_id" value="{{ old('ward_id', session('customer_creation.address.ward_id')) }}">
                     <div class="fv-row mb-7">
                         <label for="area_id" class="fs-6 fw-semibold mb-2 required">Area</label>
                         <select name="area_id" id="area_id" class="form-select form-select-solid @error('area_id') is-invalid @enderror" required>
                             <option value="">Select Area</option>
                             @foreach ($areas as $area)
-                                <option value="{{ $area->id }}" {{ old('area_id', session('customer_creation.address.area_id')) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                <option value="{{ $area->id }}" data-ward="{{ $area->ward_id }}" {{ old('area_id', session('customer_creation.address.area_id')) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
                             @endforeach
                         </select>
                         @error('area_id')
@@ -178,16 +171,65 @@
 </div>
 
 <script>
-    document.getElementById('lga_id').addEventListener('change', function() {
-        if (this.value) {
-            document.getElementById('lgaForm').submit();
-        }
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const lgaSelect = document.getElementById('lga_id');
+        const wardSelect = document.getElementById('ward_id');
+        const areaSelect = document.getElementById('area_id');
+        const hiddenLgaInput = document.getElementById('hidden_lga_id');
+        const hiddenWardInput = document.getElementById('hidden_ward_id');
 
-    document.getElementById('ward_id').addEventListener('change', function() {
-        if (this.value) {
-            document.getElementById('wardForm').submit();
+        // Store all options for filtering
+        const allWards = Array.from(wardSelect.querySelectorAll('option[data-lga]'));
+        const allAreas = Array.from(areaSelect.querySelectorAll('option[data-ward]'));
+
+        // Filter wards based on selected LGA
+        function filterWards() {
+            const selectedLgaId = lgaSelect.value;
+            
+            // Update hidden input
+            hiddenLgaInput.value = selectedLgaId;
+            
+            // Clear ward selection
+            wardSelect.value = '';
+            filterAreas(); // Also clear areas
+            
+            // Show/hide wards based on LGA
+            allWards.forEach(option => {
+                if (selectedLgaId === '' || option.dataset.lga === selectedLgaId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
         }
+
+        // Filter areas based on selected ward
+        function filterAreas() {
+            const selectedWardId = wardSelect.value;
+            
+            // Update hidden input
+            hiddenWardInput.value = selectedWardId;
+            
+            // Clear area selection
+            areaSelect.value = '';
+            
+            // Show/hide areas based on ward
+            allAreas.forEach(option => {
+                if (selectedWardId === '' || option.dataset.ward === selectedWardId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        // Event listeners
+        lgaSelect.addEventListener('change', filterWards);
+        wardSelect.addEventListener('change', filterAreas);
+
+        // Initialize filtering on page load
+        filterWards();
     });
 </script>
 @endsection

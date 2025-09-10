@@ -178,15 +178,17 @@ class CustomerCreationController extends Controller
             $data = compact('customer');
 
             if ($part === 'address') {
+                // Load all data upfront for client-side filtering
                 $lgas = Lga::where('status', 'approved')->get();
-                $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : ($customer->lga_id ? Ward::where('lga_id', $customer->lga_id)->where('status', 'approved')->get() : collect());
-                $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : ($customer->ward_id ? Area::where('ward_id', $customer->ward_id)->where('status', 'approved')->get() : collect());
+                $wards = Ward::where('status', 'approved')->get();
+                $areas = Area::where('status', 'approved')->get();
                 $selectedLgaId = $request->lga_id ?? $customer->lga_id;
                 $selectedWardId = $request->ward_id ?? $customer->ward_id;
                 $data = array_merge($data, compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
             } elseif ($part === 'billing') {
+                // Load all data upfront for client-side filtering
                 $categories = Category::where('status', 'approved')->get();
-                $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : ($customer->category_id ? Tariff::where('category_id', $customer->category_id)->where('status', 'approved')->get() : collect());
+                $tariffs = Tariff::where('status', 'approved')->get();
                 $selectedCategoryId = $request->category_id ?? $customer->category_id;
                 $data = array_merge($data, compact('categories', 'tariffs', 'selectedCategoryId'));
             }
@@ -356,9 +358,10 @@ class CustomerCreationController extends Controller
     {
         try {
             $this->authorize('create-customer', Customer::class);
+            // Load all data upfront for client-side filtering
             $lgas = Lga::where('status', 'approved')->get();
-            $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : collect();
-            $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : collect();
+            $wards = Ward::where('status', 'approved')->get();
+            $areas = Area::where('status', 'approved')->get();
             $selectedLgaId = $request->lga_id;
             $selectedWardId = $request->ward_id;
             return view('staff.customers.create.address', compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
@@ -406,8 +409,9 @@ class CustomerCreationController extends Controller
     {
         try {
             $this->authorize('create-customer', Customer::class);
+            // Load all data upfront for client-side filtering
             $categories = Category::where('status', 'approved')->get();
-            $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : collect();
+            $tariffs = Tariff::where('status', 'approved')->get();
             $selectedCategoryId = $request->category_id;
             return view('staff.customers.create.billing', compact('categories', 'tariffs', 'selectedCategoryId'));
         } catch (AuthorizationException $e) {
@@ -707,13 +711,13 @@ class CustomerCreationController extends Controller
         try {
             $this->authorize('edit-customer', $customer);
             $lgas = Lga::where('status', 'approved')->get();
-            $wards = $request->lga_id ? Ward::where('lga_id', $request->lga_id)->where('status', 'approved')->get() : ($customer->lga_id ? Ward::where('lga_id', $customer->lga_id)->where('status', 'approved')->get() : collect());
-            $areas = $request->ward_id ? Area::where('ward_id', $request->ward_id)->where('status', 'approved')->get() : ($customer->ward_id ? Area::where('ward_id', $customer->ward_id)->where('status', 'approved')->get() : collect());
-            $selectedLgaId = $request->lga_id ?? $customer->lga_id;
-            $selectedWardId = $request->ward_id ?? $customer->ward_id;
+            $wards = Ward::where('status', 'approved')->get();
+            $areas = Area::where('status', 'approved')->get();
+            $selectedLgaId = $customer->lga_id;
+            $selectedWardId = $customer->ward_id;
             return view('staff.customers.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
         } catch (AuthorizationException $e) {
-            Log::warning('Unauthorized access attempt to edit address', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
+            Log::warning('Unauthorized access attempt to edit customer address', ['user_id' => Auth::guard('staff')->id(), 'customer_id' => $customer->id]);
             return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to edit this customer.');
         }
     }

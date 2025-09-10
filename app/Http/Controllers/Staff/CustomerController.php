@@ -34,6 +34,7 @@ class CustomerController extends Controller
     public function edit(Customer $customer)
     {
         $this->authorize('edit-customer', $customer);
+        // Load all data upfront for client-side filtering
         $lgas = Lga::where('status', 'approved')->get();
         $wards = Ward::where('status', 'approved')->get();
         $areas = Area::where('status', 'approved')->get();
