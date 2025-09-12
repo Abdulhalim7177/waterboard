@@ -15,13 +15,30 @@ class Staff extends Authenticatable
     protected $guard = 'staff';
 
     protected $fillable = [
-        'name', 'email', 'password', 'district', 'zone', 'subzone', 'road', 'succ',
-        'lga_id', 'ward_id', 'area_id', 'status', 'phone_number'
+        'staff_id', 'first_name', 'surname', 'middle_name', 'name', 'gender', 'date_of_birth',
+        'state_of_origin', 'lga_id', 'ward_id', 'area_id', 'nationality', 'nin', 'mobile_no', 
+        'phone_number', 'email', 'address', 'password', 'date_of_first_appointment', 'rank', 
+        'staff_no', 'department', 'expected_next_promotion', 'expected_retirement_date', 
+        'status', 'highest_qualifications', 'grade_level_limit', 'appointment_type', 
+        'photo_path', 'years_of_service', 'district', 'zone', 'subzone', 'road', 'succ'
     ];
 
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    protected $casts = [
+        'date_of_birth' => 'date',
+        'date_of_first_appointment' => 'date',
+        'expected_next_promotion' => 'date',
+        'expected_retirement_date' => 'date',
+    ];
+
+    // Accessor to get full name
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . ($this->middle_name ? $this->middle_name . ' ' : '') . $this->surname;
+    }
 
     public function pendingUpdates()
     {
