@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\LaravelPdf\Facades\Pdf;
 
-class StaffController extends Controller
+class HRStaffController extends Controller
 {
     /**
      * Display a listing of the resource.

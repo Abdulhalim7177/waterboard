@@ -21,37 +21,135 @@ class StaffController extends Controller
     {
         $this->middleware(['auth:staff', 'permission:manage-users'])->only(['staff', 'roles', 'permissions']);
         $this->middleware(['auth:staff', 'permission:view-audit-trail'])->only('auditTrail');
-        $this->middleware(['auth:staff', 'permission:create-staff'])->only('store');
-        $this->middleware(['auth:staff', 'permission:edit-staff'])->only('update');
-        $this->middleware(['auth:staff', 'permission:delete-staff'])->only('destroy');
-        $this->middleware(['auth:staff', 'permission:approve-staff'])->only('approve');
-        $this->middleware(['auth:staff', 'permission:reject-staff'])->only('reject');
-        $this->middleware(['auth:staff', 'permission:create-role'])->only('storeRole');
-        $this->middleware(['auth:staff', 'permission:edit-role'])->only('updateRole');
-        $this->middleware(['auth:staff', 'permission:delete-role'])->only('destroyRole');
-        $this->middleware(['auth:staff', 'permission:create-permission'])->only('storePermission');
-        $this->middleware(['auth:staff', 'permission:edit-permission'])->only('updatePermission');
-        $this->middleware(['auth:staff', 'permission:delete-permission'])->only('destroyPermission');
         $this->middleware(['auth:staff', 'role:super-admin|manager'])->only(['assignRoles', 'removeRoles', 'assignLocations']);
     }
 
     public function dashboard()
     {
-        return view('staff.dashboard');
+        // Get staff statistics
+        $totalStaff = Staff::count();
+        $activeStaff = Staff::where('status', 'approved')->count();
+        $pendingChanges = Staff::where('status', 'pending')->count();
+        
+        // Get customer statistics
+        $totalCustomers = \App\Models\Customer::count();
+        $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
+        $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
+        
+        // Get billing statistics
+        $totalBills = \App\Models\Bill::count();
+        $unpaidBills = \App\Models\Bill::where('status', 'unpaid')->count();
+        $paidBills = \App\Models\Bill::where('status', 'paid')->count();
+        
+        // Get payment statistics
+        $totalPayments = \App\Models\Payment::count();
+        $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
+        $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
+        
+        // Get complaint statistics
+        $totalComplaints = \App\Models\Complaint::count();
+        $openComplaints = \App\Models\Complaint::where('status', 'open')->count();
+        $resolvedComplaints = \App\Models\Complaint::where('status', 'resolved')->count();
+        
+        // Get recent role assignments (last 5)
+        $recentRoleAssignments = \App\Models\Audit::where('event', 'roles_assigned')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get recent HR updates (last 5)
+        $recentHrUpdates = \App\Models\Audit::whereIn('event', ['created', 'updated', 'deleted'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get recent customer activities (last 5)
+        $recentCustomerActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Customer')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get recent billing activities (last 5)
+        $recentBillingActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Bill')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('staff.dashboard', compact(
+            'totalStaff', 
+            'activeStaff', 
+            'pendingChanges', 
+            'totalCustomers',
+            'activeCustomers',
+            'pendingCustomerChanges',
+            'totalBills',
+            'unpaidBills',
+            'paidBills',
+            'totalPayments',
+            'successfulPayments',
+            'pendingPayments',
+            'totalComplaints',
+            'openComplaints',
+            'resolvedComplaints',
+            'recentRoleAssignments', 
+            'recentHrUpdates',
+            'recentCustomerActivities',
+            'recentBillingActivities'
+        ));
     }
 
     public function staff(Request $request)
     {
+        // Get stats for the staff roles view
+        $stats = [
+            'total' => Staff::count(),
+            'active' => Staff::where('status', 'approved')->count(),
+            'on_leave' => Staff::where('status', 'on_leave')->count(),
+            'pending' => Staff::where('status', 'pending')->count(),
+        ];
+
+        // Get data for the unified view
+        $totalStaff = Staff::count();
+        $activeRoles = Role::where('guard_name', 'staff')->count();
+        $totalHrStaff = Staff::count(); // Same as totalStaff for now
+        $totalDepartments = Staff::whereNotNull('department')->distinct('department')->count('department');
+        $totalStaffCombined = $totalStaff;
+        $activeStaffCombined = Staff::where('status', 'approved')->count();
+        $pendingStaffCombined = Staff::where('status', 'pending')->count();
+        $totalRolesCombined = $activeRoles;
+
+        return view('staff.staff.index', compact(
+            'stats',
+            'totalStaff',
+            'activeRoles',
+            'totalHrStaff',
+            'totalDepartments',
+            'totalStaffCombined',
+            'activeStaffCombined',
+            'pendingStaffCombined',
+            'totalRolesCombined'
+        ));
+    }
+    
+    public function staffRoles(Request $request)
+    {
         $staff = Staff::when($request->search_staff, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
+            return $query->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('surname', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
         })->with('roles')->paginate(10);
 
         $roles = Role::where('guard_name', 'staff')->get();
-        $lgas = Lga::where('status', 'approved')->get();
-        $wards = Ward::where('status', 'approved')->get();
-        $areas = Area::where('status', 'approved')->get();
+        
+        // Get stats
+        $stats = [
+            'total' => Staff::count(),
+            'active' => Staff::where('status', 'approved')->count(),
+            'on_leave' => Staff::where('status', 'on_leave')->count(),
+            'pending' => Staff::where('status', 'pending')->count(),
+        ];
 
-        return view('staff.staff', compact('staff', 'roles', 'lgas', 'wards', 'areas'));
+        return view('staff.staff.roles', compact('staff', 'roles', 'stats'));
     }
 
     public function roles(Request $request)
@@ -91,126 +189,6 @@ class StaffController extends Controller
         })->with(['user'])->orderBy('created_at', 'desc')->paginate(10);
 
         return view('staff.audits.index', compact('audits'));
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:staff,email',
-            'password' => 'required|string|min:8|confirmed',
-            'district' => 'required|string|max:255',
-            'zone' => 'required|string|max:255',
-            'subzone' => 'required|string|max:255',
-            'road' => 'required|string|max:255',
-            'succ' => 'required|string|max:255',
-            'lga_id' => 'nullable|exists:lgas,id',
-            'ward_id' => 'nullable|exists:wards,id',
-            'area_id' => 'nullable|exists:areas,id',
-            'roles' => 'array|exists:roles,name'
-        ]);
-
-        $staff = Staff::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'district' => $request->district,
-            'zone' => $request->zone,
-            'subzone' => $request->subzone,
-            'road' => $request->road,
-            'succ' => $request->succ,
-            'lga_id' => $request->lga_id,
-            'ward_id' => $request->ward_id,
-            'area_id' => $request->area_id,
-            'status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending'
-        ]);
-
-        if ($request->roles) {
-            $staff->syncRoles($request->roles);
-        }
-
-        $staff->logAuditEvent('created');
-
-        return redirect()->route('staff.staff.index')->with('success', 'Staff creation request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
-    }
-
-    public function update(Request $request, Staff $staff)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('staff')->ignore($staff->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-            'district' => 'required|string|max:255',
-            'zone' => 'required|string|max:255',
-            'subzone' => 'required|string|max:255',
-            'road' => 'required|string|max:255',
-            'succ' => 'required|string|max:255',
-            'lga_id' => 'nullable|exists:lgas,id',
-            'ward_id' => 'nullable|exists:wards,id',
-            'area_id' => 'nullable|exists:areas,id',
-            'roles' => 'array|exists:roles,name'
-        ]);
-
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'district' => $request->district,
-            'zone' => $request->zone,
-            'subzone' => $request->subzone,
-            'road' => $request->road,
-            'succ' => $request->succ,
-            'lga_id' => $request->lga_id,
-            'ward_id' => $request->ward_id,
-            'area_id' => $request->area_id,
-            'status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending'
-        ];
-
-        if ($request->password) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        $staff->update($data);
-
-        if ($request->roles) {
-            $staff->syncRoles($request->roles);
-        } else {
-            $staff->syncRoles([]);
-        }
-
-        $staff->logAuditEvent('updated');
-
-        return redirect()->route('staff.staff.index')->with('success', 'Staff update request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
-    }
-
-    public function destroy(Staff $staff)
-    {
-        $staff->update(['status' => 'pending_delete']);
-        $staff->logAuditEvent('delete_requested');
-
-        return redirect()->route('staff.staff.index')->with('success', 'Staff deletion request submitted for approval.');
-    }
-
-    public function approve(Staff $staff)
-    {
-        $this->authorize('approve-staff');
-
-        if ($staff->status === 'pending_delete') {
-            $staff->logAuditEvent('deleted');
-            $staff->delete();
-        } else {
-            $staff->update(['status' => 'approved']);
-            $staff->logAuditEvent('approved');
-        }
-
-        return redirect()->route('staff.staff.index')->with('success', 'Staff request approved.');
-    }
-
-    public function reject(Staff $staff)
-    {
-        $this->authorize('reject-staff');
-
-        $staff->update(['status' => 'rejected']);
-        return redirect()->route('staff.staff.index')->with('error', 'Staff request rejected.');
     }
 
     public function assignRoles(Request $request, Staff $staff)

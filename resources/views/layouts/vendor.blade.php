@@ -8,12 +8,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="canonical" href="https://preview.keenthemes.com/metronic8" />
-    <link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
+    <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
-    <link href="assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
     
     @yield('styles')
 </head>
@@ -48,7 +48,7 @@
                 <div class="aside-toolbar flex-column-auto" id="kt_aside_toolbar">
                     <div class="aside-user d-flex align-items-sm-center justify-content-center py-5">
                         <div class="symbol symbol-50px">
-                            <img src="assets/media/avatars/blank.png" alt="" />
+                            <img src="{{ asset('assets/media/avatars/blank.png') }}" alt="" />
                         </div>
                         <div class="aside-user-info flex-row-fluid flex-wrap ms-5">
                             <div class="d-flex">
@@ -69,7 +69,7 @@
                                         <div class="menu-item px-3">
                                             <div class="menu-content d-flex align-items-center px-3">
                                                 <div class="symbol symbol-50px me-5">
-                                                    <img alt="Logo" src="assets/media/avatars/blank.png" />
+                                                    <img alt="Logo" src="{{ asset('assets/media/avatars/blank.png') }}" />
                                                 </div>
                                                 <div class="d-flex flex-column">
                                                     <div class="fw-bold d-flex align-items-center fs-5">{{ Auth::guard('vendor')->user()->name }}
@@ -173,7 +173,7 @@
                 <div id="kt_header" class="header align-items-stretch" data-kt-sticky="true" data-kt-sticky-name="header" data-kt-sticky-offset="{default: '0px', lg: '0px'}">
                     <div class="header-brand">
                         <a href="{{ route('vendor.dashboard') }}" class="d-flex align-items-center">
-                            <img alt="Logo" src="assets/media/logos/logo.png" class="h-40px h-lg-40px me-2" />
+                            <img alt="Logo" src="{{ asset('assets/media/logos/logo.png') }}" class="h-40px h-lg-40px me-2" />
                             <span class="fs-2 fw-bold text-primary d-none d-lg-inline">KTSWB - Vendor Portal</span>
                         </a>
                         <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-minimize d-none d-lg-flex" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
@@ -330,16 +330,16 @@
     <script>
         var hostUrl = "assets/";
     </script>
-    <script src="assets/plugins/global/plugins.bundle.js"></script>
-    <script src="assets/js/scripts.bundle.js"></script>
-    <script src="assets/plugins/custom/datatables/datatables.bundle.js"></script>
-    <script src="assets/js/custom/apps/ecommerce/customers/listing/listing.js"></script>
-    <script src="assets/js/custom/apps/ecommerce/customers/listing/add.js"></script>
-    <script src="assets/js/custom/apps/ecommerce/customers/listing/export.js"></script>
-    <script src="assets/js/widgets.bundle.js"></script>
-    <script src="assets/js/custom/widgets.js"></script>
-    <script src="assets/js/custom/apps/chat/chat.js"></script>
-    <script src="assets/js/custom/utilities/modals/users-search.js"></script>
+    <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
+    <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
+    <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/listing.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/add.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/export.js') }}"></script>
+    <script src="{{ asset('assets/js/widgets.bundle.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/widgets.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/apps/chat/chat.js') }}"></script>
+    <script src="{{ asset('assets/js/custom/utilities/modals/users-search.js') }}"></script>
     
     <style>
         /* Enhanced responsive styles */

@@ -15,12 +15,12 @@ class Staff extends Authenticatable
     protected $guard = 'staff';
 
     protected $fillable = [
-        'staff_id', 'first_name', 'surname', 'middle_name', 'name', 'gender', 'date_of_birth',
+        'staff_id', 'first_name', 'surname', 'middle_name', 'gender', 'date_of_birth',
         'state_of_origin', 'lga_id', 'ward_id', 'area_id', 'nationality', 'nin', 'mobile_no', 
         'phone_number', 'email', 'address', 'password', 'date_of_first_appointment', 'rank', 
         'staff_no', 'department', 'expected_next_promotion', 'expected_retirement_date', 
-        'status', 'highest_qualifications', 'grade_level_limit', 'appointment_type', 
-        'photo_path', 'years_of_service', 'district', 'zone', 'subzone', 'road', 'succ'
+        'status', 'employment_status', 'highest_qualifications', 'grade_level_limit', 'appointment_type', 
+        'photo_path', 'years_of_service'
     ];
 
     protected $hidden = [

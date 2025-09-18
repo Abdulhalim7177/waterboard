@@ -23,14 +23,22 @@ class StaffSeeder extends Seeder
         $area = Area::first();
         
         Staff::create([
-            'name' => 'Test Staff User',
+            'staff_id' => 'STAFF001',
+            'first_name' => 'Test',
+            'middle_name' => 'Admin',
+            'surname' => 'User',
             'email' => 'staff@example.com',
             'password' => Hash::make('password123'),
+            'mobile_no' => '1234567890',
             'phone_number' => '1234567890',
             'lga_id' => $lga->id,
             'ward_id' => $ward->id,
             'area_id' => $area->id,
             'status' => 'approved',
+            'employment_status' => 'active',
+            'date_of_birth' => '1990-01-01',
+            'gender' => 'male',
+            'date_of_first_appointment' => '2020-01-01',
         ]);
     }
 }

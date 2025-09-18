@@ -28,13 +28,9 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     // Analytics Routes
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
 
-    // Staff Management
+    // Staff Management (Role Assignment Only)
     Route::get('/staff', [StaffController::class, 'staff'])->name('staff.index');
-    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
-    Route::put('/staff/{staff}', [StaffController::class, 'update'])->name('staff.update');
-    Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])->name('staff.destroy');
-    Route::put('/staff/{staff}/approve', [StaffController::class, 'approve'])->name('staff.approve');
-    Route::put('/staff/{staff}/reject', [StaffController::class, 'reject'])->name('staff.reject');
+    Route::get('/staff/roles', [StaffController::class, 'roles'])->name('staff.roles');
     Route::put('/staff/{staff}/assign-roles', [StaffController::class, 'assignRoles'])->name('staff.assign-roles');
     Route::put('/staff/{staff}/remove-roles', [StaffController::class, 'removeRoles'])->name('staff.remove-roles');
 
@@ -144,6 +140,24 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::delete('/{vendor}', [StaffVendorController::class, 'destroy'])->name('destroy');
         Route::post('/{vendor}/approve', [StaffVendorController::class, 'approve'])->name('approve');
         Route::post('/{vendor}/reject', [StaffVendorController::class, 'reject'])->name('reject');
+    });
+
+    // HR Staff Management Routes (Data Management)
+    Route::prefix('hr/staff')->name('hr.staff.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\HR\StaffController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\HR\StaffController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\HR\StaffController::class, 'store'])->name('store');
+        Route::get('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'show'])->name('show');
+        Route::get('/edit/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'edit'])->name('edit');
+        Route::post('/edit/{staff}/section', [\App\Http\Controllers\HR\StaffController::class, 'getEditSection'])->name('edit.section');
+        Route::put('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'update'])->name('update');
+        Route::delete('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'destroy'])->name('destroy');
+        Route::put('/{staff}/approve', [\App\Http\Controllers\HR\StaffController::class, 'approve'])->name('approve');
+        Route::put('/{staff}/reject', [\App\Http\Controllers\HR\StaffController::class, 'reject'])->name('reject');
+        Route::post('/import', [\App\Http\Controllers\HR\StaffController::class, 'import'])->name('import');
+        Route::get('/export/excel', [\App\Http\Controllers\HR\StaffController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/pdf', [\App\Http\Controllers\HR\StaffController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
     });
 
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');

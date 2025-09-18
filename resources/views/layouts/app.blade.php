@@ -5,21 +5,21 @@
 		<title>Water Board System</title>
 		<meta charset="utf-8" />
 		<link rel="canonical" href="https://preview.keenthemes.com/metronic8" />
-		<link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
+		<link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
 		<!--begin::Fonts(mandatory for all pages)-->
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 		<!--end::Fonts-->
 		<!--begin::Vendor Stylesheets(used for this page only)-->
-		<link href="assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<!--end::Vendor Stylesheets-->
 		<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
-		<link href="assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-		<link href="assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
 		
 		<!-- Theme CSS -->
-		<link href="assets/css/themes/light.css" rel="stylesheet" type="text/css" data-theme="light"/>
-		<link href="assets/css/themes/dark.css" rel="stylesheet" type="text/css" data-theme="dark" disabled/>
+		<link href="{{ asset('assets/css/themes/light.css') }}" rel="stylesheet" type="text/css" data-theme="light"/>
+		<link href="{{ asset('assets/css/themes/dark.css') }}" rel="stylesheet" type="text/css" data-theme="dark" disabled/>
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
@@ -83,21 +83,21 @@
 		</div>
 		<!--end::Root-->
 		<!--begin::Javascript-->
-		<script>var hostUrl = "assets/";</script>
+		<script>var hostUrl = "{{ asset('assets/') }}";</script>
 		<!--begin::Global Javascript Bundle(mandatory for all pages)-->
-		<script src="assets/plugins/global/plugins.bundle.js"></script>
-		<script src="assets/js/scripts.bundle.js"></script>
+		<script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
+		<script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
 		<!--end::Global Javascript Bundle-->
 		<!--begin::Vendors Javascript(used for this page only)-->
-		<script src="assets/plugins/custom/datatables/datatables.bundle.js"></script>
+		<script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 		<!--end::Vendors Javascript-->
 		<!--begin::Custom Javascript(used for this page only)-->
-		<script src="assets/js/custom/apps/ecommerce/customers/listing/listing.js"></script>
-		<script src="assets/js/custom/apps/ecommerce/customers/listing/add.js"></script>
-		<script src="assets/js/custom/apps/ecommerce/customers/listing/export.js"></script>
-		<script src="assets/js/widgets.bundle.js"></script>
-		<script src="assets/js/custom/widgets.js"></script>
-		<script src="assets/js/custom/apps/chat/chat.js"></script>
+		<script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/listing.js') }}"></script>
+		<script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/add.js') }}"></script>
+		<script src="{{ asset('assets/js/custom/apps/ecommerce/customers/listing/export.js') }}"></script>
+		<script src="{{ asset('assets/js/widgets.bundle.js') }}"></script>
+		<script src="{{ asset('assets/js/custom/widgets.js') }}"></script>
+		<script src="{{ asset('assets/js/custom/apps/chat/chat.js') }}"></script>
 		<script src="assets/js/custom/utilities/modals/users-search.js"></script>
 		<!--end::Custom Javascript-->
 		<!--end::Javascript-->

@@ -8,17 +8,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="canonical" href="https://preview.keenthemes.com/metronic8" />
-    <link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
+    <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 
     <!-- Vendor Stylesheets -->
-    <link href="assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
 
     <!-- Global Stylesheets Bundle -->
-    <link href="assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
 
     <style>
         html,
@@ -168,7 +168,7 @@
                                 <div class="card-body p-5">
                                     <!-- Logo -->
                                     <div class="text-center mb-4">
-                                         <img alt="Logo" src="assets/media/logos/logo.png" class="h-60px mb-3"/>
+                                         <img alt="Logo" src="{{ asset('assets/media/logos/logo.png') }}" class="h-60px mb-3"/>
                                         <h4 class="fw-normal">Water Board Management System</h4>
                                         <h5 class="fw-light mt-2">Customer Login</h5>
                                     </div>
@@ -221,10 +221,10 @@
     </script>
 
     <!-- Global JS -->
-    <script src="assets/plugins/global/plugins.bundle.js"></script>
-    <script src="assets/js/scripts.bundle.js"></script>
+    <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
+    <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
 
     <!-- Vendors JS -->
-    <script src="assets/plugins/custom/datatables/datatables.bundle.js"></script>
+    <script src="{{ asset('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 
     <!-- Custom

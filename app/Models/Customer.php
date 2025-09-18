@@ -51,14 +51,20 @@ class Customer extends Authenticatable
     {
         return $this->hasMany(Bill::class);
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function complaints()
     {
         return $this->hasMany(Complaint::class);
     }
 
-    public function payments()
+    public function pendingUpdates()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(PendingCustomerUpdate::class);
     }
 
     public function staff()
