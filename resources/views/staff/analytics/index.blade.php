@@ -399,13 +399,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -449,13 +449,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -503,13 +503,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -546,13 +546,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -593,13 +593,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -636,13 +636,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>
@@ -683,13 +683,13 @@
                                 </div>
                                 <div class="separator mb-3 opacity-75"></div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Generate Report</a>
+                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">Export to CSV</a>
+                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
                                 </div>
                                 <div class="menu-item px-3">
-                                    <a href="#" class="menu-link px-3">View Details</a>
+                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
                                 </div>
                             </div>
                         </div>

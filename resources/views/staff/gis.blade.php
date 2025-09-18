@@ -99,8 +99,8 @@
                                             <button type="button" id="resetFiltersBtn" class="btn btn-outline-secondary btn-hover-scale">
                                                 <i class="fas fa-undo me-2"></i> Reset
                                             </button>
-                                            <div class="btn-group" role="group">
-                                                <button id="exportBtn" type="button" class="btn btn-success btn-hover-scale dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <div class="btn-group w-100 w-md-auto" role="group">
+                                                <button id="exportBtn" type="button" class="btn btn-success btn-hover-scale dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
                                                     <i class="fas fa-download me-2"></i> Export
                                                 </button>
                                                 <ul class="dropdown-menu">
@@ -734,4 +734,32 @@
             applyFilters();
         }
     </script>
+@endsection
+
+@section('styles')
+    <style>
+        @media (max-width: 767.98px) {
+            .dropdown-menu {
+                min-width: 100%;
+            }
+            
+            .w-100.w-md-auto {
+                width: 100% !important;
+            }
+            
+            .btn-group.w-100.w-md-auto {
+                width: 100% !important;
+                margin-bottom: 0.5rem;
+            }
+            
+            .btn-group .btn {
+                text-align: left;
+            }
+        }
+        
+        .btn-hover-scale:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s ease-in-out;
+        }
+    </style>
 @endsection

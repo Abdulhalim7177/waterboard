@@ -27,6 +27,10 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     // Analytics Routes
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/export/csv', [AnalyticsController::class, 'exportCsv'])->name('analytics.export.csv');
+    Route::get('/analytics/export/excel', [AnalyticsController::class, 'exportExcel'])->name('analytics.export.excel');
+    Route::get('/analytics/report', [AnalyticsController::class, 'generateReport'])->name('analytics.report');
+    Route::get('/analytics/details', [AnalyticsController::class, 'viewDetails'])->name('analytics.details');
 
     // Staff Management (Role Assignment Only)
     Route::get('/staff', [StaffController::class, 'staff'])->name('staff.index');
