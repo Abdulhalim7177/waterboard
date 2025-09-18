@@ -77,9 +77,9 @@
                     <!--end::Search and Filters Form-->
 
                     <!--begin::Toolbar-->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 flex-shrink-0 ms-auto w-100 w-md-auto">
                         <!--begin::Import-->
-                        <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <button type="button" class="btn btn-light-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#importModal">
                             <i class="ki-duotone ki-entrance-left fs-2">
                                 <span class="path1"></span>
                                 <span class="path2"></span>
@@ -87,24 +87,25 @@
                             Import Staff
                         </button>
                         <!--end::Import-->
-                        <!--begin::Export-->
-                        <a href="{{ route('staff.hr.staff.export.excel') }}" class="btn btn-light-primary">
-                            <i class="ki-duotone ki-exit-up fs-2">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                            Export Excel
-                        </a>
-                        <a href="{{ route('staff.hr.staff.export.pdf') }}" class="btn btn-light-primary">
-                            <i class="ki-duotone ki-exit-up fs-2">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                            Export PDF
-                        </a>
-                        <!--end::Export-->
+                        
+                        <!--begin::Export Dropdown-->
+                        <div class="dropdown w-100 w-md-auto">
+                            <button class="btn btn-light-primary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ki-duotone ki-exit-up fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Export
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                <li><a class="dropdown-item" href="{{ route('staff.hr.staff.export.excel') }}">Export Excel</a></li>
+                                <li><a class="dropdown-item" href="{{ route('staff.hr.staff.export.pdf') }}">Export PDF</a></li>
+                            </ul>
+                        </div>
+                        <!--end::Export Dropdown-->
+                        
                         <!--begin::Add staff-->
-                        <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary">Add Staff</a>
+                        <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary w-100 w-md-auto">Add Staff</a>
                         <!--end::Add staff-->
                     </div>
                     <!--end::Toolbar-->
@@ -352,6 +353,35 @@
                     }
                 });
             });
+
+            // Handle export dropdown forms
+            $('.export-btn').on('click', function(e) {
+                e.preventDefault();
+                const $form = $(this).closest('form');
+                const format = $(this).data('format');
+                
+                // Submit form
+                $form.submit();
+            });
         });
     </script>
+@endsection
+
+@section('styles')
+    <style>
+        @media (max-width: 767.98px) {
+            .dropdown-menu {
+                min-width: 100%;
+            }
+            
+            .w-100.w-md-auto {
+                width: 100% !important;
+            }
+            
+            .ms-0.ms-md-2.mt-2.mt-md-0 {
+                margin-left: 0 !important;
+                margin-top: 0.5rem !important;
+            }
+        }
+    </style>
 @endsection

@@ -4,8 +4,8 @@
     <div class="d-flex align-items-center flex-wrap w-100">
         <!--begin::Heading-->
         <div class="me-5">
-            <h3 class="fw-bold text-dark mb-0">Staff Management</h3>
-            <span class="text-muted fs-7">Manage roles, permissions, and staff records</span>
+            <h3 class="fw-bold text-dark mb-0">System Management</h3>
+            <span class="text-muted fs-7">Manage all aspects of the water board system</span>
         </div>
         <!--end::Heading-->
         
