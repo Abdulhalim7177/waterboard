@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-xxl">
     <!--begin::Toolbar-->
-    @include('staff.partials.navigation')
+    @include('staff.analytics.partials.navigation')
     <!--end::Toolbar-->
 
     <!--begin::Alerts-->
