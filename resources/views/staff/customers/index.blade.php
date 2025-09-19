@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Customer Management
+@endsection
+
+@section('page_description')
+    Manage customer records and accounts
+@endsection
+
 @section('content')
     <!--begin::Container-->
     <div class="container-xxl">

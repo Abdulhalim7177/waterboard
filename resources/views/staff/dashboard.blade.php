@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Dashboard
+@endsection
+
+@section('page_description')
+    Water Board Management System Overview
+@endsection
+
 @section('content')
     <!--begin::Container-->
     <div class="container-xxl">

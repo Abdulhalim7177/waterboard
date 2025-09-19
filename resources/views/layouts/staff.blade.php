@@ -553,6 +553,27 @@
                 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
                     <div class="post d-flex flex-column-fluid" id="kt_post">
                         <div id="kt_content_container" class="container-xxl">
+                            <!--begin::Page Title-->
+                            @hasSection('page_title')
+                            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3 mb-5">
+                                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                                    @yield('page_title')
+                                </h1>
+                                @hasSection('page_description')
+                                <div class="d-flex align-items-center text-muted fs-7 fw-semibold mt-2">
+                                    @yield('page_description')
+                                </div>
+                                @endif
+                                <!--begin::Breadcrumb-->
+                                @hasSection('breadcrumbs')
+                                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                                    @yield('breadcrumbs')
+                                </ul>
+                                @endif
+                                <!--end::Breadcrumb-->
+                            </div>
+                            <!--end::Page Title-->
+                            @endif
                             @yield('content')
                             @yield('scripts')
                         </div>

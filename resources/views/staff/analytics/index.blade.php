@@ -1,4 +1,13 @@
 @extends('layouts.staff')
+
+@section('page_title')
+    Analytics Dashboard
+@endsection
+
+@section('page_description')
+    System overview and key metrics
+@endsection
+
 @section('content')
     <!--begin::Container-->
     <div id="kt_content_container" class="container-xxl">

@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Complaint Management
+@endsection
+
+@section('page_description')
+    Track and resolve customer complaints
+@endsection
+
 @section('content')
 <div id="kt_content_container" class="container-xxl">
     <!-- Alerts -->

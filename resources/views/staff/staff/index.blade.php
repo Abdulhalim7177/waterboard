@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Staff Management
+@endsection
+
+@section('page_description')
+    Manage staff records, roles, and permissions
+@endsection
+
 @section('content')
     <!--begin::Container-->
     <div class="container-xxl">

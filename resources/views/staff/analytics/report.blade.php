@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Analytics Report
+@endsection
+
+@section('page_description')
+    Generated system analytics report
+@endsection
+
 @section('content')
 <div class="container-xxl">
     <!--begin::Toolbar-->

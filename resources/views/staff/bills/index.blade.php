@@ -1,5 +1,13 @@
 @extends('layouts.staff')
 
+@section('page_title')
+    Billing Management
+@endsection
+
+@section('page_description')
+    Generate and manage customer bills
+@endsection
+
 @section('content')
 <div class="container">
     <!-- Alerts -->
