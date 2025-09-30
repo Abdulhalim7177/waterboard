@@ -273,7 +273,25 @@
                                 </div>
                                 <div class="col-lg-9">
                                     <div class="row mb-5">
-                                        <div class="col-md-4 fv-row">
+                                        <div class="col-md-3 fv-row">
+                                            <label class="fs-6 fw-semibold form-label mb-2">Zone</label>
+                                            <select name="zone_id" class="form-control form-control-solid" data-control="select2">
+                                                <option value="">Select Zone</option>
+                                                @foreach ($zones as $zone)
+                                                    <option value="{{ $zone->id }}" {{ old('zone_id') == $zone->id ? 'selected' : '' }}>{{ $zone->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 fv-row">
+                                            <label class="fs-6 fw-semibold form-label mb-2">District</label>
+                                            <select name="district_id" class="form-control form-control-solid" data-control="select2">
+                                                <option value="">Select District</option>
+                                                @foreach ($districts as $district)
+                                                    <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">LGA</label>
                                             <select name="lga_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select LGA</option>
@@ -282,7 +300,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-4 fv-row">
+                                        <div class="col-md-3 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">Ward</label>
                                             <select name="ward_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select Ward</option>
@@ -291,7 +309,9 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-4 fv-row">
+                                    </div>
+                                    <div class="row mb-5">
+                                        <div class="col-md-12 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">Area</label>
                                             <select name="area_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select Area</option>

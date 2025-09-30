@@ -139,13 +139,6 @@
                                                     <td class="text-end">{{ $data['stats']['payments']['pending'] ?? 0 }}</td>
                                                     <td class="text-end">{{ $data['stats']['payments']['failed'] ?? 0 }}</td>
                                                 </tr>
-                                                <tr>
-                                                    <td>Complaints</td>
-                                                    <td class="text-end">{{ $data['stats']['complaints']['total'] ?? 0 }}</td>
-                                                    <td class="text-end">{{ $data['stats']['complaints']['resolved'] ?? 0 }}</td>
-                                                    <td class="text-end">{{ $data['stats']['complaints']['pending'] ?? 0 }}</td>
-                                                    <td class="text-end">{{ $data['stats']['complaints']['rejected'] ?? 0 }}</td>
-                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -176,7 +169,6 @@
                                                     <th>Month</th>
                                                     <th class="text-end">Bills (₦)</th>
                                                     <th class="text-end">Payments (₦)</th>
-                                                    <th class="text-end">Complaints</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -185,7 +177,6 @@
                                                         <td>{{ $data['months'][$i] }}</td>
                                                         <td class="text-end">₦{{ number_format($data['billAmounts'][$i] ?? 0, 2) }}</td>
                                                         <td class="text-end">₦{{ number_format($data['paymentAmounts'][$i] ?? 0, 2) }}</td>
-                                                        <td class="text-end">{{ $data['complaintCounts'][$i] ?? 0 }}</td>
                                                     </tr>
                                                 @endfor
                                             </tbody>

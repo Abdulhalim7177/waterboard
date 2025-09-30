@@ -15,11 +15,16 @@ use Illuminate\Support\Facades\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CustomersExport;
 use Carbon\Carbon;
+use App\Services\BreadcrumbService;
 
 class GisController extends Controller
 {
     public function index()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Customer GIS Overview');
+
         try {
             $lgas = Lga::whereNotNull('latitude')->whereNotNull('longitude')->get(['id', 'name', 'latitude', 'longitude']);
             $wards = Ward::whereNotNull('latitude')->whereNotNull('longitude')->get(['id', 'name', 'latitude', 'longitude', 'lga_id']);

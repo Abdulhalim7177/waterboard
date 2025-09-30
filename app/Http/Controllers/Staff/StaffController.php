@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Services\BreadcrumbService;
 
 class StaffController extends Controller
 {
@@ -26,6 +27,10 @@ class StaffController extends Controller
 
     public function dashboard()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Dashboard');
+
         // Get staff statistics
         $totalStaff = Staff::count();
         $activeStaff = Staff::where('status', 'approved')->count();
@@ -45,11 +50,6 @@ class StaffController extends Controller
         $totalPayments = \App\Models\Payment::count();
         $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
         $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
-        
-        // Get complaint statistics
-        $totalComplaints = \App\Models\Complaint::count();
-        $openComplaints = \App\Models\Complaint::where('status', 'open')->count();
-        $resolvedComplaints = \App\Models\Complaint::where('status', 'resolved')->count();
         
         // Get recent role assignments (last 5)
         $recentRoleAssignments = \App\Models\Audit::where('event', 'roles_assigned')
@@ -88,9 +88,6 @@ class StaffController extends Controller
             'totalPayments',
             'successfulPayments',
             'pendingPayments',
-            'totalComplaints',
-            'openComplaints',
-            'resolvedComplaints',
             'recentRoleAssignments', 
             'recentHrUpdates',
             'recentCustomerActivities',
@@ -100,6 +97,10 @@ class StaffController extends Controller
 
     public function staff(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management');
+
         // Get stats for the staff roles view
         $stats = [
             'total' => Staff::count(),
@@ -133,6 +134,10 @@ class StaffController extends Controller
     
     public function staffRoles(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management', route('staff.staff.index'))->add('Role Management');
+
         $staff = Staff::when($request->search_staff, function ($query, $search) {
             return $query->where('first_name', 'like', "%{$search}%")
                          ->orWhere('surname', 'like', "%{$search}%")
@@ -152,8 +157,24 @@ class StaffController extends Controller
         return view('staff.staff.roles', compact('staff', 'roles', 'stats'));
     }
 
+    public function roleAssignment(Request $request, $staff_id)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management', route('staff.staff.index'))->add('Role Assignment');
+
+        $staff = Staff::with('roles')->findOrFail($staff_id);
+        $roles = Role::where('guard_name', 'staff')->get();
+
+        return view('staff.staff.role-assignment', compact('staff', 'roles'));
+    }
+
     public function roles(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management', route('staff.staff.index'))->add('Role Management');
+
         $roles = Role::when($request->search_role, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })->where('guard_name', 'staff')->paginate(10);
@@ -165,6 +186,10 @@ class StaffController extends Controller
 
     public function permissions(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management', route('staff.staff.index'))->add('Permission Management');
+
         $permissions = Permission::when($request->search_permission, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })->where('guard_name', 'staff')->paginate(10);
@@ -174,6 +199,10 @@ class StaffController extends Controller
 
     public function auditTrail(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Audit Trail');
+
         $audits = Audit::when($request->search_model, function ($query, $search) {
             return $query->where('auditable_type', 'like', "%{$search}%");
         })->when($request->event, function ($query, $event) {
@@ -191,30 +220,73 @@ class StaffController extends Controller
         return view('staff.audits.index', compact('audits'));
     }
 
+    public function pendingStaff()
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Staff Management', route('staff.staff.index'))->add('Pending Changes');
+
+        $staff = Staff::where('status', 'pending')->with('roles')->paginate(10);
+        
+        return view('staff.staff.pending', compact('staff'));
+    }
+
+    public function approveStaff(Request $request, Staff $staff)
+    {
+        $staff->update(['status' => 'approved']);
+        $staff->logAuditEvent('approved', ['action' => 'Staff changes approved']);
+        
+        return redirect()->route('staff.staff.pending')->with('success', 'Staff changes approved successfully.');
+    }
+
+    public function rejectStaff(Request $request, Staff $staff)
+    {
+        $staff->update(['status' => 'rejected']);
+        $staff->logAuditEvent('rejected', ['action' => 'Staff changes rejected']);
+        
+        return redirect()->route('staff.staff.pending')->with('success', 'Staff changes rejected successfully.');
+    }
+
     public function assignRoles(Request $request, Staff $staff)
     {
         $request->validate([
-            'roles' => 'required|array|exists:roles,name'
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,name'
+        ], [
+            'roles.required' => 'You must select at least one role to assign.',
+            'roles.*.exists' => 'The selected role does not exist.'
         ]);
 
-        $staff->syncRoles($request->roles);
-        $staff->update(['status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending']);
-        $staff->logAuditEvent('roles_assigned', ['roles' => implode(', ', $request->roles)]);
+        try {
+            $staff->syncRoles($request->roles);
+            $staff->update(['status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending']);
+            $staff->logAuditEvent('roles_assigned', ['roles' => implode(', ', $request->roles)]);
 
-        return redirect()->route('staff.staff.index')->with('success', 'Role assignment request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
+            return redirect()->route('staff.staff.roles')->with('success', 'Role assignment request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
+        } catch (\Exception $e) {
+            return redirect()->route('staff.staff.roles')->with('error', 'Failed to assign roles: ' . $e->getMessage());
+        }
     }
 
     public function removeRoles(Request $request, Staff $staff)
     {
         $request->validate([
-            'roles' => 'required|array|exists:roles,name'
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,name'
+        ], [
+            'roles.required' => 'You must select at least one role to remove.',
+            'roles.*.exists' => 'The selected role does not exist.'
         ]);
 
-        $staff->removeRole(...$request->roles);
-        $staff->update(['status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending']);
-        $staff->logAuditEvent('roles_removed', ['roles' => implode(', ', $request->roles)]);
+        try {
+            $staff->removeRole(...$request->roles);
+            $staff->update(['status' => Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved' : 'pending']);
+            $staff->logAuditEvent('roles_removed', ['roles' => implode(', ', $request->roles)]);
 
-        return redirect()->route('staff.staff.index')->with('success', 'Role removal request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
+            return redirect()->route('staff.staff.roles')->with('success', 'Role removal request ' . (Auth::guard('staff')->user()->hasRole('super-admin') ? 'approved.' : 'submitted for approval.'));
+        } catch (\Exception $e) {
+            return redirect()->route('staff.staff.roles')->with('error', 'Failed to remove roles: ' . $e->getMessage());
+        }
     }
 
     public function assignLocations(Request $request, Staff $staff)

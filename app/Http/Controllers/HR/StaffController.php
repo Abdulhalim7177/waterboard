@@ -7,6 +7,8 @@ use App\Models\Staff;
 use App\Models\Lga;
 use App\Models\Ward;
 use App\Models\Area;
+use App\Models\Zone;
+use App\Models\District;
 use App\Imports\StaffImport;
 use App\Exports\StaffExport;
 use Illuminate\Http\Request;
@@ -16,6 +18,7 @@ use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Illuminate\Support\Str;
+use App\Services\BreadcrumbService;
 
 class StaffController extends Controller
 {
@@ -30,6 +33,10 @@ class StaffController extends Controller
      */
     public function index(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('HR Management')->add('Staff Directory');
+
         $query = Staff::query();
 
         // Search functionality
@@ -45,9 +52,9 @@ class StaffController extends Controller
             });
         }
 
-        // Filter by employment_status
+        // Filter by status
         if ($request->has('status') && $request->status != '') {
-            $query->where('employment_status', $request->status);
+            $query->where('status', $request->status);
         }
 
         // Filter by department
@@ -62,18 +69,8 @@ class StaffController extends Controller
         
         // Get unique departments for filter dropdown
         $departments = Staff::select('department')->distinct()->whereNotNull('department')->pluck('department');
-        
-        // Get stats for the dashboard
-        $stats = [
-            'total' => Staff::count(),
-            'active' => Staff::where('employment_status', 'active')->count(),
-            'on_leave' => Staff::where('employment_status', 'on_leave')->count(),
-            'pending' => Staff::where('status', 'pending')->count(),
-            'suspended' => Staff::where('employment_status', 'suspended')->count(),
-            'terminated' => Staff::where('employment_status', 'terminated')->count(),
-        ];
 
-        return view('hr.staff.index', compact('staffs', 'departments', 'stats'));
+        return view('hr.staff.index', compact('staffs', 'departments'));
     }
 
     /**
@@ -81,15 +78,17 @@ class StaffController extends Controller
      */
     public function create()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('HR Management', route('staff.hr.staff.index'))->add('Add New Staff');
+
         $lgas = Lga::all();
         $wards = Ward::all();
         $areas = Area::all();
+        $zones = Zone::all();
+        $districts = District::all();
         
-        // Generate a temporary UUID for this session
-        $tempUuid = Str::uuid();
-        session(['staff_create_uuid' => $tempUuid]);
-        
-        return view('hr.staff.create', compact('lgas', 'wards', 'areas', 'tempUuid'));
+        return view('hr.staff.create', compact('lgas', 'wards', 'areas', 'zones', 'districts'));
     }
 
     /**
@@ -107,6 +106,10 @@ class StaffController extends Controller
             'date_of_first_appointment' => 'required|date',
             'nin' => 'nullable|string|max:20',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'zone_id' => 'nullable|exists:zones,id',
+            'district_id' => 'nullable|exists:districts,id',
+            'zone_id' => 'nullable|exists:zones,id',
+            'district_id' => 'nullable|exists:districts,id',
             'lga_id' => 'nullable|exists:lgas,id',
             'ward_id' => 'nullable|exists:wards,id',
             'area_id' => 'nullable|exists:areas,id',
@@ -145,15 +148,19 @@ class StaffController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($staff)
+    public function edit(Staff $staff)
     {
-        $staff = Staff::findOrFail($staff);
-        // Load all data upfront for client-side filtering
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('HR Management', route('staff.hr.staff.index'))->add('Edit Staff');
+
         $lgas = Lga::all();
         $wards = Ward::all();
         $areas = Area::all();
+        $zones = Zone::all();
+        $districts = District::all();
         
-        return view('hr.staff.edit', compact('staff', 'lgas', 'wards', 'areas'));
+        return view('hr.staff.edit', compact('staff', 'lgas', 'wards', 'areas', 'zones', 'districts'));
     }
 
     /**
@@ -175,7 +182,9 @@ class StaffController extends Controller
             $lgas = Lga::all();
             $wards = Ward::all();
             $areas = Area::all();
-            $data = array_merge($data, compact('lgas', 'wards', 'areas'));
+            $zones = Zone::all();
+            $districts = District::all();
+            $data = array_merge($data, compact('lgas', 'wards', 'areas', 'zones', 'districts'));
         }
 
         return response()->json([
@@ -252,12 +261,14 @@ class StaffController extends Controller
             ]);
         } elseif ($part === 'location') {
             $request->validate([
+                'zone_id' => 'nullable|exists:zones,id',
+                'district_id' => 'nullable|exists:districts,id',
                 'lga_id' => 'nullable|exists:lgas,id',
                 'ward_id' => 'nullable|exists:wards,id',
                 'area_id' => 'nullable|exists:areas,id',
             ]);
             
-            $data = $request->only(['lga_id', 'ward_id', 'area_id']);
+            $data = $request->only(['zone_id', 'district_id', 'lga_id', 'ward_id', 'area_id']);
         }
         
         $staff->update($data);

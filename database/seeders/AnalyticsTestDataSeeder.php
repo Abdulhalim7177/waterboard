@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Bill;
 use App\Models\Payment;
-use App\Models\Complaint;
 use Carbon\Carbon;
 
 class AnalyticsTestDataSeeder extends Seeder
@@ -35,15 +34,5 @@ class AnalyticsTestDataSeeder extends Seeder
             ]);
         }
 
-        // Seed Complaints
-        $statuses = ['pending', 'in_progress', 'resolved'];
-        for ($i = 0; $i < 12; $i++) {
-            Complaint::create([
-                'customer_id' => 1,
-                'status' => $statuses[$i % 3],
-                'created_at' => Carbon::now()->subMonths($i)->startOfMonth(),
-                'updated_at' => Carbon::now()->subMonths($i)->startOfMonth(),
-            ]);
         }
-    }
 }

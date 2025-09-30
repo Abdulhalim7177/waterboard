@@ -3,7 +3,6 @@ namespace App\Http\Controllers;
 use App\Models\Bill;
 use App\Models\Payment;
 use App\Models\Customer;
-use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -76,40 +75,8 @@ class CustomerController extends Controller
     public function payments()
     {
         $customer = Auth::guard('customer')->user();
-        $payments = $customer->payments()
-            ->with('bill')
-            ->orderBy('payment_date', 'desc')
-            ->paginate(10);
-        return view('customer.payments.index', compact('customer', 'payments'));
-    }
-
-    public function complaints()
-    {
-        $customer = Auth::guard('customer')->user();
-        $complaints = $customer->complaints()->paginate(10);
-        return view('customer.complaints', compact('complaints'));
-    }
-
-    public function storeComplaint(Request $request)
-    {
-        $customer = Auth::guard('customer')->user();
-
-        $request->validate([
-            'type' => 'required|string|in:billing,supply,maintenance,other',
-            'description' => 'required|string|max:1000',
-        ]);
-
-        $complaint = Complaint::create([
-            'customer_id' => $customer->id,
-            'type' => $request->type,
-            'description' => $request->description,
-            'status' => 'pending',
-        ]);
-
-        $complaint->logAuditEvent('created');
-
-        return redirect()->route('customer.complaints')
-            ->with('success', 'Complaint submitted successfully.');
+        $payments = $customer->payments()->orderBy('payment_date', 'desc')->paginate(10);
+        return view('customer.payments', compact('payments'));
     }
 
     public function initiateNABRollPayment(Request $request)

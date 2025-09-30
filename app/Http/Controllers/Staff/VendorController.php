@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Vendor;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Services\BreadcrumbService;
 
 class VendorController extends Controller
 {
@@ -15,6 +16,10 @@ class VendorController extends Controller
      */
     public function index()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Vendor Management');
+
         $vendors = Vendor::orderBy('created_at', 'desc')->paginate(10);
         return view('staff.vendors.index', compact('vendors'));
     }
@@ -24,6 +29,10 @@ class VendorController extends Controller
      */
     public function create()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Create Vendor');
+
         return view('staff.vendors.create');
     }
 
@@ -57,6 +66,10 @@ class VendorController extends Controller
      */
     public function show(Vendor $vendor)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('View Vendor');
+
         return view('staff.vendors.show', compact('vendor'));
     }
 
@@ -65,6 +78,10 @@ class VendorController extends Controller
      */
     public function edit(Vendor $vendor)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Edit Vendor');
+
         return view('staff.vendors.edit', compact('vendor'));
     }
 

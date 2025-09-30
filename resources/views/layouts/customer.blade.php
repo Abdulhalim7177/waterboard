@@ -204,22 +204,6 @@
                             <!--end:Menu item-->
                             <!--begin:Menu item-->
                             <div class="menu-item">
-                                <a class="menu-link" href="{{ route('customer.complaints') }}">
-                                    <span class="menu-icon">
-                                        <i class="ki-duotone ki-messages fs-2">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                            <span class="path3"></span>
-                                            <span class="path4"></span>
-                                            <span class="path5"></span>
-                                        </i>
-                                    </span>
-                                    <span class="menu-title">Complaints</span>
-                                </a>
-                            </div>
-                            <!--end:Menu item-->
-                            <!--begin:Menu item-->
-                            <div class="menu-item">
                                 <a class="menu-link" href="{{ route('customer.payments') }}">
                                     <span class="menu-icon">
                                         <i class="ki-duotone ki-wallet fs-2">

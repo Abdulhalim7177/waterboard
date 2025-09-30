@@ -106,7 +106,7 @@
                                     <td class="d-none d-md-table-cell">{{ $area->code }}</td>
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <span class="text-gray-800 text-hover-primary mb-1">{{ $area->ward->name }}</span>
+                                            <span class="text-gray-800 text-hover-primary mb-1">{{ $area->ward ? $area->ward->name : '—' }}</span>
                                             <span class="text-muted fs-7 d-md-none">Code: {{ $area->code }}</span>
                                         </div>
                                     </td>
@@ -171,8 +171,8 @@
                                             <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
                                                 Name: {{ $area->name }}<br>
                                                 Code: {{ $area->code }}<br>
-                                                Ward: {{ $area->ward->name }}<br>
-                                                LGA: {{ $area->ward->lga->name }}<br>
+                                                Ward: {{ $area->ward ? $area->ward->name : '—' }}<br>
+                                                LGA: {{ ($area->ward && $area->ward->lga) ? $area->ward->lga->name : '—' }}<br>
                                                 Status: {{ ucfirst(str_replace('_', ' ', $area->status)) }}
                                             </div>
                                         </div>
@@ -286,7 +286,7 @@
                                 <div class="d-flex flex-stack flex-wrap gap-3">
                                     <div class="d-flex flex-column">
                                         <div class="text-muted fs-7">Ward</div>
-                                        <div class="text-gray-800 fw-bold">{{ $area->ward->name }}</div>
+                                        <div class="text-gray-800 fw-bold">{{ $area->ward ? $area->ward->name : '—' }}</div>
                                     </div>
                                     <div class="d-flex flex-column">
                                         <div class="text-muted fs-7">Actions</div>

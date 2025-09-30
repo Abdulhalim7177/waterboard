@@ -23,7 +23,7 @@
                             <h3 class="text-success fs-1 fw-bolder mb-0">₦{{ number_format(Auth::guard('customer')->user()->account_balance, 2) }}</h3>
                             
                             <!-- Button to trigger the payment modal -->
-<a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_make_payment">Fund Wallet</a>
+<a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_make_payment">Pay Bills & Fund Account</a>
                         </div>
                     </div>
                 </div>
@@ -60,17 +60,17 @@
                                     <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
                                 </div>
                                 <div class="col-md-4 align-self-end">
-                                    <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
-                                    <a href="{{ route('customer.bills') }}" class="btn btn-outline-secondary">Clear Filter</a>
+                                    <button type="submit" class="btn btn-primary me-2">Apply Bill Filters</button>
+                                    <a href="{{ route('customer.bills') }}" class="btn btn-outline-secondary">Clear Bill Filters</a>
                                 </div>
                             </div>
                         </form>
                         <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
                             <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#kt_customer_details_invoices_1">Unpaid Bills</a>
+                                <a class="nav-link active" data-bs-toggle="tab" href="#kt_customer_details_invoices_1">Unpaid Bills ({{ $bills->where('status', '!=', 'paid')->count() }})</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#kt_customer_details_invoices_2">Paid Bills</a>
+                                <a class="nav-link" data-bs-toggle="tab" href="#kt_customer_details_invoices_2">Paid Bills ({{ $bills->where('status', 'paid')->count() }})</a>
                             </li>
                         </ul>
                         <div class="tab-content">
@@ -110,7 +110,7 @@
                                                         <td>{{ $bill->billing_date->format('M d, Y') }}</td>
                                                         <td>{{ $bill->due_date->format('M d, Y') }}</td>
                                                         <td>
-                                                            <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_pay_bill_{{ $bill->id }}">Pay</button>
+                                                            <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_pay_bill_{{ $bill->id }}">Pay Bill #{{ $bill->billing_id }}</button>
                                                         </td>
                                                         <td>
                                                             @if ($bill->approval_status === 'approved')
@@ -124,7 +124,7 @@
                                     </div>
                                 @endif
                                 @if ($bills->where('status', '!=', 'paid')->count() > 0)
-                                    <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_pay_bills">Pay All</a>
+                                    <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#kt_modal_pay_bills">Pay All Unpaid Bills ({{ $bills->where('status', '!=', 'paid')->count() }} Bills, ₦{{ number_format($bills->where('status', '!=', 'paid')->sum('balance'), 2) }})</a>
                                 @endif
                             </div>
 
@@ -267,7 +267,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="kt_modal_make_payment_label">Fund Wallett</h5>
+                <h5 class="modal-title" id="kt_modal_make_payment_label">Fund Wallet</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('customer.bills.pay') }}" method="POST">
@@ -281,7 +281,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Proceed to Payment</button>
+                    <button type="submit" class="btn btn-success">Make Payment</button>
                 </div>
             </form>
         </div>

@@ -236,10 +236,10 @@
                             <!--begin::Assign Roles Modal-->
                             @if (auth('staff')->user()->hasAnyRole(['super-admin', 'manager']))
                                 <div class="modal fade" id="kt_staff_assign_roles_modal{{ $member->id }}" tabindex="-1" aria-labelledby="assignRolesModalLabel{{ $member->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
+                                    <div class="modal-dialog modal-dialog-centered mw-650px">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="assignRolesModalLabel{{ $member->id }}">Assign Roles to {{ $member ? trim($member->first_name . ' ' . ($member->middle_name ?? '') . ' ' . ($member->surname ?? '')) : 'N/A' }}</h5>
+                                                <h2 class="modal-title fw-bold" id="assignRolesModalLabel{{ $member->id }}">Assign Roles to {{ $member ? trim($member->first_name . ' ' . ($member->middle_name ?? '') . ' ' . ($member->surname ?? '')) : 'N/A' }}</h2>
                                                 <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                                                     <i class="ki-duotone ki-cross fs-1">
                                                         <span class="path1"></span>
@@ -247,27 +247,38 @@
                                                     </i>
                                                 </div>
                                             </div>
-                                            <form action="{{ route('staff.staff.assign-roles', $member->id) }}" method="POST">
+                                            <form action="{{ route('staff.staff.assign-roles', $member->id) }}" method="POST" id="assignRolesForm{{ $member->id }}">
                                                 @csrf
                                                 @method('PUT')
                                                 <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="roles" class="form-label">Roles</label>
-                                                        <select name="roles[]" id="roles" class="form-control form-control-solid" data-control="select2" multiple required>
+                                                    <div class="mb-8">
+                                                        <label for="roles{{ $member->id }}" class="form-label fs-6 fw-bold mb-3">Select Roles</label>
+                                                        <select name="roles[]" id="roles{{ $member->id }}" class="form-select form-select-solid" data-control="select2" multiple required>
                                                             @foreach ($roles as $role)
                                                                 <option value="{{ $role->name }}" {{ $member->hasRole($role->name) ? 'selected' : '' }}>{{ $role->name }}</option>
                                                             @endforeach
                                                         </select>
+                                                        <div class="text-muted fs-7 mt-2">Select one or more roles to assign to this staff member.</div>
                                                     </div>
                                                     @if (auth('staff')->user()->hasRole('manager'))
                                                         <div class="alert alert-info">
+                                                            <i class="ki-duotone ki-information fs-2 text-info me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                            </i>
                                                             This action requires Super Admin approval.
                                                         </div>
                                                     @endif
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Assign Roles</button>
+                                                    <button type="submit" class="btn btn-primary" id="submitAssignRoles{{ $member->id }}">
+                                                        <span class="indicator-label">Assign Roles</span>
+                                                        <span class="indicator-progress">Please wait... 
+                                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                                        </span>
+                                                    </button>
                                                 </div>
                                             </form>
                                         </div>
@@ -363,6 +374,18 @@
                 searchTimeout = setTimeout(function() {
                     $('#staff_filter_form').submit();
                 }, 500);
+            });
+
+            // Handle assign roles form submission
+            $('form[id^="assignRolesForm"]').each(function() {
+                $(this).on('submit', function() {
+                    const formId = $(this).attr('id');
+                    const submitButton = $('#submit' + formId);
+                    
+                    // Show loading indicator
+                    submitButton.attr('data-kt-indicator', 'on');
+                    submitButton.prop('disabled', true);
+                });
             });
         });
     </script>

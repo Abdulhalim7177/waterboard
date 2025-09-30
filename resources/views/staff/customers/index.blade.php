@@ -1,13 +1,5 @@
 @extends('layouts.staff')
 
-@section('page_title')
-    Customer Management
-@endsection
-
-@section('page_description')
-    Manage customer records and accounts
-@endsection
-
 @section('content')
     <!--begin::Container-->
     <div class="container-xxl">
@@ -159,10 +151,10 @@
                     <!--end::Search and Filters Form-->
 
                     <!--begin::Toolbar-->
-                    <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 flex-shrink-0 ms-auto w-100 w-md-auto">
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
                         <!--begin::Import-->
                         @can('create-customer', App\Models\Customer::class)
-                            <button type="button" class="btn btn-light-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#importModal">
                                 <i class="ki-duotone ki-entrance-left fs-2">
                                     <span class="path1"></span>
                                     <span class="path2"></span>
@@ -171,60 +163,54 @@
                             </button>
                         @endcan
                         <!--end::Import-->
-                        
-                        <!--begin::Export Dropdown-->
+                        <!--begin::Export-->
                         @can('view-customers', App\Models\Customer::class)
-                            <div class="dropdown w-100 w-md-auto">
-                                <button class="btn btn-light-primary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <form id="export_csv_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="format" value="csv">
+                                <input type="hidden" name="status" value="{{ request('status_filter') }}">
+                                <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
+                                <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
+                                <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
+                                <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
+                                <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+                                <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
+                                <button type="submit" class="btn btn-light-primary export-btn" data-format="csv">
                                     <i class="ki-duotone ki-exit-up fs-2">
                                         <span class="path1"></span>
                                         <span class="path2"></span>
                                     </i>
-                                    Export
+                                    Export CSV
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                                    <li>
-                                        <form id="export_csv_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="format" value="csv">
-                                            <input type="hidden" name="status" value="{{ request('status_filter') }}">
-                                            <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
-                                            <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
-                                            <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
-                                            <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
-                                            <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
-                                            <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
-                                            <button type="submit" class="dropdown-item export-btn" data-format="csv">Export CSV</button>
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form id="export_excel_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="format" value="xlsx">
-                                            <input type="hidden" name="status" value="{{ request('status_filter') }}">
-                                            <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
-                                            <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
-                                            <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
-                                            <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
-                                            <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
-                                            <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
-                                            <button type="submit" class="dropdown-item export-btn" data-format="xlsx">Export Excel</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
+                            </form>
+                            <form id="export_excel_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="format" value="xlsx">
+                                <input type="hidden" name="status" value="{{ request('status_filter') }}">
+                                <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
+                                <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
+                                <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
+                                <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
+                                <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+                                <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
+                                <button type="submit" class="btn btn-light-primary export-btn" data-format="xlsx">
+                                    <i class="ki-duotone ki-exit-up fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Export Excel
+                                </button>
+                            </form>
                         @endcan
-                        <!--end::Export Dropdown-->
-                        
+                        <!--end::Export-->
                         <!--begin::Add customer-->
                         @can('create-customer', App\Models\Customer::class)
-                            <a href="{{ route('staff.customers.create.personal') }}" class="btn btn-primary w-100 w-md-auto">Add Customer</a>
+                            <a href="{{ route('staff.customers.create.personal') }}" class="btn btn-primary">Add Customer</a>
                         @endcan
                         <!--end::Add customer-->
-                        
                         <!--begin::View pending-->
                         @can('approve-customer', App\Models\Customer::class)
-                            <a href="{{ route('staff.customers.pending') }}" class="btn btn-primary ms-0 ms-md-2 w-100 w-md-auto mt-2 mt-md-0">View Pending Changes</a>
+                            <a href="{{ route('staff.customers.pending') }}" class="btn btn-primary ms-2">View Pending Changes</a>
                         @endcan
                         <!--end::View pending-->
                     </div>
@@ -558,35 +544,6 @@
                     }
                 });
             });
-
-            // Handle export dropdown forms
-            $('.export-btn').on('click', function(e) {
-                e.preventDefault();
-                const $form = $(this).closest('form');
-                const format = $(this).data('format');
-                
-                // Submit form
-                $form.submit();
-            });
         });
     </script>
-@endsection
-
-@section('styles')
-    <style>
-        @media (max-width: 767.98px) {
-            .dropdown-menu {
-                min-width: 100%;
-            }
-            
-            .w-100.w-md-auto {
-                width: 100% !important;
-            }
-            
-            .ms-0.ms-md-2.mt-2.mt-md-0 {
-                margin-left: 0 !important;
-                margin-top: 0.5rem !important;
-            }
-        }
-    </style>
 @endsection

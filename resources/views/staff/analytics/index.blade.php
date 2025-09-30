@@ -267,45 +267,6 @@
 
             <!--begin::Col-->
             <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
-                <!--begin::Card widget - Complaints-->
-                <div class="card card-flush h-md-50 mb-5 mb-xl-10 shadow-sm rounded bg-light-primary bg-opacity-10 hover-shadow transition">
-                    <div class="card-header pt-5">
-                        <div class="card-title d-flex flex-column">
-                            <div class="d-flex align-items-center">
-                                <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">{{ $stats['complaints']['total'] }}</span>
-                                <span class="badge badge-light-warning fs-base">
-                                    <i class="ki-duotone ki-information fs-5 text-warning ms-n1">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                        <span class="path3"></span>
-                                    </i>Issues
-                                </span>
-                            </div>
-                            <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Complaints</span>
-                        </div>
-                    </div>
-                    <div class="card-body pt-2 pb-4 d-flex flex-column">
-                        <div class="d-flex flex-column content-justify-center w-100">
-                            <div class="d-flex fs-6 fw-semibold align-items-center">
-                                <div class="bullet w-8px h-6px rounded-2 bg-warning me-3"></div>
-                                <div class="text-gray-500 flex-grow-1 me-4">Pending</div>
-                                <div class="fw-bolder text-gray-700 text-xxl-end">{{ $stats['complaints']['pending'] }}</div>
-                            </div>
-                            <div class="d-flex fs-6 fw-semibold align-items-center my-3">
-                                <div class="bullet w-8px h-6px rounded-2 bg-primary me-3"></div>
-                                <div class="text-gray-500 flex-grow-1 me-4">In Progress</div>
-                                <div class="fw-bolder text-gray-700 text-xxl-end">{{ $stats['complaints']['in_progress'] }}</div>
-                            </div>
-                            <div class="d-flex fs-6 fw-semibold align-items-center">
-                                <div class="bullet w-8px h-6px rounded-2 bg-success me-3"></div>
-                                <div class="text-gray-500 flex-grow-1 me-4">Resolved</div>
-                                <div class="fw-bolder text-gray-700 text-xxl-end">{{ $stats['complaints']['resolved'] }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--end::Card widget - Complaints-->
-
                 <!--begin::Card widget - Pending Updates-->
                 <div class="card card-flush h-md-50 mb-xl-10 shadow-sm rounded bg-light-primary bg-opacity-10 hover-shadow transition">
                     <div class="card-header pt-5">
@@ -489,49 +450,6 @@
 
         <!--begin::Charts Row 2-->
         <div class="row g-5 g-xl-10 mb-xl-10">
-            <!--begin::Chart widget - Complaint Trends-->
-            <div class="col-xl-6 mb-5 mb-xl-10">
-                <div class="card card-flush overflow-hidden h-md-100 shadow-sm rounded bg-light-primary bg-opacity-10 hover-shadow transition">
-                    <div class="card-header py-5">
-                        <h3 class="card-title align-items-start flex-column">
-                            <span class="card-label fw-bold text-dark">Complaint Status Trends</span>
-                            <span class="text-gray-400 mt-1 fw-semibold fs-6">Customer complaints over time</span>
-                        </h3>
-                        <div class="card-toolbar">
-                            <button class="btn btn-icon btn-color-gray-400 btn-active-color-primary justify-content-end" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-bs-toggle="tooltip" title="Quick Actions">
-                                <i class="ki-duotone ki-dots-square fs-1">
-                                    <span class="path1"></span>
-                                    <span class="path2"></span>
-                                    <span class="path3"></span>
-                                    <span class="path4"></span>
-                                </i>
-                            </button>
-                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px" data-kt-menu="true">
-                                <div class="menu-item px-3">
-                                    <div class="menu-content fs-6 text-dark fw-bold px-3 py-4">Quick Actions</div>
-                                </div>
-                                <div class="separator mb-3 opacity-75"></div>
-                                <div class="menu-item px-3">
-                                    <a href="{{ route('staff.analytics.report') }}" class="menu-link px-3">Generate Report</a>
-                                </div>
-                                <div class="menu-item px-3">
-                                    <a href="{{ route('staff.analytics.export.csv') }}" class="menu-link px-3">Export to CSV</a>
-                                </div>
-                                <div class="menu-item px-3">
-                                    <a href="{{ route('staff.analytics.details') }}" class="menu-link px-3">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body d-flex justify-content-between flex-column pb-1 px-0">
-                        <div class="px-4 pe-6">
-                            <canvas id="complaintChart" style="height: 300px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--end::Chart widget - Complaint Trends-->
-
             <!--begin::Chart widget - Tariffs by Category-->
             <div class="col-xl-6 mb-5 mb-xl-10">
                 <div class="card card-flush overflow-hidden h-md-100 shadow-sm rounded bg-light-primary bg-opacity-10 hover-shadow transition">
@@ -739,6 +657,8 @@
         .transition {
             transition: all 0.3s ease;
         }
+        
+        
     </style>
 @endsection
 
@@ -779,7 +699,6 @@
             const months = @json($months);
             const billAmounts = @json($billAmounts);
             const paymentAmounts = @json($paymentAmounts);
-            const complaintCounts = @json($complaintCounts);
             const tariffByCategory = @json($tariffByCategory);
             const customersByCategory = @json($customersByCategory);
             const customersByTariff = @json($customersByTariff);
@@ -790,7 +709,6 @@
                 months: months,
                 billAmounts: billAmounts,
                 paymentAmounts: paymentAmounts,
-                complaintCounts: complaintCounts,
                 tariffByCategory: tariffByCategory,
                 customersByCategory: customersByCategory,
                 customersByTariff: customersByTariff,
@@ -798,7 +716,7 @@
             });
 
             // Validate data
-            if (!months || !Array.isArray(billAmounts) || !Array.isArray(paymentAmounts) || !Array.isArray(complaintCounts)) {
+            if (!months || !Array.isArray(billAmounts) || !Array.isArray(paymentAmounts)) {
                 console.error('Invalid chart data. Ensure controller is passing valid arrays.');
                 alert('Error: Invalid data for charts. Please check filters or contact support.');
                 return;
@@ -839,10 +757,14 @@
                 }
             };
 
+            // Store chart instances globally
+            let billingChartInstance = null;
+            let paymentChartInstance = null;
+
             // Initialize Billing Chart (Line)
             const billingCtx = document.getElementById('billingChart').getContext('2d');
             if (months.length > 0) {
-                new Chart(billingCtx, {
+                billingChartInstance = new Chart(billingCtx, {
                     type: 'line',
                     data: {
                         labels: months,
@@ -902,7 +824,7 @@
             // Initialize Payment Chart (Line)
             const paymentCtx = document.getElementById('paymentChart').getContext('2d');
             if (months.length > 0) {
-                new Chart(paymentCtx, {
+                paymentChartInstance = new Chart(paymentCtx, {
                     type: 'line',
                     data: {
                         labels: months,
@@ -957,58 +879,6 @@
                 });
             } else {
                 paymentCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-wallet fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i><br/>No payment data available. Try adjusting filters or adding payment records.</div>';
-            }
-
-            // Initialize Complaint Chart (Bar)
-            const complaintCtx = document.getElementById('complaintChart').getContext('2d');
-            if (months.length > 0) {
-                new Chart(complaintCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: months,
-                        datasets: [{
-                            label: 'Complaints',
-                            data: complaintCounts,
-                            backgroundColor: 'rgba(255, 193, 7, 0.8)',
-                            borderColor: '#ffc107',
-                            borderWidth: 0,
-                            borderRadius: 4,
-                            borderSkipped: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { 
-                                beginAtZero: true, 
-                                title: { display: true, text: 'Number of Complaints' },
-                                grid: { color: '#eff2f5', drawBorder: false }
-                            },
-                            x: { 
-                                title: { display: true, text: 'Month' },
-                                grid: { display: false }
-                            }
-                        },
-                        plugins: { 
-                            legend: { 
-                                position: 'top',
-                                labels: { usePointStyle: true, padding: 20 }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#ffffff',
-                                bodyColor: '#ffffff',
-                                cornerRadius: 8,
-                                padding: 12
-                            },
-                            zoom: zoomOptions.zoom,
-                            pan: zoomOptions.pan
-                        }
-                    }
-                });
-            } else {
-                complaintCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-information fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i><br/>No complaint data available. Try adjusting filters or adding complaint records.</div>';
             }
 
             // Initialize Tariff by Category Chart (Doughnut)
@@ -1233,5 +1103,34 @@
                 customerLgaCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-chart-bar fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i><br/>No customer LGA data available. Try adjusting filters or adding customer records.</div>';
             }
         });
+        
+        // Function to handle chart zoom based on slider input
+        function updateChartZoom(chartId, zoomLevel) {
+            const chartInstance = Chart.getChart(chartId);
+            if (chartInstance) {
+                // Calculate zoom level as a percentage (1 - 100%)
+                const zoomFactor = zoomLevel / 100;
+                
+                // Calculate how many points to display based on zoom level
+                const totalPoints = chartInstance.data.labels.length;
+                const pointsToDisplay = Math.max(1, Math.ceil(totalPoints * zoomFactor));
+                
+                // Update the chart scales min/max to show the selected range
+                if (chartInstance.config.type === 'line') {
+                    // If zoom level is 100% (or near 100%), show all data
+                    if (zoomLevel >= 98) {
+                        chartInstance.options.scales.x.min = undefined;
+                        chartInstance.options.scales.x.max = undefined;
+                    } else {
+                        // Calculate start index based on zoom level
+                        const startIndex = Math.max(0, totalPoints - pointsToDisplay);
+                        chartInstance.options.scales.x.min = chartInstance.data.labels[startIndex];
+                        chartInstance.options.scales.x.max = chartInstance.data.labels[totalPoints - 1];
+                    }
+                }
+                
+                chartInstance.update('active');
+            }
+        }
     </script>
 @endsection

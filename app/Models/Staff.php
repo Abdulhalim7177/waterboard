@@ -60,8 +60,13 @@ class Staff extends Authenticatable
         return $this->belongsTo(Area::class);
     }
 
-    public function complaints()
+    public function zone()
     {
-        return $this->hasMany(Complaint::class, 'assigned_to_id');
+        return $this->belongsTo(Zone::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
     }
 }

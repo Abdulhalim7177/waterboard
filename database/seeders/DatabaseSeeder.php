@@ -11,7 +11,6 @@ use App\Models\Tariff;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Payment;
-use App\Models\Complaint;
 use App\Models\MonthSerial;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -35,8 +34,7 @@ class DatabaseSeeder extends Seeder
             'approve-customer', 'reject-customer',
             'view-locations', 'view-categories', 'view-tariffs', 'manage-users', 'view-audit-trail',
             'create-bill', 'approve-bill', 'reject-bill', 'delete-bill', 'view-bill', 'view-report',
-            'view-complaints', 'update-complaints', 'delete-complaints', 'view-payment',
-            'view-analytics'
+            'view-payment', 'view-analytics'
         ];
 
         foreach ($permissions as $permission) {
@@ -71,8 +69,7 @@ class DatabaseSeeder extends Seeder
             'create-tariff', 'edit-tariff', 'delete-tariff',
             'view-customers', 'view-customer', 'create-customer', 'edit-customer', 'delete-customer',
             'view-locations', 'view-categories', 'view-tariffs', 'view-audit-trail',
-            'create-bill', 'view-bill', 'view-report', 'view-complaints', 'update-complaints', 'delete-complaints',
-            'view-analytics'
+            'create-bill', 'view-bill', 'view-report','view-analytics'
         ]);
 
         $staffRole = Role::firstOrCreate([
@@ -83,7 +80,7 @@ class DatabaseSeeder extends Seeder
             'create-category', 'edit-category', 'create-tariff', 'edit-tariff',
             'view-customers', 'view-customer', 'create-customer', 'edit-customer',
             'view-locations', 'view-categories', 'view-tariffs', 'view-bill', 'view-report',
-            'view-complaints', 'update-complaints', 'view-analytics'
+            'view-analytics'
         ]);
 
         $customerRole = Role::firstOrCreate([
@@ -888,66 +885,6 @@ class DatabaseSeeder extends Seeder
             Payment::create($paymentData);
         }
 
-        
-        // Seed Complaints
-        $allCustomers = Customer::all();
-        $complaints = [
-            [
-                'customer_id' => $allCustomers->where('email', 'bob.smith@example.com')->first()->id,
-                'type' => 'billing',
-                'description' => 'Incorrect billing amount for July 2025',
-                'status' => 'pending',
-                'lga_id' => $lgaIds['48330C'],
-                'ward_id' => $wardIds['W005'],
-                'area_id' => $areaIds['A006'],
-                'created_at' => now()->setMonth(7)->setYear(2025),
-            ],
-            [
-                'customer_id' => $allCustomers->where('email', 'emma.davis@example.com')->first()->id,
-                'type' => 'supply',
-                'description' => 'No water supply since last week',
-                'status' => 'pending',
-                'lga_id' => $lgaIds['30920C'],
-                'ward_id' => $wardIds['W017'],
-                'area_id' => $areaIds['A019'],
-                'created_at' => now()->setMonth(7)->setYear(2025)->subDays(2),
-            ],
-            [
-                'customer_id' => $allCustomers->where('email', 'alice.johnson@example.com')->first()->id,
-                'type' => 'meter',
-                'description' => 'Faulty meter reading',
-                'status' => 'resolved',
-                'lga_id' => $lgaIds['30917C'],
-                'ward_id' => $wardIds['W001'],
-                'area_id' => $areaIds['A001'],
-                'created_at' => now()->setMonth(7)->setYear(2025)->subDays(5),
-            ],
-            [
-                'customer_id' => $allCustomers->where('email', 'chukwudi.okeke@example.com')->first()->id,
-                'type' => 'supply',
-                'description' => 'Low water pressure reported',
-                'status' => 'pending',
-                'lga_id' => $lgaIds['30918C'],
-                'ward_id' => $wardIds['W008'],
-                'area_id' => $areaIds['A010'],
-                'created_at' => now()->setMonth(7)->setYear(2025)->subDays(3),
-            ],
-            [
-                'customer_id' => $allCustomers->where('email', 'david.wilson@example.com')->first()->id,
-                'type' => 'billing',
-                'description' => 'Discrepancy in bill amount',
-                'status' => 'pending',
-                'lga_id' => $lgaIds['30921C'],
-                'ward_id' => $wardIds['W019'],
-                'area_id' => $areaIds['A021'],
-                'created_at' => now()->setMonth(7)->setYear(2025)->subDays(1),
-            ],
-        ];
-
-        foreach ($complaints as $complaintData) {
-            Complaint::create($complaintData);
-        }
-
         // Seed Staff
         $staffData = [
             [
@@ -1019,5 +956,11 @@ class DatabaseSeeder extends Seeder
                 $staff->assignRole('staff');
             }
         }
+        
+        // Run the LGA and Ward seeder from Excel file
+        $this->call(LgaWardSeeder::class);
+        
+        // Run the customer revalidation seeder from Excel file
+        $this->call(CustomerRevalidationSeeder::class);
     }
 }

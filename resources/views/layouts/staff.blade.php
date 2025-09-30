@@ -11,6 +11,7 @@
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     </head>
 <body id="kt_body" class="aside-enabled">
     <script>
@@ -128,6 +129,22 @@
                                                 <span class="bullet bullet-dot"></span>
                                             </span>
                                             <span class="menu-title">Area Management</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="{{ route('staff.zones.index') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">Zone Management</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="{{ route('staff.districts.index') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">District Management</span>
                                         </a>
                                     </div>
                                     @endcan
@@ -328,20 +345,6 @@
                                 </a>
                                 </div>
                             @endcan
-                            @can('view-complaints', 'staff')
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{ route('staff.complaints.index') }}">
-                                    <span class="menu-icon">
-                                        <i class="ki-duotone ki-information-2 fs-2">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                            <span class="path3"></span>
-                                        </i>
-                                    </span>
-                                    <span class="menu-title">Complaint Management</span>
-                                </a>
-                                </div>
-                            @endcan
                             @can('view-analytics', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.analytics.index') }}">
@@ -466,17 +469,13 @@
                     <div class="toolbar d-flex align-items-stretch">
                         <div class="container-xxl py-6 py-lg-0 d-flex flex-column flex-lg-row align-items-lg-stretch justify-content-lg-between">
                             <div class="page-title d-flex justify-content-center flex-column me-5">
-                                <h1 class="d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Dashboard</h1>
-                                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-                                    <li class="breadcrumb-item text-muted">
-                                        <a href="#" class="text-muted text-hover-primary">Home</a>
-                                    </li>
-                                    <li class="breadcrumb-item">
-                                        <span class="bullet bg-gray-200 w-5px h-2px"></span>
-                                    </li>
-                                    <li class="breadcrumb-item text-dark">Dashboard</li>
-                                </ul>
+                                <h1 class="d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                                    @yield('page_title', 'Dashboard')
+                                </h1>
+                                <div class="breadcrumb-wrapper">
+                                    {!! app(App\Services\BreadcrumbService::class)->render() !!}
                                 </div>
+                            </div>
                             <div class="d-flex align-items-stretch overflow-auto pt-3 pt-lg-0">
                                 <div class="d-flex align-items-center">
                                     <span class="fs-7 text-gray-700 fw-bold pe-3 d-none d-xxl-block">System Theme:</span>
@@ -553,27 +552,6 @@
                 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
                     <div class="post d-flex flex-column-fluid" id="kt_post">
                         <div id="kt_content_container" class="container-xxl">
-                            <!--begin::Page Title-->
-                            @hasSection('page_title')
-                            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3 mb-5">
-                                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
-                                    @yield('page_title')
-                                </h1>
-                                @hasSection('page_description')
-                                <div class="d-flex align-items-center text-muted fs-7 fw-semibold mt-2">
-                                    @yield('page_description')
-                                </div>
-                                @endif
-                                <!--begin::Breadcrumb-->
-                                @hasSection('breadcrumbs')
-                                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-                                    @yield('breadcrumbs')
-                                </ul>
-                                @endif
-                                <!--end::Breadcrumb-->
-                            </div>
-                            <!--end::Page Title-->
-                            @endif
                             @yield('content')
                             @yield('scripts')
                         </div>

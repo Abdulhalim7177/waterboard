@@ -19,7 +19,31 @@
             </div>
             <div class="col-lg-9">
                 <div class="row mb-5">
-                    <div class="col-md-4 fv-row">
+                    <div class="col-md-3 fv-row">
+                        <label class="fs-6 fw-semibold form-label mb-2">Zone</label>
+                        <select name="zone_id" class="form-control form-control-solid @error('zone_id') is-invalid @enderror" data-control="select2">
+                            <option value="">Select Zone</option>
+                            @foreach ($zones as $zone)
+                                <option value="{{ $zone->id }}" {{ old('zone_id', $staff->zone_id) == $zone->id ? 'selected' : '' }}>{{ $zone->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('zone_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-3 fv-row">
+                        <label class="fs-6 fw-semibold form-label mb-2">District</label>
+                        <select name="district_id" class="form-control form-control-solid @error('district_id') is-invalid @enderror" data-control="select2">
+                            <option value="">Select District</option>
+                            @foreach ($districts as $district)
+                                <option value="{{ $district->id }}" {{ old('district_id', $staff->district_id) == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('district_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-3 fv-row">
                         <label class="fs-6 fw-semibold form-label mb-2">LGA</label>
                         <select name="lga_id" class="form-control form-control-solid @error('lga_id') is-invalid @enderror" data-control="select2">
                             <option value="">Select LGA</option>
@@ -31,7 +55,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-4 fv-row">
+                    <div class="col-md-3 fv-row">
                         <label class="fs-6 fw-semibold form-label mb-2">Ward</label>
                         <select name="ward_id" class="form-control form-control-solid @error('ward_id') is-invalid @enderror" data-control="select2">
                             <option value="">Select Ward</option>
@@ -43,7 +67,9 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-4 fv-row">
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-12 fv-row">
                         <label class="fs-6 fw-semibold form-label mb-2">Area</label>
                         <select name="area_id" class="form-control form-control-solid @error('area_id') is-invalid @enderror" data-control="select2">
                             <option value="">Select Area</option>

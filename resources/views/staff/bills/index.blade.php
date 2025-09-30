@@ -37,15 +37,15 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <label for="start_date" class="block text-sm font-medium text-gray-700">Report Start Date</label>
                             <input type="date" name="start_date" id="start_date" class="form-control form-control-solid w-200px">
                         </div>
                         <div class="col-md-4">
-                            <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+                            <label for="end_date" class="block text-sm font-medium text-gray-700">Report End Date</label>
                             <input type="date" name="end_date" id="end_date" class="form-control form-control-solid w-200px">
                         </div>
                         <div class="col-md-4">
-                            <label for="customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
+                            <label for="customer_id" class="block text-sm font-medium text-gray-700">Select Customer to Filter By</label>
                             <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
                                 <option value="">All Customers</option>
                                 @foreach ($customers as $customer)
@@ -54,7 +54,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Select Category to Filter By</label>
                             <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Categories</option>
                                 @foreach ($categories as $category)
@@ -63,7 +63,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="tariff_id" class="block text-sm font-medium text-gray-700">Tariff</label>
+                            <label for="tariff_id" class="block text-sm font-medium text-gray-700">Select Tariff to Filter By</label>
                             <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Tariffs</option>
                                 @foreach ($tariffs as $tariff)
@@ -72,7 +72,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="lga_id" class="block text-sm font-medium text-gray-700">LGA</label>
+                            <label for="lga_id" class="block text-sm font-medium text-gray-700">Select LGA to Filter By</label>
                             <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All LGAs</option>
                                 @foreach ($lgas as $lga)
@@ -81,7 +81,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="ward_id" class="block text-sm font-medium text-gray-700">Ward</label>
+                            <label for="ward_id" class="block text-sm font-medium text-gray-700">Select Ward to Filter By</label>
                             <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Wards</option>
                                 @foreach ($wards as $ward)
@@ -90,7 +90,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="area_id" class="block text-sm font-medium text-gray-700">Area</label>
+                            <label for="area_id" class="block text-sm font-medium text-gray-700">Select Area to Filter By</label>
                             <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Areas</option>
                                 @foreach ($areas as $area)
@@ -100,9 +100,9 @@
                         </div>
                     </div>
                     <div class="position-relative align-self-end">
-                        <button type="submit" formaction="{{ route('staff.reports.combined') }}" class="btn btn-primary btn-sm">Combined Report</button>
-                        <button type="submit" formaction="{{ route('staff.reports.billing') }}" class="btn btn-primary btn-sm ms-2">Billing Report</button>
-                        <button type="submit" formaction="{{ route('staff.reports.payment') }}" class="btn btn-primary btn-sm ms-2">Payment Report</button>
+                        <button type="submit" formaction="{{ route('staff.reports.combined') }}" class="btn btn-primary btn-sm">Generate Combined Financial Report</button>
+                        <button type="submit" formaction="{{ route('staff.reports.billing') }}" class="btn btn-primary btn-sm ms-2">Generate Billing Summary Report</button>
+                        <button type="submit" formaction="{{ route('staff.reports.payment') }}" class="btn btn-primary btn-sm ms-2">Generate Payment History Report</button>
                     </div>
                 </form>
             </div>
@@ -125,9 +125,31 @@
                                 <select name="year_month" id="year_month" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All Months</option>
                                     @foreach ($yearMonths as $ym)
-                                        <option value="{{ $ym }}" {{ request('year_month') == $ym ? 'selected' : '' }}>
-                                            {{ \Carbon\Carbon::createFromFormat('Ym', $ym)->format('F Y') }}
-                                        </option>
+                                        @if($ym)
+                                            @php
+                                                $label = $ym;
+                                                try {
+                                                    if (preg_match('/^\d{6}$/', $ym)) {
+                                                        // Format like 202509
+                                                        $label = \Carbon\Carbon::createFromFormat('Ym', $ym)->format('F Y');
+                                                    } elseif (preg_match('/^\d{4}-\d{2}$/', $ym)) {
+                                                        // Format like 2025-09
+                                                        $label = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('F Y');
+                                                    } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $ym)) {
+                                                        // Format like 2025-09-01
+                                                        $label = \Carbon\Carbon::parse($ym)->format('F Y');
+                                                    } else {
+                                                        // Try a generic parse and fallback to raw value on failure
+                                                        $label = \Carbon\Carbon::parse($ym)->format('F Y');
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    $label = $ym;
+                                                }
+                                            @endphp
+                                            <option value="{{ $ym }}" {{ request('year_month') == $ym ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -193,8 +215,8 @@
                             </div>
                         </div>
                         <div class="position-relative align-self-end">
-                            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
-                            <a href="{{ route('staff.bills.index') }}" class="btn btn-light btn-sm ms-2">Clear Filters</a>
+                            <button type="submit" class="btn btn-primary btn-sm">Apply Billing Filters</button>
+                            <a href="{{ route('staff.bills.index') }}" class="btn btn-light btn-sm ms-2">Clear Billing Filters</a>
                         </div>
                     </form>
                 </div>
@@ -205,12 +227,12 @@
             @can('create-bill', App\Models\Bill::class)
                 <form action="{{ route('staff.bills.generate') }}" method="POST" class="d-inline-block me-2 mb-3">
                     @csrf
-                    <button type="submit" class="btn btn-primary btn-sm">Generate Monthly Bills</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Generate Monthly Customer Bills</button>
                 </form>
             @can('approve-bill', App\Models\Bill::class)
                 <form action="{{ route('staff.bills.approve-all') }}" method="POST" class="d-inline-block me-2 mb-3">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-sm">Approve All Bills</button>
+                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve all pending bills? This action cannot be undone.')">Approve All Pending Bills</button>
                 </form>
                 <form action="{{ route('staff.bills.download-bulk') }}" method="GET" class="d-inline-block mb-3">
                     @foreach (['year_month', 'customer_id', 'category_id', 'tariff_id', 'lga_id', 'ward_id', 'area_id'] as $filter)
@@ -218,7 +240,7 @@
                             <input type="hidden" name="{{ $filter }}" value="{{ request($filter) }}">
                         @endif
                     @endforeach
-                    <button type="submit" class="btn btn-primary btn-sm">Download Bulk PDF</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Download Filtered Bills (PDF)</button>
                 </form>
             @endcan
             @endcan
@@ -230,7 +252,7 @@
                     <!-- Column Toggle Dropdown -->
                     <div>
                         <a href="#" class="btn btn-light btn-sm btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                            Toggle Columns
+                            Select Display Columns
                             <i class="ki-duotone ki-down fs-5 ms-1"></i>
                         </a>
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-250px py-4" data-kt-menu="true">
