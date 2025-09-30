@@ -91,6 +91,16 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::put('/districts/{district}/reject', [LocationController::class, 'rejectDistrict'])->name('districts.reject');
     
     // AJAX endpoints for dynamic loading
+    // District-Ward Management
+    Route::get('/districts/{district}/wards', [LocationController::class, 'manageDistrictWards'])->name('districts.manage-wards');
+    Route::post('/districts/{district}/assign-ward', [LocationController::class, 'assignWardToDistrict'])->name('districts.assign-ward');
+    Route::delete('/wards/{ward}/remove-from-district', [LocationController::class, 'removeWardFromDistrict'])->name('wards.remove-from-district');
+    
+    // Paypoint Management
+    Route::get('/paypoints', [LocationController::class, 'paypoints'])->name('paypoints.index');
+    Route::post('/paypoints', [LocationController::class, 'storePaypoint'])->name('paypoints.store');
+    Route::put('/paypoints/{paypoint}', [LocationController::class, 'updatePaypoint'])->name('paypoints.update');
+
     Route::get('/filter-wards', [LocationController::class, 'filterWards'])->name('filter.wards');
     Route::get('/filter-areas', [LocationController::class, 'filterAreas'])->name('filter.areas');
     Route::get('/filter-districts', [LocationController::class, 'filterDistricts'])->name('filter.districts');

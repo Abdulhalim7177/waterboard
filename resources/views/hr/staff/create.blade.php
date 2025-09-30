@@ -274,6 +274,15 @@
                                 <div class="col-lg-9">
                                     <div class="row mb-5">
                                         <div class="col-md-3 fv-row">
+                                            <label class="fs-6 fw-semibold form-label mb-2">Paypoint</label>
+                                            <select name="paypoint_id" class="form-control form-control-solid" data-control="select2">
+                                                <option value="">Select Paypoint</option>
+                                                @foreach ($paypoints as $paypoint)
+                                                    <option value="{{ $paypoint->id }}" {{ old('paypoint_id') == $paypoint->id ? 'selected' : '' }}>{{ $paypoint->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">Zone</label>
                                             <select name="zone_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select Zone</option>
@@ -300,7 +309,9 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-3 fv-row">
+                                    </div>
+                                    <div class="row mb-5">
+                                        <div class="col-md-6 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">Ward</label>
                                             <select name="ward_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select Ward</option>
@@ -309,9 +320,7 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                    </div>
-                                    <div class="row mb-5">
-                                        <div class="col-md-12 fv-row">
+                                        <div class="col-md-6 fv-row">
                                             <label class="fs-6 fw-semibold form-label mb-2">Area</label>
                                             <select name="area_id" class="form-control form-control-solid" data-control="select2">
                                                 <option value="">Select Area</option>

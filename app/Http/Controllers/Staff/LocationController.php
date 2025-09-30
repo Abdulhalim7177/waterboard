@@ -8,6 +8,7 @@ use App\Models\Ward;
 use App\Models\Area;
 use App\Models\Zone;
 use App\Models\District;
+use App\Models\Paypoint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
@@ -17,7 +18,7 @@ class LocationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:staff', 'permission:view-locations'])->only(['lgas', 'wards', 'areas', 'zones', 'districts', 'filterWards', 'filterAreas', 'filterDistricts']);
+        $this->middleware(['auth:staff', 'permission:view-locations'])->only(['lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints', 'filterWards', 'filterAreas', 'filterDistricts', 'manageDistrictWards']);
         $this->middleware(['auth:staff', 'permission:create-lga'])->only('storeLga');
         $this->middleware(['auth:staff', 'permission:edit-lga'])->only('updateLga');
         $this->middleware(['auth:staff', 'permission:delete-lga'])->only('destroyLga');
@@ -43,6 +44,10 @@ class LocationController extends Controller
         $this->middleware(['auth:staff', 'permission:delete-district'])->only('destroyDistrict');
         $this->middleware(['auth:staff', 'permission:approve-district'])->only('approveDistrict');
         $this->middleware(['auth:staff', 'permission:reject-district'])->only('rejectDistrict');
+        
+        $this->middleware(['auth:staff', 'permission:create-paypoint'])->only('storePaypoint');
+        $this->middleware(['auth:staff', 'permission:edit-paypoint'])->only('updatePaypoint');
+        $this->middleware(['auth:staff', 'permission:manage-district-wards'])->only(['manageDistrictWards', 'assignWardToDistrict', 'removeWardFromDistrict']);
     }
 
     public function lgas(Request $request)
@@ -268,6 +273,93 @@ class LocationController extends Controller
         ]);
 
         return redirect()->route('staff.districts.index')->with('success', 'District creation request submitted for approval.');
+    }
+
+    public function manageDistrictWards(District $district)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Location Management')->add('District Management')->add('Manage Wards');
+
+        $wards = Ward::all(); // All available wards
+        $assignedWards = $district->wards; // Wards assigned to this district
+
+        return view('staff.locations.manage_district_wards', compact('district', 'wards', 'assignedWards'));
+    }
+
+    public function assignWardToDistrict(Request $request, District $district)
+    {
+        $request->validate([
+            'ward_id' => 'required|exists:wards,id',
+        ]);
+
+        $ward = Ward::findOrFail($request->ward_id);
+        
+        // Ensure the ward is not already assigned to another district
+        if ($ward->district_id && $ward->district_id != $district->id) {
+            return redirect()->back()->with('error', 'This ward is already assigned to another district.');
+        }
+        
+        $ward->update(['district_id' => $district->id]);
+
+        return redirect()->back()->with('success', 'Ward assigned to district successfully.');
+    }
+
+    public function removeWardFromDistrict(Ward $ward)
+    {
+        // Check if the ward belongs to a district
+        if (!$ward->district_id) {
+            return redirect()->back()->with('error', 'This ward is not assigned to any district.');
+        }
+        
+        $ward->update(['district_id' => null]);
+
+        return redirect()->back()->with('success', 'Ward removed from district successfully.');
+    }
+
+    public function paypoints(Request $request)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Location Management')->add('Paypoint Management');
+
+        $paypoints = Paypoint::with(['zone', 'district'])->paginate(10);
+
+        return view('staff.locations.paypoints', compact('paypoints'));
+    }
+
+    public function storePaypoint(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|unique:paypoints,code',
+            'type' => 'required|in:zone,district',
+            'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
+            'district_id' => 'nullable|required_if:type,district|exists:districts,id',
+            'description' => 'nullable|string',
+            'status' => 'required|in:active,inactive'
+        ]);
+
+        Paypoint::create($request->all());
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint created successfully.');
+    }
+
+    public function updatePaypoint(Request $request, Paypoint $paypoint)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|unique:paypoints,code,' . $paypoint->id,
+            'type' => 'required|in:zone,district',
+            'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
+            'district_id' => 'nullable|required_if:type,district|exists:districts,id',
+            'description' => 'nullable|string',
+            'status' => 'required|in:active,inactive'
+        ]);
+
+        $paypoint->update($request->all());
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint updated successfully.');
     }
 
     public function updateDistrict(Request $request, District $district)

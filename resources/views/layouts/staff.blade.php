@@ -147,6 +147,14 @@
                                             <span class="menu-title">District Management</span>
                                         </a>
                                     </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="{{ route('staff.paypoints.index') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">Paypoint Management</span>
+                                        </a>
+                                    </div>
                                     @endcan
                                 </div>
                                 </div>

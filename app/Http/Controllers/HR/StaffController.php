@@ -9,6 +9,7 @@ use App\Models\Ward;
 use App\Models\Area;
 use App\Models\Zone;
 use App\Models\District;
+use App\Models\Paypoint;
 use App\Imports\StaffImport;
 use App\Exports\StaffExport;
 use Illuminate\Http\Request;
@@ -87,8 +88,9 @@ class StaffController extends Controller
         $areas = Area::all();
         $zones = Zone::all();
         $districts = District::all();
+        $paypoints = Paypoint::all();
         
-        return view('hr.staff.create', compact('lgas', 'wards', 'areas', 'zones', 'districts'));
+        return view('hr.staff.create', compact('lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
     }
 
     /**
@@ -108,6 +110,7 @@ class StaffController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'zone_id' => 'nullable|exists:zones,id',
             'district_id' => 'nullable|exists:districts,id',
+            'paypoint_id' => 'nullable|exists:paypoints,id',
             'zone_id' => 'nullable|exists:zones,id',
             'district_id' => 'nullable|exists:districts,id',
             'lga_id' => 'nullable|exists:lgas,id',
@@ -159,8 +162,9 @@ class StaffController extends Controller
         $areas = Area::all();
         $zones = Zone::all();
         $districts = District::all();
+        $paypoints = Paypoint::all();
         
-        return view('hr.staff.edit', compact('staff', 'lgas', 'wards', 'areas', 'zones', 'districts'));
+        return view('hr.staff.edit', compact('staff', 'lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
     }
 
     /**
@@ -184,7 +188,8 @@ class StaffController extends Controller
             $areas = Area::all();
             $zones = Zone::all();
             $districts = District::all();
-            $data = array_merge($data, compact('lgas', 'wards', 'areas', 'zones', 'districts'));
+            $paypoints = Paypoint::all();
+            $data = array_merge($data, compact('lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
         }
 
         return response()->json([
@@ -261,6 +266,7 @@ class StaffController extends Controller
             ]);
         } elseif ($part === 'location') {
             $request->validate([
+                'paypoint_id' => 'nullable|exists:paypoints,id',
                 'zone_id' => 'nullable|exists:zones,id',
                 'district_id' => 'nullable|exists:districts,id',
                 'lga_id' => 'nullable|exists:lgas,id',
@@ -268,7 +274,7 @@ class StaffController extends Controller
                 'area_id' => 'nullable|exists:areas,id',
             ]);
             
-            $data = $request->only(['zone_id', 'district_id', 'lga_id', 'ward_id', 'area_id']);
+            $data = $request->only(['paypoint_id', 'zone_id', 'district_id', 'lga_id', 'ward_id', 'area_id']);
         }
         
         $staff->update($data);

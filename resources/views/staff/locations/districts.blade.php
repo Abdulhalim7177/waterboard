@@ -101,6 +101,7 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <a href="{{ route('staff.districts.manage-wards', $district->id) }}" class="btn btn-sm btn-light-info me-2">Manage Wards</a>
                                             <a href="#" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#editDistrictModal{{ $district->id }}">Edit</a>
                                         </td>
                                     </tr>
