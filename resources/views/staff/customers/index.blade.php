@@ -67,8 +67,8 @@
                 <strong>Applied Filters:</strong>
                 @if (request('search_customer')) Search: {{ request('search_customer') }} @endif
                 @if (request('status_filter')) | Status: {{ ucfirst(request('status_filter')) }} @endif
-                @if (request('lga_filter')) | LGA: {{ App\Models\Lga::find(request('lga_filter'))?->name ?? 'N/A' }} @endif
-                @if (request('ward_filter')) | Ward: {{ App\Models\Ward::find(request('ward_filter'))?->name ?? 'N/A' }} @endif
+                @if (request('lga_filter')) | LGA: {{ App\Models\Lga::find(request('lga_filter')) ? App\Models\Lga::find(request('lga_filter'))->name : 'N/A' }} @endif
+                @if (request('ward_filter')) | Ward: {{ App\Models\Ward::find(request('ward_filter')) ? App\Models\Ward::find(request('ward_filter'))->name : 'N/A' }} @endif
                 @if (request('area_filter')) | Area: {{ App\Models\Area::find(request('area_filter'))?->name ?? 'N/A' }} @endif
                 @if (request('category_filter')) | Category: {{ App\Models\Category::find(request('category_filter'))?->name ?? 'N/A' }} @endif
                 @if (request('tariff_filter')) | Tariff: {{ App\Models\Tariff::find(request('tariff_filter'))?->name ?? 'N/A' }} @endif
@@ -114,7 +114,7 @@
                             <select name="ward_filter" id="ward_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Wards">
                                 <option value="">All Wards</option>
                                 @foreach (App\Models\Ward::where('status', 'approved')->when(request('lga_filter'), function($query) { return $query->where('lga_id', request('lga_filter')); })->get() as $ward)
-                                    <option value="{{ $ward->id }}" {{ request('ward_filter') == $ward->id ? 'selected' : '' }}>{{ $ward->name }} ({{ $ward->lga->name }})</option>
+                                    <option value="{{ $ward->id }}" {{ request('ward_filter') == $ward->id ? 'selected' : '' }}>{{ $ward->name }} ({{ $ward->lga ? $ward->lga->name : 'N/A' }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -122,7 +122,7 @@
                             <select name="area_filter" id="area_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Areas">
                                 <option value="">All Areas</option>
                                 @foreach (App\Models\Area::where('status', 'approved')->when(request('ward_filter'), function($query) { return $query->where('ward_id', request('ward_filter')); })->get() as $area)
-                                    <option value="{{ $area->id }}" {{ request('area_filter') == $area->id ? 'selected' : '' }}>{{ $area->name }} ({{ $area->ward->name }})</option>
+                                    <option value="{{ $area->id }}" {{ request('area_filter') == $area->id ? 'selected' : '' }}>{{ $area->name }} ({{ $area->ward->name ?? 'N/A' }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -269,7 +269,7 @@
                                 <td>
                                     <a href="#" class="text-gray-600 text-hover-primary mb-1">{{ $customer->email }}</a>
                                 </td>
-                                <td>{{ $customer->area->name ?? 'N/A' }}</td>
+                                <td>{{ $customer->area ? $customer->area->name : 'N/A' }}</td>
                                 <td>
                                     <div class="badge badge-light-{{ $customer->status == 'approved' ? 'success' : ($customer->status == 'pending' ? 'warning' : 'danger') }}">
                                         {{ ucfirst($customer->status) }}

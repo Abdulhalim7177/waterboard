@@ -16,4 +16,16 @@ class Zone extends Model
     {
         return $this->hasMany(District::class);
     }
+    
+    public function staffs()
+    {
+        return $this->hasManyThrough(Staff::class, District::class, 'zone_id', 'district_id', 'id', 'id');
+    }
+    
+    public function customers()
+    {
+        return Customer::whereHas('ward.district', function($query) {
+            $query->where('zone_id', $this->id);
+        });
+    }
 }

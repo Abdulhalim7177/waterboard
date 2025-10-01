@@ -40,7 +40,21 @@ class CustomerPolicy
             return true;
         }
         
-        return $staff->hasPermissionTo('view-customer');
+        // Check if the staff has permission to view customers
+        if (!$staff->hasPermissionTo('view-customer')) {
+            return false;
+        }
+        
+        // Check if the customer belongs to a ward that the staff has access to based on their paypoint
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        // If the staff has no accessible wards (unassigned paypoint), they can't view any customers
+        if (empty($accessibleWardIds)) {
+            return false;
+        }
+        
+        // Return true if the customer's ward is in the list of accessible wards
+        return in_array($customer->ward_id, $accessibleWardIds);
     }
 
     /**
@@ -73,7 +87,21 @@ class CustomerPolicy
             return true;
         }
         
-        return $staff->hasPermissionTo('edit-customer');
+        // Check if the staff has permission to edit customers
+        if (!$staff->hasPermissionTo('edit-customer')) {
+            return false;
+        }
+        
+        // Check if the customer belongs to a ward that the staff has access to based on their paypoint
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        // If the staff has no accessible wards (unassigned paypoint), they can't edit any customers
+        if (empty($accessibleWardIds)) {
+            return false;
+        }
+        
+        // Return true if the customer's ward is in the list of accessible wards
+        return in_array($customer->ward_id, $accessibleWardIds);
     }
 
     /**
@@ -90,7 +118,21 @@ class CustomerPolicy
             return true;
         }
         
-        return $staff->hasPermissionTo('delete-customer');
+        // Check if the staff has permission to delete customers
+        if (!$staff->hasPermissionTo('delete-customer')) {
+            return false;
+        }
+        
+        // Check if the customer belongs to a ward that the staff has access to based on their paypoint
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        // If the staff has no accessible wards (unassigned paypoint), they can't delete any customers
+        if (empty($accessibleWardIds)) {
+            return false;
+        }
+        
+        // Return true if the customer's ward is in the list of accessible wards
+        return in_array($customer->ward_id, $accessibleWardIds);
     }
 
     /**

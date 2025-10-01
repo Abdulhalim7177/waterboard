@@ -38,4 +38,18 @@ class Paypoint extends Model
     {
         return $this->hasMany(Staff::class, 'paypoint_id');
     }
+    
+    public function customers()
+    {
+        if ($this->type === 'zone' && $this->zone_id) {
+            return Customer::whereHas('ward.district', function($query) {
+                $query->where('zone_id', $this->zone_id);
+            });
+        } elseif ($this->type === 'district' && $this->district_id) {
+            return Customer::whereHas('ward', function($query) {
+                $query->where('district_id', $this->district_id);
+            });
+        }
+        return Customer::whereNull('id'); // Empty query if no valid type
+    }
 }

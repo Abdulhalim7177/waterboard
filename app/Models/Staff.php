@@ -74,4 +74,84 @@ class Staff extends Authenticatable
     {
         return $this->belongsTo(Paypoint::class);
     }
+
+    /**
+     * Get all wards that this staff member has access to based on their paypoint
+     */
+    public function getAccessibleWardIds()
+    {
+        if (!$this->paypoint) {
+            return [];
+        }
+
+        $paypoint = $this->paypoint;
+        
+        if ($paypoint->type === 'zone' && $paypoint->zone_id) {
+            // Get all districts under this zone, then all wards under those districts
+            return Ward::whereHas('district', function($query) use ($paypoint) {
+                $query->where('zone_id', $paypoint->zone_id);
+            })->pluck('id')->toArray();
+        } elseif ($paypoint->type === 'district' && $paypoint->district_id) {
+            // Get all wards under this specific district
+            return Ward::where('district_id', $paypoint->district_id)->pluck('id')->toArray();
+        }
+        
+        return [];
+    }
+
+    /**
+     * Get all LGAs that this staff member has access to based on their paypoint
+     */
+    public function getAccessibleLgaIds()
+    {
+        if (!$this->paypoint) {
+            return [];
+        }
+
+        $paypoint = $this->paypoint;
+        
+        if ($paypoint->type === 'zone' && $paypoint->zone_id) {
+            // First get all districts under the zone, then all wards under those districts, then all LGAs with those wards
+            $districtWards = Ward::whereHas('district', function($query) use ($paypoint) {
+                $query->where('zone_id', $paypoint->zone_id);
+            })->pluck('id');
+            
+            return Customer::whereIn('ward_id', $districtWards)->pluck('lga_id')->unique()->toArray();
+        } elseif ($paypoint->type === 'district' && $paypoint->district_id) {
+            // Get all wards under the specific district, then all LGAs with those wards
+            $districtWards = Ward::where('district_id', $paypoint->district_id)->pluck('id');
+            
+            return Customer::whereIn('ward_id', $districtWards)->pluck('lga_id')->unique()->toArray();
+        }
+        
+        return [];
+    }
+
+    /**
+     * Get all areas that this staff member has access to based on their paypoint
+     */
+    public function getAccessibleAreaIds()
+    {
+        if (!$this->paypoint) {
+            return [];
+        }
+
+        $paypoint = $this->paypoint;
+        
+        if ($paypoint->type === 'zone' && $paypoint->zone_id) {
+            // Get all districts under this zone, then all wards under those districts, then all areas under those wards
+            $districtWards = Ward::whereHas('district', function($query) use ($paypoint) {
+                $query->where('zone_id', $paypoint->zone_id);
+            })->pluck('id');
+            
+            return Area::whereIn('ward_id', $districtWards)->pluck('id')->toArray();
+        } elseif ($paypoint->type === 'district' && $paypoint->district_id) {
+            // Get all wards under the specific district, then all areas under those wards
+            $districtWards = Ward::where('district_id', $paypoint->district_id)->pluck('id');
+            
+            return Area::whereIn('ward_id', $districtWards)->pluck('id')->toArray();
+        }
+        
+        return [];
+    }
 }

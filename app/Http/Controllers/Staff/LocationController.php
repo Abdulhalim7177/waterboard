@@ -48,6 +48,7 @@ class LocationController extends Controller
         $this->middleware(['auth:staff', 'permission:create-paypoint'])->only('storePaypoint');
         $this->middleware(['auth:staff', 'permission:edit-paypoint'])->only('updatePaypoint');
         $this->middleware(['auth:staff', 'permission:manage-district-wards'])->only(['manageDistrictWards', 'assignWardToDistrict', 'removeWardFromDistrict']);
+        $this->middleware(['auth:staff', 'permission:view-location-details'])->only(['zoneDetails', 'districtDetails', 'paypointDetails']);
     }
 
     public function lgas(Request $request)
@@ -315,6 +316,42 @@ class LocationController extends Controller
         $ward->update(['district_id' => null]);
 
         return redirect()->back()->with('success', 'Ward removed from district successfully.');
+    }
+
+    public function zoneDetails(Zone $zone)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Location Management')->add('Zone Management')->add($zone->name);
+
+        $staffs = $zone->staffs()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
+        $customers = $zone->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+
+        return view('staff.locations.zone_details', compact('zone', 'staffs', 'customers'));
+    }
+
+    public function districtDetails(District $district)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Location Management')->add('District Management')->add($district->name);
+
+        $staffs = $district->staffs()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
+        $customers = $district->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+
+        return view('staff.locations.district_details', compact('district', 'staffs', 'customers'));
+    }
+
+    public function paypointDetails(Paypoint $paypoint)
+    {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Location Management')->add('Paypoint Management')->add($paypoint->name);
+
+        $staffs = $paypoint->staff()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
+        $customers = $paypoint->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+
+        return view('staff.locations.paypoint_details', compact('paypoint', 'staffs', 'customers'));
     }
 
     public function paypoints(Request $request)

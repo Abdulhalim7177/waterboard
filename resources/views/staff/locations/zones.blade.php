@@ -55,6 +55,112 @@
                 <!--end::Card header-->
                 <!--begin::Card body-->
                 <div class="card-body py-4">
+                    <!--begin::Summary Widgets-->
+                    @php
+                        // Calculate total staff and customers for all zones
+                        $totalStaffCount = 0;
+                        $totalCustomerCount = 0;
+                        foreach($zones as $zone) {
+                            $totalStaffCount += $zone->staffs()->count();
+                            $totalCustomerCount += $zone->customers()->count();
+                        }
+                    @endphp
+                    <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
+                        <!--begin::Total Zones Card-->
+                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
+                            <div class="card card-flush h-md-50 mb-xl-10">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="me-2">
+                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Zones</h6>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $zones->count() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="symbol symbol-60px">
+                                        <div class="symbol-label bg-light-primary">
+                                            <i class="ki-duotone ki-geolocation fs-1 text-primary">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Total Zones Card-->
+                        
+                        <!--begin::Total Staff Card-->
+                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
+                            <div class="card card-flush h-md-50 mb-xl-10">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="me-2">
+                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Staff</h6>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $totalStaffCount }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="symbol symbol-60px">
+                                        <div class="symbol-label bg-light-info">
+                                            <i class="ki-duotone ki-people fs-1 text-info">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Total Staff Card-->
+                        
+                        <!--begin::Total Customers Card-->
+                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
+                            <div class="card card-flush h-md-50 mb-xl-10">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="me-2">
+                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Customers</h6>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $totalCustomerCount }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="symbol symbol-60px">
+                                        <div class="symbol-label bg-light-success">
+                                            <i class="ki-duotone ki-user fs-1 text-success">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Total Customers Card-->
+                        
+                        <!--begin::Active Zones Card-->
+                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
+                            <div class="card card-flush h-md-50 mb-xl-10">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="me-2">
+                                        <h6 class="text-gray-400 fw-semibold mb-1">Active Zones</h6>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $zones->where('status', 'approved')->count() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="symbol symbol-60px">
+                                        <div class="symbol-label bg-light-warning">
+                                            <i class="ki-duotone ki-check-circle fs-1 text-warning">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Active Zones Card-->
+                    </div>
+                    <!--end::Summary Widgets-->
+                    
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             {{ session('success') }}
@@ -91,6 +197,7 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <a href="{{ route('staff.zones.details', $zone->id) }}" class="btn btn-sm btn-light-info me-2">View Details</a>
                                             <a href="#" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#editZoneModal{{ $zone->id }}">Edit</a>
                                         </td>
                                     </tr>

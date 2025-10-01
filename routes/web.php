@@ -96,6 +96,11 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::post('/districts/{district}/assign-ward', [LocationController::class, 'assignWardToDistrict'])->name('districts.assign-ward');
     Route::delete('/wards/{ward}/remove-from-district', [LocationController::class, 'removeWardFromDistrict'])->name('wards.remove-from-district');
     
+    // Location Details
+    Route::get('/zones/{zone}/details', [LocationController::class, 'zoneDetails'])->name('zones.details');
+    Route::get('/districts/{district}/details', [LocationController::class, 'districtDetails'])->name('districts.details');
+    Route::get('/paypoints/{paypoint}/details', [LocationController::class, 'paypointDetails'])->name('paypoints.details');
+    
     // Paypoint Management
     Route::get('/paypoints', [LocationController::class, 'paypoints'])->name('paypoints.index');
     Route::post('/paypoints', [LocationController::class, 'storePaypoint'])->name('paypoints.store');

@@ -31,9 +31,18 @@ class BillingController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Customer Billing');
 
-        $query = Bill::query()->with(['customer', 'customer.tariff', 'customer.category', 'customer.lga', 'customer.ward', 'customer.area'])
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+
+        $query = Bill::query()
             ->join('customers', 'bills.customer_id', '=', 'customers.id')
+            ->with(['customer', 'customer.tariff', 'customer.category', 'customer.lga', 'customer.ward', 'customer.area'])
             ->select('bills.*');
+
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $query->whereIn('customers.ward_id', $accessibleWardIds);
+        }
 
         if ($yearMonth = $request->input('year_month')) {
             $query->where('bills.year_month', $yearMonth);
@@ -59,15 +68,39 @@ class BillingController extends Controller
 
         $bills = $query->orderBy('bills.created_at', 'DESC')->paginate(10)->appends($request->query());
 
-        $customers = Customer::where('status', 'approved')->get(['id', 'first_name', 'surname', 'email']);
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+
+        $customerQuery = Customer::where('status', 'approved');
+        if (!empty($accessibleWardIds)) {
+            $customerQuery->whereIn('ward_id', $accessibleWardIds);
+        }
+        $customers = $customerQuery->get(['id', 'first_name', 'surname', 'email']);
+        
         $categories = Category::where('status', 'approved')->get(['id', 'name']);
         $tariffs = Tariff::where('status', 'approved')->get(['id', 'name']);
-        $lgas = Lga::where('status', 'approved')->get(['id', 'name']);
-        $wards = Ward::where('status', 'approved')->get(['id', 'name']);
-        $areas = Area::where('status', 'approved')->get(['id', 'name']);
+        
+        // Filter related data based on accessible wards if applicable
+        $lgaQuery = Lga::where('status', 'approved');
+        $wardQuery = Ward::where('status', 'approved');
+        $areaQuery = Area::where('status', 'approved');
+        
+        if (!empty($accessibleWardIds)) {
+            $wardQuery->whereIn('id', $accessibleWardIds);
+            $lgaQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('lga_id')->unique()->toArray());
+            $areaQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('area_id')->unique()->toArray());
+        }
+        
+        $lgas = $lgaQuery->get(['id', 'name']);
+        $wards = $wardQuery->get(['id', 'name']);
+        $areas = $areaQuery->get(['id', 'name']);
 
         // Get unique year-month combinations for the filter dropdown
-        $yearMonths = Bill::select('year_month')->distinct()->orderBy('year_month', 'DESC')->pluck('year_month');
+        $yearMonthQuery = Bill::join('customers', 'bills.customer_id', '=', 'customers.id');
+        if (!empty($accessibleWardIds)) {
+            $yearMonthQuery->whereIn('customers.ward_id', $accessibleWardIds);
+        }
+        $yearMonths = $yearMonthQuery->select('bills.year_month')->distinct()->orderBy('bills.year_month', 'DESC')->pluck('year_month');
 
         return view('staff.bills.index', compact('bills', 'customers', 'categories', 'tariffs', 'lgas', 'wards', 'areas', 'yearMonths'));
     }
@@ -177,10 +210,18 @@ class BillingController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Payment History');
 
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+
         $query = Payment::query()
             ->with(['customer', 'customer.tariff', 'customer.category', 'customer.lga', 'customer.ward', 'customer.area'])
             ->join('customers', 'payments.customer_id', '=', 'customers.id')
             ->select('payments.*');
+
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $query->whereIn('customers.ward_id', $accessibleWardIds);
+        }
 
         if ($request->filled('start_date')) {
             $query->whereDate('payments.payment_date', '>=', $request->start_date);
@@ -212,13 +253,36 @@ class BillingController extends Controller
 
         $payments = $query->orderBy('payments.payment_date', 'DESC')->paginate(10)->appends($request->query());
 
-        $customers = Customer::where('status', 'approved')->get(['id', 'first_name', 'surname', 'email']);
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+
+        $customerQuery = Customer::where('status', 'approved');
+        if (!empty($accessibleWardIds)) {
+            $customerQuery->whereIn('ward_id', $accessibleWardIds);
+        }
+        $customers = $customerQuery->get(['id', 'first_name', 'surname', 'email']);
+        
         $statuses = ['pending', 'SUCCESSFUL', 'FAILED'];
-        $categories = Category::where('status', 'approved')->get(['id', 'name']);
-        $tariffs = Tariff::where('status', 'approved')->get(['id', 'name']);
-        $lgas = Lga::where('status', 'approved')->get(['id', 'name']);
-        $wards = Ward::where('status', 'approved')->get(['id', 'name']);
-        $areas = Area::where('status', 'approved')->get(['id', 'name']);
+        
+        $categoryQuery = Category::where('status', 'approved');
+        $tariffQuery = Tariff::where('status', 'approved');
+        $lgaQuery = Lga::where('status', 'approved');
+        $wardQuery = Ward::where('status', 'approved');
+        $areaQuery = Area::where('status', 'approved');
+        
+        if (!empty($accessibleWardIds)) {
+            $wardQuery->whereIn('id', $accessibleWardIds);
+            $lgaQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('lga_id')->unique()->toArray());
+            $areaQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('area_id')->unique()->toArray());
+            $categoryQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('category_id')->unique()->toArray());
+            $tariffQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('tariff_id')->unique()->toArray());
+        }
+        
+        $categories = $categoryQuery->get(['id', 'name']);
+        $tariffs = $tariffQuery->get(['id', 'name']);
+        $lgas = $lgaQuery->get(['id', 'name']);
+        $wards = $wardQuery->get(['id', 'name']);
+        $areas = $areaQuery->get(['id', 'name']);
 
         return view('staff.payments.index', compact('payments', 'customers', 'statuses', 'categories', 'tariffs', 'lgas', 'wards', 'areas'));
     }

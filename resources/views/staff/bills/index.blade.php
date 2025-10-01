@@ -396,9 +396,9 @@
                                 </td>
                                 <td class="text-end" data-column="category">{{ $bill->customer->category->name ?? 'N/A' }}</td>
                                 <td class="text-end" data-column="tariff">{{ $bill->customer->tariff->name ?? 'N/A' }}</td>
-                                <td class="text-end" data-column="lga">{{ $bill->customer->lga->name ?? 'N/A' }}</td>
-                                <td class="text-end" data-column="ward">{{ $bill->customer->ward->name ?? 'N/A' }}</td>
-                                <td class="text-end" data-column="area">{{ $bill->customer->area->name ?? 'N/A' }}</td>
+                                <td class="text-end" data-column="lga">{{ $bill->customer->lga ? $bill->customer->lga->name : 'N/A' }}</td>
+                                <td class="text-end" data-column="ward">{{ $bill->customer->ward ? $bill->customer->ward->name : 'N/A' }}</td>
+                                <td class="text-end" data-column="area">{{ $bill->customer->area ? $bill->customer->area->name : 'N/A' }}</td>
                                 <td class="text-end" data-column="actions">
                                     @can('view-bill', $bill)
                                         <a href="{{ route('staff.bills.download-pdf', $bill) }}" class="btn btn-sm btn-light btn-active-light-primary">Download PDF</a>

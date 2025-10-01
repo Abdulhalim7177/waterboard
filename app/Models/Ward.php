@@ -24,4 +24,9 @@ class Ward extends Model
     {
         return $this->hasMany(Area::class);
     }
+    
+    public function customers()
+    {
+        return $this->hasMany(Customer::class, 'ward_id');
+    }
 }

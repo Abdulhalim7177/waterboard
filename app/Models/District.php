@@ -21,4 +21,16 @@ class District extends Model
     {
         return $this->hasMany(Ward::class);
     }
+    
+    public function staffs()
+    {
+        return $this->hasMany(Staff::class, 'district_id');
+    }
+    
+    public function customers()
+    {
+        return Customer::whereHas('ward', function($query) {
+            $query->where('district_id', $this->id);
+        });
+    }
 }

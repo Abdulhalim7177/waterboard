@@ -21,13 +21,33 @@ class CustomerController extends Controller
     public function index()
     {
         $this->authorize('view-customers', Customer::class);
-        $customers = Customer::with(['lga', 'ward', 'area', 'category', 'tariff'])->paginate(10);
+        
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        $query = Customer::with(['lga', 'ward', 'area', 'category', 'tariff']);
+        
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $query->whereIn('ward_id', $accessibleWardIds);
+        }
+        
+        $customers = $query->paginate(10);
         return view('staff.customers.index', compact('customers'));
     }
 
     public function show(Customer $customer)
     {
         $this->authorize('view-customer', $customer);
+        
+        // Additional check to ensure the staff can access this customer
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        if (!empty($accessibleWardIds) && !in_array($customer->ward_id, $accessibleWardIds)) {
+            abort(403, 'You are not authorized to view this customer.');
+        }
+        
         return view('staff.customers.show', compact('customer'));
     }
 

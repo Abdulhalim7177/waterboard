@@ -29,21 +29,49 @@ class CustomerCreationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Customer Management');
 
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        
+        // Stats should also be filtered by accessible wards if applicable
+        $baseQuery = empty($accessibleWardIds) ? Customer::query() : Customer::whereIn('ward_id', $accessibleWardIds);
+        
         $stats = [
-            'total' => Customer::count(),
-            'pending' => Customer::where('status', 'pending')->count(),
-            'approved' => Customer::where('status', 'approved')->count(),
-            'rejected' => Customer::where('status', 'rejected')->count(),
+            'total' => $baseQuery->count(),
+            'pending' => $baseQuery->where('status', 'pending')->count(),
+            'approved' => $baseQuery->where('status', 'approved')->count(),
+            'rejected' => $baseQuery->where('status', 'rejected')->count(),
         ];
 
-        $customers = Customer::when($request->search_customer, function ($query, $search) {
+        $customersQuery = Customer::when($request->search_customer, function ($query, $search) {
             return $query->where('first_name', 'like', "%{$search}%")
                         ->orWhere('surname', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('billing_id', 'like', "%{$search}%");
         })->when($request->status_filter, function ($query, $status) {
             return $query->where('status', $status);
-        })->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->paginate(10);
+        });
+        
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $customersQuery->whereIn('ward_id', $accessibleWardIds);
+        }
+        $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
+        
+        $customersQuery = Customer::when($request->search_customer, function ($query, $search) {
+            return $query->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('surname', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('billing_id', 'like', "%{$search}%");
+        })->when($request->status_filter, function ($query, $status) {
+            return $query->where('status', $status);
+        });
+        
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $customersQuery->whereIn('ward_id', $accessibleWardIds);
+        }
+        
+        $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->paginate(10);
 
         return view('staff.customers.index', compact('stats', 'customers'));
     }
@@ -151,9 +179,28 @@ class CustomerCreationController extends Controller
 
             if ($part === 'address') {
                 // Load all data upfront for client-side filtering
-                $lgas = Lga::where('status', 'approved')->get();
-                $wards = Ward::where('status', 'approved')->get();
-                $areas = Area::where('status', 'approved')->get();
+                $staff = auth()->guard('staff')->user();
+                $accessibleLgaIds = $staff->getAccessibleLgaIdsAttribute;
+                $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
+                $accessibleAreaIds = $staff->getAccessibleAreaIdsAttribute;
+
+                $lgaQuery = Lga::where('status', 'approved');
+                $wardQuery = Ward::where('status', 'approved');
+                $areaQuery = Area::where('status', 'approved');
+                
+                if (!empty($accessibleLgaIds)) {
+                    $lgaQuery->whereIn('id', $accessibleLgaIds);
+                }
+                if (!empty($accessibleWardIds)) {
+                    $wardQuery->whereIn('id', $accessibleWardIds);
+                }
+                if (!empty($accessibleAreaIds)) {
+                    $areaQuery->whereIn('id', $accessibleAreaIds);
+                }
+                
+                $lgas = $lgaQuery->get();
+                $wards = $wardQuery->get();
+                $areas = $areaQuery->get();
                 $selectedLgaId = $request->lga_id ?? $customer->lga_id;
                 $selectedWardId = $request->ward_id ?? $customer->ward_id;
                 $data = array_merge($data, compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
@@ -297,9 +344,28 @@ class CustomerCreationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Customer Management', route('staff.customers.index'))->add('Create Customer')->add('Personal Information');
 
-        $lgas = Lga::where('status', 'approved')->get();
-        $wards = Ward::where('status', 'approved')->get();
-        $areas = Area::where('status', 'approved')->get();
+        $staff = auth()->guard('staff')->user();
+        $accessibleLgaIds = $staff->getAccessibleLgaIds();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+        $accessibleAreaIds = $staff->getAccessibleAreaIds();
+
+        $lgaQuery = Lga::where('status', 'approved');
+        $wardQuery = Ward::where('status', 'approved');
+        $areaQuery = Area::where('status', 'approved');
+        
+        if (!empty($accessibleLgaIds)) {
+            $lgaQuery->whereIn('id', $accessibleLgaIds);
+        }
+        if (!empty($accessibleWardIds)) {
+            $wardQuery->whereIn('id', $accessibleWardIds);
+        }
+        if (!empty($accessibleAreaIds)) {
+            $areaQuery->whereIn('id', $accessibleAreaIds);
+        }
+        
+        $lgas = $lgaQuery->get();
+        $wards = $wardQuery->get();
+        $areas = $areaQuery->get();
         $categories = Category::where('status', 'approved')->get();
         $tariffs = Tariff::where('status', 'approved')->get();
 
@@ -335,9 +401,28 @@ class CustomerCreationController extends Controller
         try {
             $this->authorize('create-customer', Customer::class);
             // Load all data upfront for client-side filtering
-            $lgas = Lga::where('status', 'approved')->get();
-            $wards = Ward::where('status', 'approved')->get();
-            $areas = Area::where('status', 'approved')->get();
+            $staff = auth()->guard('staff')->user();
+            $accessibleLgaIds = $staff->getAccessibleLgaIdsAttribute;
+            $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
+            $accessibleAreaIds = $staff->getAccessibleAreaIdsAttribute;
+
+            $lgaQuery = Lga::where('status', 'approved');
+            $wardQuery = Ward::where('status', 'approved');
+            $areaQuery = Area::where('status', 'approved');
+            
+            if (!empty($accessibleLgaIds)) {
+                $lgaQuery->whereIn('id', $accessibleLgaIds);
+            }
+            if (!empty($accessibleWardIds)) {
+                $wardQuery->whereIn('id', $accessibleWardIds);
+            }
+            if (!empty($accessibleAreaIds)) {
+                $areaQuery->whereIn('id', $accessibleAreaIds);
+            }
+            
+            $lgas = $lgaQuery->get();
+            $wards = $wardQuery->get();
+            $areas = $areaQuery->get();
             $selectedLgaId = $request->lga_id;
             $selectedWardId = $request->ward_id;
             return view('staff.customers.create.address', compact('lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
@@ -644,9 +729,28 @@ class CustomerCreationController extends Controller
     {
         try {
             $this->authorize('edit-customer', $customer);
-            $lgas = Lga::where('status', 'approved')->get();
-            $wards = Ward::where('status', 'approved')->get();
-            $areas = Area::where('status', 'approved')->get();
+            $staff = auth()->guard('staff')->user();
+            $accessibleLgaIds = $staff->getAccessibleLgaIdsAttribute;
+            $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
+            $accessibleAreaIds = $staff->getAccessibleAreaIdsAttribute;
+
+            $lgaQuery = Lga::where('status', 'approved');
+            $wardQuery = Ward::where('status', 'approved');
+            $areaQuery = Area::where('status', 'approved');
+            
+            if (!empty($accessibleLgaIds)) {
+                $lgaQuery->whereIn('id', $accessibleLgaIds);
+            }
+            if (!empty($accessibleWardIds)) {
+                $wardQuery->whereIn('id', $accessibleWardIds);
+            }
+            if (!empty($accessibleAreaIds)) {
+                $areaQuery->whereIn('id', $accessibleAreaIds);
+            }
+            
+            $lgas = $lgaQuery->get();
+            $wards = $wardQuery->get();
+            $areas = $areaQuery->get();
             $selectedLgaId = $customer->lga_id;
             $selectedWardId = $customer->ward_id;
             return view('staff.customers.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'));
@@ -889,9 +993,40 @@ class CustomerCreationController extends Controller
             ]);
 
             $customer = Customer::findOrFail($request->customer_id);
+            
+            // Check if the staff can access this customer
+            $staff = auth()->guard('staff')->user();
+            $accessibleWardIds = $staff->getAccessibleWardIds();
+            
+            if (!empty($accessibleWardIds) && !in_array($customer->ward_id, $accessibleWardIds)) {
+                return response()->json(['error' => 'You are not authorized to edit this customer.'], 403);
+            }
+            
             $selectedLgaId = $request->lga_id;
-            $lgas = Lga::where('status', 'approved')->get();
-            $wards = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved')->get();
+            
+            // Check if the selected LGA is accessible to the staff
+            $accessibleLgaIds = $staff->getAccessibleLgaIds();
+            $lgaQuery = Lga::where('status', 'approved');
+            
+            if (!empty($accessibleLgaIds)) {
+                $lgaQuery->whereIn('id', $accessibleLgaIds);
+            }
+            
+            $lgas = $lgaQuery->get();
+            
+            // Check if the selectedLgaId is accessible
+            if (!empty($accessibleLgaIds) && !in_array($selectedLgaId, $accessibleLgaIds)) {
+                return response()->json(['error' => 'You are not authorized to access this LGA.'], 403);
+            }
+            
+            // Get wards for the selected LGA
+            $wardQuery = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved');
+            
+            if (!empty($accessibleWardIds)) {
+                $wardQuery->whereIn('id', $accessibleWardIds);
+            }
+            
+            $wards = $wardQuery->get();
             $areas = collect();
             $selectedWardId = null;
             return response()->json([
@@ -918,11 +1053,55 @@ class CustomerCreationController extends Controller
             ]);
 
             $customer = Customer::findOrFail($request->customer_id);
+            
+            // Check if the staff can access this customer
+            $staff = auth()->guard('staff')->user();
+            $accessibleWardIds = $staff->getAccessibleWardIds();
+            
+            if (!empty($accessibleWardIds) && !in_array($customer->ward_id, $accessibleWardIds)) {
+                return response()->json(['error' => 'You are not authorized to edit this customer.'], 403);
+            }
+            
             $selectedLgaId = $request->lga_id;
             $selectedWardId = $request->ward_id;
-            $lgas = Lga::where('status', 'approved')->get();
-            $wards = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved')->get();
-            $areas = Area::where('ward_id', $selectedWardId)->where('status', 'approved')->get();
+            
+            // Check if the selected LGA and Ward are accessible to the staff
+            $accessibleLgaIds = $staff->getAccessibleLgaIds();
+            $lgaQuery = Lga::where('status', 'approved');
+            
+            if (!empty($accessibleLgaIds)) {
+                $lgaQuery->whereIn('id', $accessibleLgaIds);
+            }
+            
+            $lgas = $lgaQuery->get();
+            
+            // Check if the selectedLgaId and selectedWardId are accessible
+            if (!empty($accessibleLgaIds) && !in_array($selectedLgaId, $accessibleLgaIds)) {
+                return response()->json(['error' => 'You are not authorized to access this LGA.'], 403);
+            }
+            
+            if (!empty($accessibleWardIds) && !in_array($selectedWardId, $accessibleWardIds)) {
+                return response()->json(['error' => 'You are not authorized to access this Ward.'], 403);
+            }
+            
+            // Get wards for the selected LGA
+            $wardQuery = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved');
+            
+            if (!empty($accessibleWardIds)) {
+                $wardQuery->whereIn('id', $accessibleWardIds);
+            }
+            
+            $wards = $wardQuery->get();
+            
+            // Get areas for the selected ward
+            $accessibleAreaIds = $staff->getAccessibleAreaIds();
+            $areaQuery = Area::where('ward_id', $selectedWardId)->where('status', 'approved');
+            
+            if (!empty($accessibleAreaIds)) {
+                $areaQuery->whereIn('id', $accessibleAreaIds);
+            }
+            
+            $areas = $areaQuery->get();
             return response()->json([
                 'html' => view('staff.customers.partials.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'))->render(),
             ]);

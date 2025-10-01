@@ -21,6 +21,13 @@ return [
         'base_url' => env('NABROLL_BASE_URL', 'https://demo.nabroll.com.ng/api/v1'),
     ],
 
+    'glpi' => [
+        'api_url' => env('GLPI_API_URL'),
+        'username' => env('GLPI_USERNAME'),
+        'password' => env('GLPI_PASSWORD'),
+        'api_token' => env('GLPI_API_TOKEN'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
