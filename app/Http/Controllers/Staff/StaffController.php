@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use App\Services\BreadcrumbService;
+use App\Services\GLPIService;
 
 class StaffController extends Controller
 {
@@ -30,6 +31,22 @@ class StaffController extends Controller
         // Set breadcrumbs
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Dashboard');
+
+        // Check GLPI API status
+        $glpiService = app(GLPIService::class);
+        $isGlpiAvailable = false;
+        $glpiApiStatus = 'unknown';
+        
+        try {
+            if ($glpiService) {
+                $sessionToken = $glpiService->initSession();
+                $isGlpiAvailable = $sessionToken !== false;
+                $glpiApiStatus = $isGlpiAvailable ? 'available' : 'unavailable';
+            }
+        } catch (\Exception $e) {
+            $glpiApiStatus = 'error';
+            \Log::error('GLPI API Connection Error: ' . $e->getMessage());
+        }
 
         // Get staff statistics
         $totalStaff = Staff::count();
@@ -51,6 +68,94 @@ class StaffController extends Controller
         $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
         $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
         
+        // Get complaint statistics - prioritize GLPI if available, fallback to local
+        $totalComplaints = 0;
+        $openComplaints = 0;
+        $inProgressComplaints = 0;
+        $resolvedComplaints = 0;
+        
+        if ($isGlpiAvailable && $glpiService) {
+            try {
+                $glpiResponse = $glpiService->getTickets([
+                    'range' => '0-999', // Get first 1000 tickets
+                    'sort' => 19, // Sort by date_mod
+                    'order' => 'DESC'
+                ]);
+                
+                if ($glpiResponse && isset($glpiResponse['data'])) {
+                    $totalComplaints = count($glpiResponse['data']);
+                    
+                    // Count based on GLPI status codes
+                    foreach ($glpiResponse['data'] as $ticket) {
+                        $status = $ticket['status'] ?? 1;
+                        switch ($status) {
+                            case 1: // New
+                            case 4: // Waiting
+                                $openComplaints++;
+                                break;
+                            case 2: // Assigned
+                            case 3: // Planned
+                                $inProgressComplaints++;
+                                break;
+                            case 5: // Solved
+                            case 6: // Closed
+                                $resolvedComplaints++;
+                                break;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('GLPI API Error for complaints: ' . $e->getMessage());
+                // Fallback to local counts if GLPI fails
+                $totalComplaints = \App\Models\CustomerComplaint::count();
+                $openComplaints = \App\Models\CustomerComplaint::where('status', 'open')->count();
+                $inProgressComplaints = \App\Models\CustomerComplaint::where('status', 'in_progress')->count();
+                $resolvedComplaints = \App\Models\CustomerComplaint::where('status', 'resolved')->count();
+            }
+        } else {
+            // Use local counts if GLPI is not available
+            $totalComplaints = \App\Models\CustomerComplaint::count();
+            $openComplaints = \App\Models\CustomerComplaint::where('status', 'open')->count();
+            $inProgressComplaints = \App\Models\CustomerComplaint::where('status', 'in_progress')->count();
+            $resolvedComplaints = \App\Models\CustomerComplaint::where('status', 'resolved')->count();
+        }
+        
+        // Get asset statistics - prioritize Dolibarr if available
+        $dolibarrService = app('App\Services\DolibarrService');
+        $totalAssets = 0;
+        $activeAssets = 0;
+        $maintenanceAssets = 0;
+        $retiredAssets = 0;
+        
+        try {
+            if ($dolibarrService) {
+                $assetsResponse = $dolibarrService->getAssets(1000, 0); // Get first 1000 assets
+                
+                if ($assetsResponse && is_array($assetsResponse)) {
+                    $totalAssets = count($assetsResponse);
+                    
+                    // Count assets by status (if available)
+                    foreach ($assetsResponse as $asset) {
+                        $status = $asset['status'] ?? 1;
+                        if ($status == 1) {
+                            $activeAssets++;
+                        } elseif ($status == 0) {
+                            $maintenanceAssets++;
+                        } else {
+                            $retiredAssets++;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Dolibarr API Error for assets: ' . $e->getMessage());
+            // Fallback to local counts if Dolibarr fails
+            $totalAssets = \App\Models\Asset::count();
+            $activeAssets = \App\Models\Asset::where('status', 'active')->count();
+            $maintenanceAssets = \App\Models\Asset::where('status', 'maintenance')->count();
+            $retiredAssets = \App\Models\Asset::where('status', 'retired')->count();
+        }
+        
         // Get recent role assignments (last 5)
         $recentRoleAssignments = \App\Models\Audit::where('event', 'roles_assigned')
             ->orderBy('created_at', 'desc')
@@ -65,6 +170,12 @@ class StaffController extends Controller
             
         // Get recent customer activities (last 5)
         $recentCustomerActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Customer')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+            
+        // Get recent complaint activities (last 5)
+        $recentComplaintActivities = \App\Models\Audit::where('auditable_type', 'App\Models\CustomerComplaint')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
@@ -88,10 +199,21 @@ class StaffController extends Controller
             'totalPayments',
             'successfulPayments',
             'pendingPayments',
+            'totalComplaints',
+            'openComplaints',
+            'inProgressComplaints',
+            'resolvedComplaints',
+            'totalAssets',
+            'activeAssets',
+            'maintenanceAssets',
+            'retiredAssets',
             'recentRoleAssignments', 
             'recentHrUpdates',
             'recentCustomerActivities',
-            'recentBillingActivities'
+            'recentBillingActivities',
+            'recentComplaintActivities',
+            'glpiApiStatus',
+            'isGlpiAvailable'
         ));
     }
 

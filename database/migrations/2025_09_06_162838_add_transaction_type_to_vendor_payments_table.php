@@ -23,6 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('vendor_payments', function (Blueprint $table) {
+            $table->dropForeign(['vendor_id']);
             $table->dropIndex(['vendor_id', 'transaction_type']);
             $table->dropColumn('transaction_type');
         });

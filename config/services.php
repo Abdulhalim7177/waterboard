@@ -28,6 +28,13 @@ return [
         'api_token' => env('GLPI_API_TOKEN'),
     ],
 
+    'dolibarr' => [
+        'api_url' => env('DOLIBARR_API_URL'),
+        'username' => env('DOLIBARR_USERNAME'),
+        'password' => env('DOLIBARR_PASSWORD'),
+        'api_key' => env('DOLIBARR_API_KEY'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

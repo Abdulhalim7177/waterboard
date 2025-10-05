@@ -6,7 +6,6 @@ use App\Models\Staff;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class StaffManagementSeeder extends Seeder
@@ -116,7 +115,7 @@ class StaffManagementSeeder extends Seeder
                 'middle_name' => '',
                 'surname' => 'Administrator',
                 'email' => 'admin@example.com',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password'),
                 'mobile_no' => '1234567890',
                 'phone_number' => '1234567890',
                 'status' => 'approved',

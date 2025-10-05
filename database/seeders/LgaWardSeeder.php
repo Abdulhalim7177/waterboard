@@ -16,14 +16,13 @@ class LgaWardSeeder extends Seeder
     {
         try {
             // Disable foreign key constraints temporarily
-            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            // DB::statement('SET FOREIGN_KEY_CHECKS=0;');
             
             // Clear existing LGA and Ward data (in the right order to respect foreign key constraints)
             DB::table('wards')->delete();
             DB::table('lgas')->delete();
             
-            // Re-enable foreign key constraints
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+// DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
             // Hardcoded Katsina State LGA data
             $lgas = [

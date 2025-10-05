@@ -1120,11 +1120,11 @@ class CustomerCreationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Customer Management', route('staff.customers.index'))->add('Pending Changes');
 
-        $updates = PendingCustomerUpdate::with(['customer', 'customer.category', 'customer.tariff', 'customer.lga', 'customer.ward', 'customer.area'])
+        $pendingUpdates = PendingCustomerUpdate::with(['customer', 'customer.category', 'customer.tariff', 'customer.lga', 'customer.ward', 'customer.area'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('staff.customers.pending', compact('updates'));
+        return view('staff.customers.pending_changes', compact('pendingUpdates'));
     }
 
     public function approvePending(PendingCustomerUpdate $update)

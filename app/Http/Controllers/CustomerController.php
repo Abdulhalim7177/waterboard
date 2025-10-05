@@ -76,7 +76,7 @@ class CustomerController extends Controller
     {
         $customer = Auth::guard('customer')->user();
         $payments = $customer->payments()->orderBy('payment_date', 'desc')->paginate(10);
-        return view('customer.payments', compact('payments'));
+        return view('customer.payments.index', compact('payments'));
     }
 
     public function initiateNABRollPayment(Request $request)

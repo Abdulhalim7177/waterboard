@@ -209,7 +209,7 @@ class DatabaseSeeder extends Seeder
                 'street_name' => 'Main Street', 'house_number' => '101', 'landmark' => 'Near Market', 'lga_id' => $lgaIds['30917C'], 'ward_id' => $wardIds['W001'], 'area_id' => $areaIds['A001'],
                 'category_id' => $categoryIds['CAT001'], 'tariff_id' => $tariffIds['101'], 'delivery_code' => 'DEL001', 'billing_condition' => 'Normal', 'water_supply_status' => 'Functional',
                 'latitude' => 11.5606, 'longitude' => 7.4206, 'polygon_coordinates' => json_encode([[11.5606, 7.4206], [11.5616, 7.4216], [11.5626, 7.4206], [11.5606, 7.4196]]),
-                'pipe_path' => json_encode([[11.5606, 7.4206], [11.5596, 7.4196], [11.5586, 7.4186]]), 'password' => bcrypt('password123'), 'status' => 'pending', 'account_balance' => 0.00,
+                'password' => bcrypt('password'),
                 'created_at' => now()->setMonth(1)->setYear(2025),
             ],
             [
