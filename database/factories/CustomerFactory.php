@@ -13,17 +13,46 @@ class CustomerFactory extends Factory
     public function definition()
     {
         $tariff = \App\Models\Tariff::factory()->create();
+        
+        // Katsina State is roughly between latitude 12.0°N to 13.5°N and longitude 7.0°E to 8.5°E
+        $latitude = $this->faker->randomFloat(6, 12.0, 13.5);
+        $longitude = $this->faker->randomFloat(6, 7.0, 8.5);
+
         return [
             'first_name' => $this->faker->firstName(),
             'surname' => $this->faker->lastName(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone_number' => $this->faker->phoneNumber(),
-            'password' => Hash::make('password'),
+            'alternate_phone_number' => $this->faker->optional()->phoneNumber(),
+            'street_name' => $this->faker->streetName(),
+            'house_number' => $this->faker->buildingNumber(),
+            'landmark' => $this->faker->optional()->sentence(3),
             'area_id' => \App\Models\Area::factory(),
             'lga_id' => \App\Models\Lga::factory(),
             'ward_id' => \App\Models\Ward::factory(),
             'category_id' => $tariff->category_id,
             'tariff_id' => $tariff->id,
+            'delivery_code' => 'DEL' . $this->faker->unique()->randomNumber(6),
+            'billing_id' => 'BILL' . $this->faker->unique()->randomNumber(8),
+            'billing_condition' => $this->faker->randomElement(['Residential', 'Commercial', 'Industrial', 'Institutional']),
+            'water_supply_status' => $this->faker->randomElement(['Connected', 'Disconnected', 'Scheduled']),
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'altitude' => $this->faker->randomFloat(2, 200, 800), // Altitude in meters above sea level
+            'polygon_coordinates' => json_encode([
+                ['lat' => $latitude + $this->faker->randomFloat(6, -0.001, 0.001), 'lng' => $longitude + $this->faker->randomFloat(6, -0.001, 0.001)],
+                ['lat' => $latitude + $this->faker->randomFloat(6, -0.001, 0.001), 'lng' => $longitude + $this->faker->randomFloat(6, 0.001, 0.002)],
+                ['lat' => $latitude + $this->faker->randomFloat(6, 0.001, 0.002), 'lng' => $longitude + $this->faker->randomFloat(6, 0.001, 0.002)],
+                ['lat' => $latitude + $this->faker->randomFloat(6, 0.001, 0.002), 'lng' => $longitude + $this->faker->randomFloat(6, -0.001, 0.001)],
+            ]),
+            'pipe_path' => json_encode([
+                ['lat' => $latitude - 0.0005, 'lng' => $longitude - 0.0005],
+                ['lat' => $latitude, 'lng' => $longitude],
+            ]),
+            'password' => Hash::make('password'),
+            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
+            'meter_reading' => $this->faker->randomFloat(2, 0, 10000),
+            'account_balance' => $this->faker->randomFloat(2, -1000, 10000),
         ];
     }
 }

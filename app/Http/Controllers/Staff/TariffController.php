@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use App\Services\BreadcrumbService;
 
 class TariffController extends Controller
 {
@@ -24,6 +25,10 @@ class TariffController extends Controller
 
     public function index(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Tariff Management');
+
         $tariffs = Tariff::when($request->search_tariff, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
                         ->orWhere('catcode', 'like', "%{$search}%");

@@ -15,11 +15,16 @@ use Illuminate\Support\Facades\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CustomersExport;
 use Carbon\Carbon;
+use App\Services\BreadcrumbService;
 
 class GisController extends Controller
 {
     public function index()
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Customer GIS Overview');
+
         try {
             $lgas = Lga::whereNotNull('latitude')->whereNotNull('longitude')->get(['id', 'name', 'latitude', 'longitude']);
             $wards = Ward::whereNotNull('latitude')->whereNotNull('longitude')->get(['id', 'name', 'latitude', 'longitude', 'lga_id']);
@@ -65,6 +70,9 @@ class GisController extends Controller
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = Carbon::parse($request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d')))->endOfDay()->format('Y-m-d H:i:s');
 
+            $staff = auth()->guard('staff')->user();
+            $accessibleWardIds = $staff->getAccessibleWardIds();
+
             // Build the base query with whereHas to ensure customers have at least one approved bill in the date range
             $query = Customer::query()
                 ->with([
@@ -80,6 +88,11 @@ class GisController extends Controller
                     $q->where('approval_status', 'approved')
                       ->whereBetween('created_at', [$startDate, $endDate]);
                 });
+
+            // If staff has restricted access based on paypoint, filter by accessible wards
+            if (!empty($accessibleWardIds)) {
+                $query->whereIn('ward_id', $accessibleWardIds);
+            }
 
             // Filter by payment status using whereHas/whereDoesntHave (equivalent to original havingRaw on sum(balance))
             if ($request->has('payment_status') && in_array($request->payment_status, ['paid', 'unpaid'])) {
@@ -362,6 +375,9 @@ class GisController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = Carbon::parse($request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d')))->endOfDay()->format('Y-m-d H:i:s');
 
+        $staff = auth()->guard('staff')->user();
+        $accessibleWardIds = $staff->getAccessibleWardIds();
+
         // Same query structure as in filter() for consistency
         $query = Customer::query()
             ->with([
@@ -377,6 +393,11 @@ class GisController extends Controller
                 $q->where('approval_status', 'approved')
                   ->whereBetween('created_at', [$startDate, $endDate]);
             });
+
+        // If staff has restricted access based on paypoint, filter by accessible wards
+        if (!empty($accessibleWardIds)) {
+            $query->whereIn('ward_id', $accessibleWardIds);
+        }
 
         if ($request->has('payment_status') && in_array($request->payment_status, ['paid', 'unpaid'])) {
             if ($request->payment_status === 'paid') {

@@ -7,6 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Services\BreadcrumbService;
 
 class CategoryController extends Controller
 {
@@ -22,6 +23,10 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
+        // Set breadcrumbs
+        $breadcrumb = app(BreadcrumbService::class);
+        $breadcrumb->addHome()->add('Category Management');
+
         $categories = Category::when($request->search_category, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%");

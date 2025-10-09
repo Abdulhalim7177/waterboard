@@ -188,3 +188,344 @@
         color: #009ef7 !important;
     }
 }
+
+/* Dashboard specific enhancements */
+.hover-elevate-up {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-elevate-up:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced card styling */
+.card-flush {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+}
+
+.card-flush:hover {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced stat cards */
+.fs-1.fw-bold {
+    font-weight: 700 !important;
+    letter-spacing: -0.5px;
+}
+
+/* Timeline improvements */
+.timeline-item {
+    margin-bottom: 1.5rem;
+}
+
+.timeline-content {
+    padding-left: 1rem;
+}
+
+/* Navigation enhancements */
+.nav-line-tabs .nav-link {
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-line-tabs .nav-link.active {
+    border-bottom: 3px solid #009ef7;
+}
+
+/* Button enhancements */
+.btn-flex {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Quick action cards */
+.p-5 {
+    padding: 1.5rem !important;
+}
+
+/* Responsive grid adjustments */
+@media (min-width: 1400px) {
+    .g-xl-10 {
+        --bs-gutter-x: 2.5rem;
+    }
+    
+    .g-xl-10,
+    .gy-xl-10 {
+        --bs-gutter-y: 2.5rem;
+    }
+}
+
+/* Enhanced typography */
+.page-heading {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Badge enhancements */
+.badge-light-success {
+    background-color: rgba(63, 178, 98, 0.1);
+    color: #3fb262;
+}
+
+.badge-light-warning {
+    background-color: rgba(255, 165, 0, 0.1);
+    color: #ffa500;
+}
+
+.badge-light-primary {
+    background-color: rgba(0, 158, 247, 0.1);
+    color: #009ef7;
+}
+
+.badge-light-info {
+    background-color: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+}
+
+/* Symbol enhancements */
+.symbol-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tab enhancements */
+.nav-line-tabs-2x .nav-link {
+    border-width: 2px;
+}
+
+/* Alert enhancements */
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+
+.alert-success {
+    background-color: rgba(63, 178, 98, 0.1);
+    color: #3fb262;
+}
+
+.alert-danger {
+    background-color: rgba(239, 69, 101, 0.1);
+    color: #ef4565;
+}
+
+.alert-info {
+    background-color: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+}
+
+/* Metronic 8 specific enhancements */
+.menu-item .menu-link {
+    transition: all 0.2s ease;
+}
+
+.menu-item .menu-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.aside-user {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced button styling */
+.btn-primary {
+    background-color: #009ef7;
+    border-color: #009ef7;
+}
+
+.btn-primary:hover {
+    background-color: #008fd1;
+    border-color: #008fd1;
+}
+
+.btn-light-primary {
+    background-color: rgba(0, 158, 247, 0.1);
+    border-color: rgba(0, 158, 247, 0.1);
+    color: #009ef7;
+}
+
+.btn-light-primary:hover {
+    background-color: rgba(0, 158, 247, 0.2);
+    border-color: rgba(0, 158, 247, 0.2);
+}
+
+.btn-light-success {
+    background-color: rgba(63, 178, 98, 0.1);
+    border-color: rgba(63, 178, 98, 0.1);
+    color: #3fb262;
+}
+
+.btn-light-success:hover {
+    background-color: rgba(63, 178, 98, 0.2);
+    border-color: rgba(63, 178, 98, 0.2);
+}
+
+.btn-light-warning {
+    background-color: rgba(255, 165, 0, 0.1);
+    border-color: rgba(255, 165, 0, 0.1);
+    color: #ffa500;
+}
+
+.btn-light-warning:hover {
+    background-color: rgba(255, 165, 0, 0.2);
+    border-color: rgba(255, 165, 0, 0.2);
+}
+
+.btn-light-info {
+    background-color: rgba(102, 16, 242, 0.1);
+    border-color: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+}
+
+.btn-light-info:hover {
+    background-color: rgba(102, 16, 242, 0.2);
+    border-color: rgba(102, 16, 242, 0.2);
+}
+
+/* Card header enhancements */
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Form control enhancements */
+.form-control:focus,
+.form-select:focus {
+    border-color: #009ef7;
+    box-shadow: 0 0 0 0.2rem rgba(0, 158, 247, 0.25);
+}
+
+/* Table enhancements */
+.table > :not(caption) > * > * {
+    border-bottom-width: 0;
+}
+
+.table tr:last-child td {
+    border-bottom-width: 1px;
+}
+
+/* Pagination enhancements */
+.pagination .page-link {
+    border: 1px solid #e4e6ef;
+    color: #7e8299;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #009ef7;
+    border-color: #009ef7;
+    color: white;
+}
+
+/* Modal enhancements */
+.modal-header {
+    border-bottom: 1px solid #e4e6ef;
+}
+
+.modal-footer {
+    border-top: 1px solid #e4e6ef;
+}
+
+/* Tooltip enhancements */
+.tooltip-inner {
+    background-color: #181c32;
+    color: white;
+}
+
+.bs-tooltip-top .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+    border-top-color: #181c32;
+}
+
+.bs-tooltip-end .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before {
+    border-right-color: #181c32;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow::before {
+    border-bottom-color: #181c32;
+}
+
+.bs-tooltip-start .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before {
+    border-left-color: #181c32;
+}
+
+/* Dropdown enhancements */
+.dropdown-menu {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e4e6ef;
+}
+
+/* Progress bar enhancements */
+.progress {
+    background-color: #f5f8fa;
+}
+
+.progress-bar {
+    background-color: #009ef7;
+}
+
+/* Badge enhancements */
+.badge {
+    font-weight: 600;
+}
+
+/* Symbol enhancements */
+.symbol.symbol-circle .symbol-label {
+    background-color: #f5f8fa;
+}
+
+/* Menu enhancements */
+.menu .menu-item .menu-link {
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.menu .menu-item .menu-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.menu .menu-item .menu-link.active {
+    background-color: rgba(0, 158, 247, 0.1);
+    color: #009ef7;
+}
+
+/* Aside enhancements */
+.aside {
+    background-color: #1e1e2d;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.aside-toolbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Header enhancements */
+.header {
+    background-color: white;
+}
+
+/* Content area enhancements */
+.content {
+    background-color: #f5f8fa;
+}
+
+/* Footer enhancements */
+.footer {
+    background-color: white;
+}

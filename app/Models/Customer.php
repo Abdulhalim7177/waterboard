@@ -57,11 +57,6 @@ class Customer extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
-    public function complaints()
-    {
-        return $this->hasMany(Complaint::class);
-    }
-
     public function pendingUpdates()
     {
         return $this->hasMany(PendingCustomerUpdate::class);
@@ -181,7 +176,7 @@ class Customer extends Authenticatable
         }
     }
 
-    /**
+    /***
      * Add amount to customer account balance
      */
     public function addAccountBalance($amount)

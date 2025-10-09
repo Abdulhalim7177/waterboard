@@ -13,7 +13,6 @@ use App\Models\Category;
 use App\Models\Lga;
 use App\Models\Ward;
 use App\Models\Area;
-use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Services\BreadcrumbService;
 
 class AnalyticsController extends Controller
 {
@@ -35,278 +35,27 @@ class AnalyticsController extends Controller
 
     public function index(Request $request)
     {
-        // Handle filters
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $statusFilter = $request->input('status_filter');
+        $data = $this->getAnalyticsData($request);
+        
+        $stats = $data['stats'];
+        $months = $data['months'];
+        $billAmounts = $data['billAmounts'];
+        $paymentAmounts = $data['paymentAmounts'];
+        $tariffByCategory = $data['tariffByCategory'];
+        $customersByCategory = $data['customersByCategory'];
+        $customersByTariff = $data['customersByTariff'];
+        $customersByLga = $data['customersByLga'];
 
-        // Cache key for optimization
-        $cacheKey = 'analytics_' . md5($request->fullUrl());
-        $cacheTTL = 60; // Cache for 60 minutes
-
-        // Clear cache if filters changed
-        if ($request->hasAny(['start_date', 'end_date', 'status_filter'])) {
-            Cache::forget($cacheKey);
-        }
-
-        $data = Cache::remember($cacheKey, $cacheTTL, function () use ($startDate, $endDate, $statusFilter) {
-            // Determine date range
-            $start = $startDate && $endDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : now()->subMonths(11)->startOfMonth();
-            $end = $startDate && $endDate ? \Carbon\Carbon::parse($endDate)->endOfDay() : now()->endOfMonth();
-
-            // Basic stats with filters
-            $stats = [
-                'staff' => [
-                    'total' => Staff::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Staff::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'customers' => [
-                    'total' => Customer::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Customer::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'pending' => Customer::where('status', 'pending')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'rejected' => Customer::where('status', 'rejected')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'monthly_registered' => Customer::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-                        ->when($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected']), function ($query) use ($statusFilter) {
-                            return $query->where('status', $statusFilter);
-                        })->count(),
-                ],
-                'pending_updates' => [
-                    'total' => PendingCustomerUpdate::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'pending' => PendingCustomerUpdate::where('status', 'pending')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'bills' => [
-                    'total' => Bill::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
-                        return $query->where('status', $statusFilter);
-                    })->count(),
-                    'pending' => Bill::where('status', 'pending')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'overdue' => Bill::where('status', 'overdue')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'total_amount' => Bill::where('approval_status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
-                            return $query->where('status', $statusFilter);
-                        })->sum('amount'),
-                ],
-                'payments' => [
-                    'total' => Payment::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'successful' => Payment::where('payment_status', 'successful')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'total_amount' => Payment::where('payment_status', 'successful')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->sum('amount'),
-                ],
-                'tariffs' => [
-                    'total' => Tariff::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Tariff::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'categories' => [
-                    'total' => Category::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Category::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'lgas' => [
-                    'total' => Lga::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Lga::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'wards' => [
-                    'total' => Ward::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Ward::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'areas' => [
-                    'total' => Area::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                    'approved' => Area::where('status', 'approved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-                'complaints' => [
-                    'total' => Complaint::when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->when($statusFilter && in_array($statusFilter, ['pending', 'in_progress', 'resolved']), function ($query) use ($statusFilter) {
-                        return $query->where('status', $statusFilter);
-                    })->count(),
-                    'pending' => Complaint::where('status', 'pending')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'in_progress' => Complaint::where('status', 'in_progress')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                    'resolved' => Complaint::where('status', 'resolved')
-                        ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                            return $query->whereBetween('created_at', [$start, $end]);
-                        })->count(),
-                ],
-            ];
-
-            // Log stats and filters for debugging
-            Log::debug('Analytics Stats', [
-                'stats' => $stats,
-                'filters' => [
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'status_filter' => $statusFilter,
-                ],
-            ]);
-
-            // Trend data for charts (last 12 months or custom range)
-            $months = [];
-            $billAmounts = [];
-            $paymentAmounts = [];
-            $complaintCounts = [];
-
-            // Generate monthly data
-            $month = $start->copy()->startOfMonth();
-            while ($month <= $end) {
-                $monthStart = $month->copy()->startOfMonth();
-                $monthEnd = $month->copy()->endOfMonth();
-                $months[] = $month->format('M Y');
-
-                // Bill trends
-                $billQuery = Bill::where('approval_status', 'approved')
-                    ->whereBetween('created_at', [$monthStart, $monthEnd]);
-                if ($statusFilter && in_array($statusFilter, ['pending', 'overdue'])) {
-                    $billQuery->where('status', $statusFilter);
-                }
-                $billAmount = (float) $billQuery->sum('amount');
-                $billAmounts[] = $billAmount;
-
-                // Payment trends
-                $paymentQuery = Payment::where('payment_status', 'successful')
-                    ->when($startDate && $endDate, function ($query) use ($monthStart, $monthEnd) {
-                        return $query->whereBetween('created_at', [$monthStart, $monthEnd]);
-                    });
-                $paymentAmount = (float) $paymentQuery->sum('amount');
-                $paymentAmounts[] = $paymentAmount;
-
-                // Complaint trends
-                $complaintQuery = Complaint::whereBetween('created_at', [$monthStart, $monthEnd]);
-                if ($statusFilter && in_array($statusFilter, ['pending', 'in_progress', 'resolved'])) {
-                    $complaintQuery->where('status', $statusFilter);
-                }
-                $complaintCount = (int) $complaintQuery->count();
-                $complaintCounts[] = $complaintCount;
-
-                // Debug logging
-                Log::debug('Analytics Data for ' . $month->format('M Y'), [
-                    'bill_amount' => $billAmount,
-                    'payment_amount' => $paymentAmount,
-                    'complaint_count' => $complaintCount,
-                    'query_filters' => [
-                        'bill_query' => $billQuery->toSql(),
-                        'payment_query' => $paymentQuery->toSql(),
-                        'complaint_query' => $complaintQuery->toSql(),
-                        'bindings' => [
-                            'bill' => $billQuery->getBindings(),
-                            'payment' => $paymentQuery->getBindings(),
-                            'complaint' => $complaintQuery->getBindings(),
-                        ],
-                    ],
-                ]);
-
-                $month->addMonth();
-            }
-
-            // Pie chart data
-            $tariffByCategory = Category::withCount(['tariffs' => function ($query) use ($startDate, $endDate, $statusFilter) {
-                if ($statusFilter && in_array($statusFilter, ['approved', 'pending'])) {
-                    $query->where('status', $statusFilter);
-                }
-                if ($startDate && $endDate) {
-                    $query->whereBetween('created_at', [$startDate, $endDate]);
-                }
-            }])->get()->pluck('tariffs_count', 'name')->toArray();
-
-            $customersByCategory = Category::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
-                if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
-                    $query->where('status', $statusFilter);
-                }
-                if ($startDate && $endDate) {
-                    $query->whereBetween('created_at', [$startDate, $endDate]);
-                }
-            }])->get()->pluck('customers_count', 'name')->toArray();
-
-            $customersByTariff = Tariff::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
-                if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
-                    $query->where('status', $statusFilter);
-                }
-                if ($startDate && $endDate) {
-                    $query->whereBetween('created_at', [$startDate, $endDate]);
-                }
-            }])->get()->pluck('customers_count', 'name')->toArray();
-
-            $customersByLga = Lga::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
-                if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
-                    $query->where('status', $statusFilter);
-                }
-                if ($startDate && $endDate) {
-                    $query->whereBetween('created_at', [$startDate, $endDate]);
-                }
-            }])->get()->pluck('customers_count', 'name')->toArray();
-
-            return compact(
-                'stats', 'months', 'billAmounts', 'paymentAmounts', 'complaintCounts',
-                'tariffByCategory', 'customersByCategory', 'customersByTariff', 'customersByLga'
-            );
-        });
-
-        return view('staff.analytics.index', $data);
+        return view('staff.analytics.index', compact(
+            'stats',
+            'months',
+            'billAmounts',
+            'paymentAmounts',
+            'tariffByCategory',
+            'customersByCategory',
+            'customersByTariff',
+            'customersByLga'
+        ));
     }
 
     /**
@@ -347,7 +96,6 @@ class AnalyticsController extends Controller
                 fputcsv($file, array_merge(['Month'], $data['months']));
                 fputcsv($file, array_merge(['Bills (₦)'], $data['billAmounts']));
                 fputcsv($file, array_merge(['Payments (₦)'], $data['paymentAmounts']));
-                fputcsv($file, array_merge(['Complaints'], $data['complaintCounts']));
                 fputcsv($file, []);
                 
                 // Close the file
@@ -437,17 +185,15 @@ class AnalyticsController extends Controller
                 $col = 'A';
                 $sheet->setCellValue($col++ . $row, 'Month');
                 $sheet->setCellValue($col++ . $row, 'Bills (₦)');
-                $sheet->setCellValue($col++ . $row, 'Payments (₦)');
-                $sheet->setCellValue($col . $row, 'Complaints');
-                $sheet->getStyle('A' . $row . ':D' . $row)->getFont()->setBold(true);
+                $sheet->setCellValue($col . $row, 'Payments (₦)');
+                $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
                 
                 for ($i = 0; $i < count($data['months']); $i++) {
                     $row++;
                     $col = 'A';
                     $sheet->setCellValue($col++ . $row, $data['months'][$i]);
                     $sheet->setCellValue($col++ . $row, $data['billAmounts'][$i]);
-                    $sheet->setCellValue($col++ . $row, $data['paymentAmounts'][$i]);
-                    $sheet->setCellValue($col . $row, $data['complaintCounts'][$i]);
+                    $sheet->setCellValue($col . $row, $data['paymentAmounts'][$i]);
                 }
                 
                 $writer = new Xlsx($spreadsheet);
@@ -644,32 +390,12 @@ class AnalyticsController extends Controller
                         return $query->whereBetween('created_at', [$start, $end]);
                     })->count(),
             ],
-            'complaints' => [
-                'total' => Complaint::when($startDate && $endDate, function ($query) use ($start, $end) {
-                    return $query->whereBetween('created_at', [$start, $end]);
-                })->when($statusFilter && in_array($statusFilter, ['pending', 'in_progress', 'resolved']), function ($query) use ($statusFilter) {
-                    return $query->where('status', $statusFilter);
-                })->count(),
-                'pending' => Complaint::where('status', 'pending')
-                    ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                'in_progress' => Complaint::where('status', 'in_progress')
-                    ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-                'resolved' => Complaint::where('status', 'resolved')
-                    ->when($startDate && $endDate, function ($query) use ($start, $end) {
-                        return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
-            ],
         ];
 
         // Trend data for charts (last 12 months or custom range)
         $months = [];
         $billAmounts = [];
         $paymentAmounts = [];
-        $complaintCounts = [];
 
         // Generate monthly data
         $month = $start->copy()->startOfMonth();
@@ -694,14 +420,6 @@ class AnalyticsController extends Controller
                 });
             $paymentAmount = (float) $paymentQuery->sum('amount');
             $paymentAmounts[] = $paymentAmount;
-
-            // Complaint trends
-            $complaintQuery = Complaint::whereBetween('created_at', [$monthStart, $monthEnd]);
-            if ($statusFilter && in_array($statusFilter, ['pending', 'in_progress', 'resolved'])) {
-                $complaintQuery->where('status', $statusFilter);
-            }
-            $complaintCount = (int) $complaintQuery->count();
-            $complaintCounts[] = $complaintCount;
 
             $month->addMonth();
         }
@@ -744,8 +462,220 @@ class AnalyticsController extends Controller
         }])->get()->pluck('customers_count', 'name')->toArray();
 
         return compact(
-            'stats', 'months', 'billAmounts', 'paymentAmounts', 'complaintCounts',
+            'stats', 'months', 'billAmounts', 'paymentAmounts',
             'tariffByCategory', 'customersByCategory', 'customersByTariff', 'customersByLga'
         );
+    }
+
+    /**
+     * Get customer statistics
+     */
+    private function getCustomerStats($timeframe, $period, $lgaId, $wardId, $areaId)
+    {
+        $query = Customer::query();
+        
+        // Apply location filters
+        if ($lgaId) {
+            $query->where('lga_id', $lgaId);
+        }
+        if ($wardId) {
+            $query->where('ward_id', $wardId);
+        }
+        if ($areaId) {
+            $query->where('area_id', $areaId);
+        }
+        
+        // Apply timeframe filters
+        $startDate = $this->getStartDate($timeframe, $period);
+        if ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        }
+        
+        $total = $query->count();
+        $approved = $query->where('status', 'approved')->count();
+        $pending = $query->where('status', 'pending')->count();
+        $rejected = $query->where('status', 'rejected')->count();
+        
+        return [
+            'total' => $total,
+            'approved' => $approved,
+            'pending' => $pending,
+            'rejected' => $rejected,
+            'growth_rate' => $this->calculateGrowthRate($total, $timeframe, $period, $lgaId, $wardId, $areaId)
+        ];
+    }
+    
+    /**
+     * Get billing statistics
+     */
+    private function getBillingStats($timeframe, $period, $lgaId, $wardId, $areaId)
+    {
+        $query = Bill::query();
+        
+        // Apply location filters through customer relationship
+        if ($lgaId || $wardId || $areaId) {
+            $query->whereHas('customer', function ($q) use ($lgaId, $wardId, $areaId) {
+                if ($lgaId) {
+                    $q->where('lga_id', $lgaId);
+                }
+                if ($wardId) {
+                    $q->where('ward_id', $wardId);
+                }
+                if ($areaId) {
+                    $q->where('area_id', $areaId);
+                }
+            });
+        }
+        
+        // Apply timeframe filters
+        $startDate = $this->getStartDate($timeframe, $period);
+        if ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        }
+        
+        $total = $query->count();
+        $totalAmount = $query->sum('amount');
+        $approved = $query->where('approval_status', 'approved')->count();
+        $pending = $query->where('approval_status', 'pending')->count();
+        $rejected = $query->where('approval_status', 'rejected')->count();
+        
+        return [
+            'total' => $total,
+            'total_amount' => $totalAmount,
+            'approved' => $approved,
+            'pending' => $pending,
+            'rejected' => $rejected
+        ];
+    }
+    
+    /**
+     * Get payment statistics
+     */
+    private function getPaymentStats($timeframe, $period, $lgaId, $wardId, $areaId)
+    {
+        $query = Payment::query();
+        
+        // Apply location filters through customer relationship
+        if ($lgaId || $wardId || $areaId) {
+            $query->whereHas('customer', function ($q) use ($lgaId, $wardId, $areaId) {
+                if ($lgaId) {
+                    $q->where('lga_id', $lgaId);
+                }
+                if ($wardId) {
+                    $q->where('ward_id', $wardId);
+                }
+                if ($areaId) {
+                    $q->where('area_id', $areaId);
+                }
+            });
+        }
+        
+        // Apply timeframe filters
+        $startDate = $this->getStartDate($timeframe, $period);
+        if ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        }
+        
+        $total = $query->count();
+        $totalAmount = $query->where('payment_status', 'successful')->sum('amount');
+        $successful = $query->where('payment_status', 'successful')->count();
+        $failed = $query->where('payment_status', 'failed')->count();
+        
+        return [
+            'total' => $total,
+            'total_amount' => $totalAmount,
+            'successful' => $successful,
+            'failed' => $failed
+        ];
+    }
+    
+    /**
+     * Get staff statistics
+     */
+    private function getStaffStats($timeframe, $period)
+    {
+        $query = Staff::query();
+        
+        // Apply timeframe filters
+        $startDate = $this->getStartDate($timeframe, $period);
+        if ($startDate) {
+            $query->where('created_at', '>=', $startDate);
+        }
+        
+        $total = $query->count();
+        $approved = $query->where('status', 'approved')->count();
+        $pending = $query->where('status', 'pending')->count();
+        $rejected = $query->where('status', 'rejected')->count();
+        
+        return [
+            'total' => $total,
+            'approved' => $approved,
+            'pending' => $pending,
+            'rejected' => $rejected
+        ];
+    }
+    
+    /**
+     * Get system health metrics
+     */
+    private function getSystemHealth()
+    {
+        $totalCustomers = Customer::count();
+        $pendingCustomers = Customer::where('status', 'pending')->count();
+        $totalBills = Bill::count();
+        $pendingBills = Bill::where('approval_status', 'pending')->count();
+        $totalPayments = Payment::count();
+        $failedPayments = Payment::where('payment_status', 'failed')->count();
+        
+        return [
+            'customers_pending_approval' => $pendingCustomers,
+            'bills_pending_approval' => $pendingBills,
+            'payments_failed' => $failedPayments,
+            'system_load' => $this->calculateSystemLoad(),
+            'last_backup' => $this->getLastBackupTime()
+        ];
+    }
+    
+    /**
+     * Calculate growth rate
+     */
+    private function calculateGrowthRate($currentCount, $timeframe, $period, $lgaId, $wardId, $areaId)
+    {
+        // Simplified growth rate calculation
+        return 0; // Placeholder
+    }
+    
+    /**
+     * Get start date based on timeframe and period
+     */
+    private function getStartDate($timeframe, $period)
+    {
+        switch ($timeframe) {
+            case 'daily':
+                return now()->subDays(30);
+            case 'weekly':
+                return now()->subWeeks(12);
+            case 'monthly':
+            default:
+                return now()->subMonths(12);
+        }
+    }
+    
+    /**
+     * Calculate system load
+     */
+    private function calculateSystemLoad()
+    {
+        // Simplified system load calculation
+        return 0; // Placeholder
+    }
+    
+    /**
+     * Get last backup time
+     */
+    private function getLastBackupTime()
+    {
+        // Simplified last backup time
+        return now()->subDays(1)->format('Y-m-d H:i:s');
     }
 }

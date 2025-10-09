@@ -3,20 +3,23 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\GLPITestController;
 use App\Http\Controllers\Staff\GisController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Staff\AssetController;
 use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Staff\TariffController;
 use App\Http\Controllers\Customer\BillController;
 use App\Http\Controllers\Staff\BillingController;
 use App\Http\Controllers\Vendor\VendorController;
+use App\Http\Controllers\VendorPaymentController;
 use App\Http\Controllers\Staff\CategoryController;
 use App\Http\Controllers\Staff\LocationController;
-use App\Http\Controllers\Staff\ComplaintController;
 use App\Http\Controllers\Staff\AnalyticsController;
+use App\Http\Controllers\CustomerComplaintController;
+use App\Http\Controllers\Staff\StaffComplaintController;
 use App\Http\Controllers\Staff\CustomerCreationController;
 use App\Http\Controllers\Staff\VendorController as StaffVendorController;
-use App\Http\Controllers\VendorPaymentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,7 +37,11 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     // Staff Management (Role Assignment Only)
     Route::get('/staff', [StaffController::class, 'staff'])->name('staff.index');
-    Route::get('/staff/roles', [StaffController::class, 'roles'])->name('staff.roles');
+    Route::get('/staff/roles', [StaffController::class, 'staffRoles'])->name('staff.roles');
+    Route::get('/staff/pending', [StaffController::class, 'pendingStaff'])->name('staff.pending');
+    Route::put('/staff/{staff}/approve', [StaffController::class, 'approveStaff'])->name('staff.approve');
+    Route::put('/staff/{staff}/reject', [StaffController::class, 'rejectStaff'])->name('staff.reject');
+    Route::get('/staff/role-assignment/{staff_id}', [StaffController::class, 'roleAssignment'])->name('staff.role-assignment');
     Route::put('/staff/{staff}/assign-roles', [StaffController::class, 'assignRoles'])->name('staff.assign-roles');
     Route::put('/staff/{staff}/remove-roles', [StaffController::class, 'removeRoles'])->name('staff.remove-roles');
 
@@ -71,6 +78,43 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::delete('/areas/{area}', [LocationController::class, 'destroyArea'])->name('areas.destroy');
     Route::put('/areas/{area}/approve', [LocationController::class, 'approveArea'])->name('areas.approve');
     Route::put('/areas/{area}/reject', [LocationController::class, 'rejectArea'])->name('areas.reject');
+
+    // Zone and District Management
+    Route::get('/zones', [LocationController::class, 'zones'])->name('zones.index');
+    Route::post('/zones', [LocationController::class, 'storeZone'])->name('zones.store');
+    Route::put('/zones/{zone}', [LocationController::class, 'updateZone'])->name('zones.update');
+    Route::delete('/zones/{zone}', [LocationController::class, 'destroyZone'])->name('zones.destroy');
+    Route::put('/zones/{zone}/approve', [LocationController::class, 'approveZone'])->name('zones.approve');
+    Route::put('/zones/{zone}/reject', [LocationController::class, 'rejectZone'])->name('zones.reject');
+
+    Route::get('/districts', [LocationController::class, 'districts'])->name('districts.index');
+    Route::post('/districts', [LocationController::class, 'storeDistrict'])->name('districts.store');
+    Route::put('/districts/{district}', [LocationController::class, 'updateDistrict'])->name('districts.update');
+    Route::delete('/districts/{district}', [LocationController::class, 'destroyDistrict'])->name('districts.destroy');
+    Route::put('/districts/{district}/approve', [LocationController::class, 'approveDistrict'])->name('districts.approve');
+    Route::put('/districts/{district}/reject', [LocationController::class, 'rejectDistrict'])->name('districts.reject');
+    
+    // AJAX endpoints for dynamic loading
+    // District-Ward Management
+    Route::get('/districts/{district}/wards', [LocationController::class, 'manageDistrictWards'])->name('districts.manage-wards');
+    Route::post('/districts/{district}/assign-ward', [LocationController::class, 'assignWardToDistrict'])->name('districts.assign-ward');
+    Route::delete('/wards/{ward}/remove-from-district', [LocationController::class, 'removeWardFromDistrict'])->name('wards.remove-from-district');
+    
+    // Location Details
+    Route::get('/zones/{zone}/details', [LocationController::class, 'zoneDetails'])->name('zones.details');
+    Route::get('/districts/{district}/details', [LocationController::class, 'districtDetails'])->name('districts.details');
+    Route::get('/paypoints/{paypoint}/details', [LocationController::class, 'paypointDetails'])->name('paypoints.details');
+    
+    // Paypoint Management
+    Route::get('/paypoints', [LocationController::class, 'paypoints'])->name('paypoints.index');
+    Route::post('/paypoints', [LocationController::class, 'storePaypoint'])->name('paypoints.store');
+    Route::put('/paypoints/{paypoint}', [LocationController::class, 'updatePaypoint'])->name('paypoints.update');
+
+    Route::get('/filter-wards', [LocationController::class, 'filterWards'])->name('filter.wards');
+    Route::get('/filter-areas', [LocationController::class, 'filterAreas'])->name('filter.areas');
+    Route::get('/filter-districts', [LocationController::class, 'filterDistricts'])->name('filter.districts');
+
+
 
     // Category Management
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -127,12 +171,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::get('reports/billing', [BillingController::class, 'generateBillingReport'])->name('reports.billing');
     Route::get('reports/payment', [BillingController::class, 'generatePaymentReport'])->name('reports.payment');
 
-    // Complaint Management
-    Route::get('complaints', [ComplaintController::class, 'index'])->name('complaints.index');
-    Route::post('complaints/{complaint}/assign', [ComplaintController::class, 'assign'])->name('complaints.assign');
-    Route::put('complaints/{complaint}', [ComplaintController::class, 'update'])->name('complaints.update');
-    Route::delete('/complaints/{complaint}', [ComplaintController::class, 'destroy'])->name('complaints.destroy');
-
     // Vendor Management Routes
     Route::prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', [StaffVendorController::class, 'index'])->name('index');
@@ -164,6 +202,23 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
     });
 
+    // Complaint Management Routes
+    Route::get('/complaints', [StaffComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/complaints/{complaint}', [StaffComplaintController::class, 'show'])->name('complaints.show');
+    Route::post('/complaints/{complaint}/assign', [StaffComplaintController::class, 'assign'])->name('complaints.assign');
+    Route::put('/complaints/{complaint}/status', [StaffComplaintController::class, 'updateStatus'])->name('complaints.updateStatus');
+
+    // Asset Management Routes
+    Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
+    Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
+    Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
+    Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+    Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
+    Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
+    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
+    Route::get('/assets/sync', [AssetController::class, 'sync'])->name('assets.sync');
+    Route::get('/assets/import', [AssetController::class, 'importFromDolibarr'])->name('assets.import');
+
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
 });
@@ -188,16 +243,18 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
     Route::get('/profile', [CustomerController::class, 'profile'])->name('customer.profile');
     Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
 
+    // Complaints routes
+    Route::get('/complaints', [CustomerComplaintController::class, 'index'])->name('customer.complaints.index');
+    Route::get('/complaints/create', [CustomerComplaintController::class, 'create'])->name('customer.complaints.create');
+    Route::post('/complaints', [CustomerComplaintController::class, 'store'])->name('customer.complaints.store');
+    Route::get('/complaints/{complaint}', [CustomerComplaintController::class, 'show'])->name('customer.complaints.show');
+
     // Bill and payment routes
     Route::get('/bills', [CustomerController::class, 'bills'])->name('customer.bills');
     Route::post('/bills/pay', [CustomerController::class, 'initiateNABRollPayment'])->name('customer.bills.pay');
     Route::get('/payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('customer.payments');
     Route::get('bills/{bill}/download-pdf', [BillController::class, 'downloadPdf'])->name('customer.bills.download-pdf');
-
-    // Complaint routes
-    Route::get('/complaints', [CustomerController::class, 'complaints'])->name('customer.complaints');
-    Route::post('/complaints', [CustomerController::class, 'storeComplaint'])->name('customer.complaints.store');
 
     Route::post('/logout', [LoginController::class, 'customerLogout'])->name('customer.logout');
 });
@@ -213,6 +270,9 @@ Route::prefix('vendor')->middleware(['auth:vendor', 'restrict.login'])->group(fu
     Route::get('/payments/funding', [VendorPaymentController::class, 'fundingHistory'])->name('vendor.payments.funding');
     Route::post('/logout', [LoginController::class, 'vendorLogout'])->name('vendor.logout');
 });
+
+Route::get('glpi/test/connection', [GLPITestController::class, 'testConnection']);
+Route::get('glpi/test/ticket', [GLPITestController::class, 'testTicketCreation']);
 
 Route::get('customer/login', [LoginController::class, 'showCustomerLoginForm'])->name('customer.login')->middleware('restrict.login');
 Route::post('customer/login', [LoginController::class, 'customerLogin'])->name('customer.login.submit')->middleware('restrict.login');

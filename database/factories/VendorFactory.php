@@ -2,25 +2,22 @@
 
 namespace Database\Factories;
 
+use App\Models\Vendor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Vendor>
- */
 class VendorFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    protected $model = Vendor::class;
+
+    public function definition()
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'password' => Hash::make('password123'), // Default password for testing
+            'name' => $this->faker->company(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => Hash::make('password'),
+            'approved' => $this->faker->boolean(),
+            'account_balance' => $this->faker->randomFloat(2, 0, 1000000),
         ];
     }
 }

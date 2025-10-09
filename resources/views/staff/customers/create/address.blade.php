@@ -125,10 +125,40 @@
                             @foreach ($areas as $area)
                                 <option value="{{ $area->id }}" data-ward="{{ $area->ward_id }}" {{ old('area_id', session('customer_creation.address.area_id')) == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
                             @endforeach
+                            <option value="add_new_area">+ Add New Area</option>
                         </select>
                         @error('area_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+                    
+                    <!-- New Area Form (Hidden by default) -->
+                    <div id="new-area-form" class="fv-row mb-7" style="display: none;">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">Add New Area</h3>
+                                <div class="card-toolbar">
+                                    <button type="button" class="btn btn-sm btn-light-danger" id="cancel-new-area-btn">
+                                        <i class="ki-duotone ki-cross fs-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="fv-row mb-5">
+                                    <label for="new_area_name" class="fs-6 fw-semibold mb-2 required">New Area Name</label>
+                                    <input type="text" id="new_area_name" class="form-control form-control-solid" placeholder="Enter area name">
+                                    <div class="invalid-feedback" id="new_area_name_error"></div>
+                                </div>
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-primary" id="create-new-area-btn">
+                                        <span class="indicator-label">Create Area</span>
+                                        <span class="indicator-progress">Please wait...
+                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="fv-row mb-7">
                         <label for="street_name" class="fs-6 fw-semibold mb-2 required">Street Name</label>
@@ -152,7 +182,12 @@
                         @enderror
                     </div>
                     <div class="text-center">
-                        <a href="{{ route('staff.customers.index') }}" class="btn btn-light me-3">Cancel</a>
+                        <a href="{{ route('staff.customers.create.personal') }}" class="btn btn-light me-3">
+                            <i class="ki-duotone ki-arrow-left fs-2 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i> Back to Customers
+                        </a>
                         <button type="submit" class="btn btn-primary">
                             <span class="indicator-label">Save and Continue</span>
                             <span class="indicator-progress">Please wait...
@@ -178,6 +213,10 @@
         const areaSelect = document.getElementById('area_id');
         const hiddenLgaInput = document.getElementById('hidden_lga_id');
         const hiddenWardInput = document.getElementById('hidden_ward_id');
+        const newAreaForm = document.getElementById('new-area-form');
+        const addNewAreaBtn = document.getElementById('add-new-area-btn');
+        const cancelNewAreaBtn = document.getElementById('cancel-new-area-btn');
+        const createNewAreaBtn = document.getElementById('create-new-area-btn');
 
         // Store all options for filtering
         const allWards = Array.from(wardSelect.querySelectorAll('option[data-lga]'));
@@ -192,7 +231,9 @@
             
             // Clear ward selection
             wardSelect.value = '';
-            filterAreas(); // Also clear areas
+            
+            // Clear area selection
+            areaSelect.value = '';
             
             // Show/hide wards based on LGA
             allWards.forEach(option => {
@@ -202,6 +243,9 @@
                     option.style.display = 'none';
                 }
             });
+            
+            // Also filter areas based on the selected ward
+            filterAreas();
         }
 
         // Filter areas based on selected ward
@@ -222,11 +266,135 @@
                     option.style.display = 'none';
                 }
             });
+            
+            // Also update the visibility of the "Add New Area" option based on ward selection
+            const addNewAreaOption = areaSelect.querySelector('option[value="add_new_area"]');
+            if (selectedWardId) {
+                addNewAreaOption.style.display = '';
+            } else {
+                addNewAreaOption.style.display = 'none';
+                // If "Add New Area" was selected and we clear the ward, reset selection
+                if (areaSelect.value === 'add_new_area') {
+                    areaSelect.value = '';
+                }
+            }
         }
+
+        // Toggle new area form
+        function toggleNewAreaForm(show = true) {
+            if (show) {
+                newAreaForm.style.display = 'block';
+            } else {
+                newAreaForm.style.display = 'none';
+            }
+        }
+
+        // Create new area
+        async function createNewArea() {
+            const areaName = document.getElementById('new_area_name').value;
+            const selectedWardId = wardSelect.value;
+
+            if (!selectedWardId) {
+                alert('Please select a ward first before creating an area.');
+                return;
+            }
+
+            // Clear previous errors
+            document.getElementById('new_area_name_error').textContent = '';
+
+            createNewAreaBtn.disabled = true;
+            createNewAreaBtn.querySelector('.indicator-label').style.display = 'none';
+            createNewAreaBtn.querySelector('.indicator-progress').style.display = 'inline';
+
+            try {
+                const response = await fetch('{{ route("staff.areas.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        name: areaName,
+                        ward_id: selectedWardId
+                    })
+                });
+
+                // Check if response is JSON before parsing
+                const contentType = response.headers.get('content-type');
+                let data = {};
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    // If it's not JSON, we have a different kind of error
+                    alert('Server returned an unexpected response format. Status: ' + response.status);
+                    return;
+                }
+
+                if (response.ok) {
+                    // Add the new area to the dropdown
+                    const newOption = document.createElement('option');
+                    newOption.value = data.area.id;
+                    newOption.textContent = data.area.name;
+                    newOption.setAttribute('data-ward', data.area.ward_id);
+                    areaSelect.appendChild(newOption);
+                    
+                    // Select the new area
+                    areaSelect.value = data.area.id;
+                    
+                    // Reset and hide the form
+                    document.getElementById('new_area_name').value = '';
+                    toggleNewAreaForm();
+                    
+                    // Show success message
+                    alert('New area created successfully and pending approval.');
+                } else {
+                    // Handle different types of errors
+                    if (data && data.errors) {
+                        // Validation errors
+                        if (data.errors.name) {
+                            document.getElementById('new_area_name_error').textContent = data.errors.name[0];
+                        }
+                        if (data.errors.ward_id) {
+                            alert(data.errors.ward_id[0]);
+                        }
+                    } else if (data && data.message) {
+                        // Error message from server
+                        alert(data.message);
+                    } else {
+                        // General error
+                        alert('An error occurred while creating the area. Status: ' + response.status);
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating area:', error);
+                alert('An error occurred while creating the area.');
+            } finally {
+                createNewAreaBtn.disabled = false;
+                createNewAreaBtn.querySelector('.indicator-label').style.display = 'inline';
+                createNewAreaBtn.querySelector('.indicator-progress').style.display = 'none';
+            }
+        }
+
+        // Handle area selection change
+        areaSelect.addEventListener('change', function() {
+            if (areaSelect.value === 'add_new_area') {
+                // Reset the selection to empty so user has to re-select after creating
+                areaSelect.value = '';
+                toggleNewAreaForm(true);
+            }
+        });
 
         // Event listeners
         lgaSelect.addEventListener('change', filterWards);
         wardSelect.addEventListener('change', filterAreas);
+        cancelNewAreaBtn.addEventListener('click', function() {
+            toggleNewAreaForm(false);
+            // Reset form fields
+            document.getElementById('new_area_name').value = '';
+            document.getElementById('new_area_name_error').textContent = '';
+        });
+        createNewAreaBtn.addEventListener('click', createNewArea);
 
         // Initialize filtering on page load
         filterWards();

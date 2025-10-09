@@ -21,6 +21,20 @@ return [
         'base_url' => env('NABROLL_BASE_URL', 'https://demo.nabroll.com.ng/api/v1'),
     ],
 
+    'glpi' => [
+        'api_url' => env('GLPI_API_URL'),
+        'username' => env('GLPI_USERNAME'),
+        'password' => env('GLPI_PASSWORD'),
+        'api_token' => env('GLPI_API_TOKEN'),
+    ],
+
+    'dolibarr' => [
+        'api_url' => env('DOLIBARR_API_URL'),
+        'username' => env('DOLIBARR_USERNAME'),
+        'password' => env('DOLIBARR_PASSWORD'),
+        'api_key' => env('DOLIBARR_API_KEY'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

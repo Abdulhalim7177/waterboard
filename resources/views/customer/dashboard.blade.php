@@ -41,7 +41,7 @@
                                 <!--begin::Card toolbar-->
                                 <div class="card-toolbar">
                                     <!--begin::View Details-->
-                                    <button class="btn btn-sm btn-light btn-active-light-primary me-2" data-bs-toggle="modal" data-bs-target="#kt_modal_customer_details">View Details</button>
+                                    <button class="btn btn-sm btn-light btn-active-light-primary me-2" data-bs-toggle="modal" data-bs-target="#kt_modal_customer_details">View Customer Details</button>
                                     <!--end::View Details-->
                                     <!--begin::More options-->
                                     <a href="#" class="btn btn-sm btn-light btn-icon" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
@@ -57,12 +57,7 @@
                                      
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-3">
-                                            <a href="{{ route('customer.payments') }}" class="menu-link px-3">View Payment History</a>
-                                        </div>
-                                        <!--end::Menu item-->
-                                        <!--begin::Menu item-->
-                                        <div class="menu-item px-3">
-                                            <a href="{{ route('customer.complaints') }}" class="menu-link px-3">Submit Complaint</a>
+                                            <a href="{{ route('customer.payments') }}" class="menu-link px-3">View Billing Payment History</a>
                                         </div>
                                         <!--end::Menu item-->
                                     </div>
@@ -183,7 +178,7 @@
                         <!--end::Summary Card-->
                         <!--begin::Actions-->
                         <div>
-                            <a href="{{ route('customer.bills') }}" class="btn btn-primary">View Bills</a>
+                            <a href="{{ route('customer.bills') }}" class="btn btn-primary">View My Water Bills</a>
                         </div>
                         <!--end::Actions-->
                     </div>
@@ -197,7 +192,7 @@
                 <div class="modal-dialog modal-dialog-centered mw-650px">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h2 class="fw-bold">Customer Details</h2>
+                            <h2 class="fw-bold">Customer Details: {{ Auth::guard('customer')->user()->first_name }} {{ Auth::guard('customer')->user()->surname }}</h2>
                             <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                                 <span class="svg-icon svg-icon-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
