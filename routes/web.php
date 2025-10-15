@@ -155,9 +155,25 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::post('/pending/{update}/reject', [CustomerCreationController::class, 'rejectPending'])->name('pending.reject');
 
         // Edit Routes
-        Route::get('/{customer}/edit', [CustomerCreationController::class, 'edit'])->name('edit');
-        Route::post('/{customer}/edit/section', [CustomerCreationController::class, 'getEditSection'])->name('edit.section');
+        Route::get('/{customer}/edit', [\App\Http\Controllers\Staff\CustomerController::class, 'edit'])->name('edit');
+        Route::post('/{customer}/edit/section', [\App\Http\Controllers\Staff\CustomerController::class, 'editSection'])->name('edit.section');
         Route::put('/{customer}/update', [CustomerCreationController::class, 'update'])->name('update');
+        
+        // Individual section edit routes
+        Route::get('/{customer}/edit/personal', [CustomerCreationController::class, 'editPersonal'])->name('edit.personal');
+        Route::get('/{customer}/edit/address', [CustomerCreationController::class, 'editAddress'])->name('edit.address');
+        Route::get('/{customer}/edit/billing', [CustomerCreationController::class, 'editBilling'])->name('edit.billing');
+        Route::get('/{customer}/edit/location', [CustomerCreationController::class, 'editLocation'])->name('edit.location');
+        
+        Route::put('/{customer}/update/personal', [CustomerCreationController::class, 'updatePersonal'])->name('update.personal');
+        Route::put('/{customer}/update/address', [CustomerCreationController::class, 'updateAddress'])->name('update.address');
+        Route::put('/{customer}/update/billing', [CustomerCreationController::class, 'updateBilling'])->name('update.billing');
+        Route::put('/{customer}/update/location', [CustomerCreationController::class, 'updateLocation'])->name('update.location');
+        
+        // Additional AJAX routes for dynamic filtering
+        Route::post('/filter-wards', [CustomerCreationController::class, 'filterWards'])->name('filter.wards');
+        Route::post('/filter-areas', [CustomerCreationController::class, 'filterAreas'])->name('filter.areas');
+        Route::post('/filter-tariffs', [CustomerCreationController::class, 'filterTariffs'])->name('filter.tariffs');
     });
 
     // Billing and Payments route

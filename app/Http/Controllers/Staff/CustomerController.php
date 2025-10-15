@@ -112,4 +112,29 @@ class CustomerController extends Controller
         $customer->update(['status' => 'rejected']);
         return redirect()->route('staff.customers.index')->with('success', 'Customer rejected');
     }
+
+    public function editSection(Request $request, Customer $customer)
+    {
+        $this->authorize('edit-customer', $customer);
+
+        $part = $request->input('part');
+
+        if (!in_array($part, ['personal', 'address', 'billing', 'location'])) {
+            return response()->json(['error' => 'Invalid section specified'], 400);
+        }
+
+        // Pass necessary data to the partials
+        $lgas = Lga::where('status', 'approved')->get();
+        $wards = Ward::where('status', 'approved')->get();
+        $areas = Area::where('status', 'approved')->get();
+        $categories = Category::where('status', 'approved')->get();
+        $tariffs = Tariff::where('status', 'approved')->get();
+
+        try {
+            $html = view("staff.customers.partials.edit_{$part}", compact('customer', 'lgas', 'wards', 'areas', 'categories', 'tariffs'))->render();
+            return response()->json(['html' => $html, 'lgas' => $lgas, 'wards' => $wards, 'areas' => $areas, 'categories' => $categories, 'tariffs' => $tariffs]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not load section: ' . $e->getMessage()], 500);
+        }
+    }
 }
