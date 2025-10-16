@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Services;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Services\GLPIService;
 
-class CustomerComplaint extends Model
+class ComplaintService
 {
     // This model will act as a service layer for GLPI tickets only
     // It will not store data locally but interact directly with GLPI

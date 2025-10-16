@@ -287,6 +287,11 @@ Route::prefix('vendor')->middleware(['auth:vendor', 'restrict.login'])->group(fu
     Route::post('/logout', [LoginController::class, 'vendorLogout'])->name('vendor.logout');
 });
 
+Route::get('/display-customers', function () {
+    $customers = \App\Models\Customer::all();
+    return view('display-customers', ['customers' => $customers]);
+});
+
 Route::get('glpi/test/connection', [GLPITestController::class, 'testConnection']);
 Route::get('glpi/test/ticket', [GLPITestController::class, 'testTicketCreation']);
 

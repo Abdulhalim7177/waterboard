@@ -8,6 +8,7 @@ use App\Models\Lga;
 use App\Models\Ward;
 use App\Models\Area;
 use App\Models\Audit;
+
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
@@ -72,56 +73,6 @@ class StaffController extends Controller
         $totalComplaints = 0;
         $openComplaints = 0;
         $inProgressComplaints = 0;
-        $resolvedComplaints = 0;
-        
-        if ($isGlpiAvailable && $glpiService) {
-            try {
-                $glpiResponse = $glpiService->getTickets([
-                    'range' => '0-999', // Get first 1000 tickets
-                    'sort' => 19, // Sort by date_mod
-                    'order' => 'DESC'
-                ]);
-                
-                if ($glpiResponse && isset($glpiResponse['data'])) {
-                    $totalComplaints = count($glpiResponse['data']);
-                    
-                    // Count based on GLPI status codes
-                    foreach ($glpiResponse['data'] as $ticket) {
-                        $status = $ticket['status'] ?? 1;
-                        switch ($status) {
-                            case 1: // New
-                            case 4: // Waiting
-                                $openComplaints++;
-                                break;
-                            case 2: // Assigned
-                            case 3: // Planned
-                                $inProgressComplaints++;
-                                break;
-                            case 5: // Solved
-                            case 6: // Closed
-                                $resolvedComplaints++;
-                                break;
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                \Log::error('GLPI API Error for complaints: ' . $e->getMessage());
-                // Fallback to local counts if GLPI fails
-                $totalComplaints = \App\Models\CustomerComplaint::count();
-                $openComplaints = \App\Models\CustomerComplaint::where('status', 'open')->count();
-                $inProgressComplaints = \App\Models\CustomerComplaint::where('status', 'in_progress')->count();
-                $resolvedComplaints = \App\Models\CustomerComplaint::where('status', 'resolved')->count();
-            }
-        } else {
-            // Use local counts if GLPI is not available
-            $totalComplaints = \App\Models\CustomerComplaint::count();
-            $openComplaints = \App\Models\CustomerComplaint::where('status', 'open')->count();
-            $inProgressComplaints = \App\Models\CustomerComplaint::where('status', 'in_progress')->count();
-            $resolvedComplaints = \App\Models\CustomerComplaint::where('status', 'resolved')->count();
-        }
-        
-        // Get asset statistics - prioritize Dolibarr if available
-        $dolibarrService = app('App\Services\DolibarrService');
         $totalAssets = 0;
         $activeAssets = 0;
         $maintenanceAssets = 0;
@@ -141,7 +92,7 @@ class StaffController extends Controller
                             $activeAssets++;
                         } elseif ($status == 0) {
                             $maintenanceAssets++;
-                        } else {
+                        
                             $retiredAssets++;
                         }
                     }
@@ -174,11 +125,7 @@ class StaffController extends Controller
             ->limit(5)
             ->get();
             
-        // Get recent complaint activities (last 5)
-        $recentComplaintActivities = \App\Models\Audit::where('auditable_type', 'App\Models\CustomerComplaint')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+        
             
         // Get recent billing activities (last 5)
         $recentBillingActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Bill')
@@ -211,7 +158,7 @@ class StaffController extends Controller
             'recentHrUpdates',
             'recentCustomerActivities',
             'recentBillingActivities',
-            'recentComplaintActivities',
+            
             'glpiApiStatus',
             'isGlpiAvailable'
         ));

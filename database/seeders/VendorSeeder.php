@@ -19,7 +19,7 @@ class VendorSeeder extends Seeder
             ['email' => 'vendor@example.com'],
             [
                 'name' => 'Test Vendor',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password'),
                 'approved' => true,
             ]
         );
@@ -29,7 +29,7 @@ class VendorSeeder extends Seeder
             ['email' => 'demo.vendor@example.com'],
             [
                 'name' => 'Demo Vendor',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password'),
                 'approved' => true,
             ]
         );

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CustomerComplaint as ComplaintService;
+use App\Services\ComplaintService;
 use App\Services\GLPIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

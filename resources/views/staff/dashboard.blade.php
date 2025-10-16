@@ -277,9 +277,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" data-bs-toggle="tab" href="#customer-activities">Customer Activities</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#complaint-activities">Complaint Activities</a>
-                            </li>
+                            
                             <li class="nav-item">
                                 <a class="nav-link" data-bs-toggle="tab" href="#billing-activities">Billing Activities</a>
                             </li>
@@ -380,52 +378,7 @@
                                 @endif
                             </div>
                             
-                            <!-- Complaint Activities -->
-                            <div class="tab-pane fade" id="complaint-activities">
-                                @if(isset($recentComplaintActivities) && count($recentComplaintActivities) > 0)
-                                    <div class="timeline">
-                                        @foreach($recentComplaintActivities as $activity)
-                                            <div class="timeline-item">
-                                                <div class="timeline-line w-40px"></div>
-                                                <div class="timeline-icon symbol symbol-40px symbol-circle">
-                                                    <div class="symbol-label bg-light-warning">
-                                                        <i class="ki-duotone ki-message-question fs-2 text-warning">
-                                                            <span class="path1"></span>
-                                                            <span class="path2"></span>
-                                                        </i>
-                                                    </div>
-                                                </div>
-                                                <div class="timeline-content mb-5">
-                                                    <div class="overflow-auto pe-3">
-                                                        <div class="fs-5 fw-bold mb-2">
-                                                            Complaint #{{ $activity->auditable->id ?? 'N/A' }}
-                                                        </div>
-                                                        <div class="d-flex align-items-center mt-1 fs-6">
-                                                            <div class="text-muted me-2 fs-7">
-                                                                {{ $activity->created_at->diffForHumans() }}
-                                                            </div>
-                                                            <span class="badge badge-light-{{ $activity->event == 'created' ? 'primary' : ($activity->event == 'updated' ? 'warning' : 'danger') }}">
-                                                                {{ ucfirst($activity->event) }}
-                                                            </span>
-                                                        </div>
-                                                        <div class="text-muted fs-7 mt-2">
-                                                            {{ $activity->description ?? 'N/A' }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <div class="text-center py-10">
-                                        <i class="ki-duotone ki-message-question fs-3x text-muted mb-5">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                        </i>
-                                        <div class="text-muted fs-6">No recent complaint activities</div>
-                                    </div>
-                                @endif
-                            </div>
+                            
                             
                             <!-- Billing Activities -->
                             <div class="tab-pane fade" id="billing-activities">

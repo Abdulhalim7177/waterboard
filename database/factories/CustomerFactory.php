@@ -12,7 +12,10 @@ class CustomerFactory extends Factory
 
     public function definition()
     {
-        $tariff = \App\Models\Tariff::factory()->create();
+        $tariff = \App\Models\Tariff::inRandomOrder()->first();
+        $area = \App\Models\Area::inRandomOrder()->first();
+        $lga = \App\Models\Lga::inRandomOrder()->first();
+        $ward = \App\Models\Ward::inRandomOrder()->first();
         
         // Katsina State is roughly between latitude 12.0°N to 13.5°N and longitude 7.0°E to 8.5°E
         $latitude = $this->faker->randomFloat(6, 12.0, 13.5);
@@ -27,9 +30,9 @@ class CustomerFactory extends Factory
             'street_name' => $this->faker->streetName(),
             'house_number' => $this->faker->buildingNumber(),
             'landmark' => $this->faker->optional()->sentence(3),
-            'area_id' => \App\Models\Area::factory(),
-            'lga_id' => \App\Models\Lga::factory(),
-            'ward_id' => \App\Models\Ward::factory(),
+            'area_id' => $area->id,
+            'lga_id' => $lga->id,
+            'ward_id' => $ward->id,
             'category_id' => $tariff->category_id,
             'tariff_id' => $tariff->id,
             'delivery_code' => 'DEL' . $this->faker->unique()->randomNumber(6),

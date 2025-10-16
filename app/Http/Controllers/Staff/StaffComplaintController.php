@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Models\CustomerComplaint as ComplaintService;
+use App\Services\ComplaintService;
 use App\Services\GLPIService;
 use App\Models\Staff;
 use App\Models\Customer;

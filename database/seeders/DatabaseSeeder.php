@@ -891,7 +891,7 @@ class DatabaseSeeder extends Seeder
         // Seed Zones
         $this->call(ZoneSeeder::class);
         
-        // Seed Districts
+        // Seed Districts1
         $this->call(DistrictSeeder::class);
         
         // Seed Paypoints
@@ -900,7 +900,8 @@ class DatabaseSeeder extends Seeder
         // Seed Staff Management (roles, permissions, and staff)
         $this->call(StaffManagementSeeder::class);
         
-        // Run the customer revalidation seeder from Excel file
-        $this->call(CustomerRevalidationSeeder::class);
+
+        // Seed 2000 customers
+        $this->call(CustomerSeeder::class);
     }
 }
