@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Services\DolibarrService;
 
-class Asset extends Model
+class Asset
 {
     // This model will act as a service layer for Dolibarr assets only
     // It will not store data locally but interact directly with Dolibarr
@@ -15,27 +14,34 @@ class Asset extends Model
      */
     public static function createInDolibarr($data, DolibarrService $dolibarrService)
     {
-        // Convert our asset data to Dolibarr format
+        $statusMapping = [
+            'active' => 1,
+            'maintenance' => 1, // Assuming maintenance is also an active state in Dolibarr
+            'retired' => 0,
+            'damaged' => 0,
+        ];
+
         $assetData = [
-            'ref' => $data['serial_number'] ?? 'ASSET-' . time(), // Use timestamp for unique ref
+            'ref' => $data['serial_number'] ?? 'ASSET-' . time(),
             'label' => $data['name'],
             'description' => $data['description'] ?? '',
-            'type' => ($data['type'] ?? 'product') === 'service' ? 1 : 0,
+            'type' => isset($data['type']) ? (($data['type'] === 'service') ? 1 : 0) : 0,
             'price' => $data['purchase_price'] ?? 0,
             'price_ttc' => $data['purchase_price'] ?? 0,
-            'tva_tx' => $data['tax_rate'] ?? 0,
-            'weight' => $data['weight'] ?? 0,
-            'weight_units' => $data['weight_units'] ?? 0,
-            'length' => $data['length'] ?? 0,
-            'width' => $data['width'] ?? 0,
-            'height' => $data['height'] ?? 0,
-            'length_units' => $data['length_units'] ?? 0,
-            'surface' => $data['surface'] ?? 0,
-            'surface_units' => $data['surface_units'] ?? 0,
-            'volume' => $data['volume'] ?? 0,
-            'volume_units' => $data['volume_units'] ?? 0,
-            'stock_alert' => $data['stock_alert'] ?? 0,
+            'date_purchase' => isset($data['purchase_date']) ? strtotime($data['purchase_date']) : null,
+            'statut' => isset($data['status']) ? $statusMapping[$data['status']] : 1,
+            'warehouse_id' => $data['warehouse_id'],
+            'array_options' => [
+                'options_model' => $data['model'] ?? null,
+                'options_brand' => $data['brand'] ?? null,
+                'options_location' => $data['location'] ?? null,
+            ],
         ];
+
+        // Remove null values
+        $assetData = array_filter($assetData, function($value) {
+            return $value !== null;
+        });
 
         return $dolibarrService->createAsset($assetData);
     }
@@ -61,58 +67,33 @@ class Asset extends Model
      */
     public static function updateInDolibarr($id, $data, DolibarrService $dolibarrService)
     {
-        // Convert our asset data to Dolibarr format
-        $assetData = [];
-        
-        if (isset($data['name'])) {
-            $assetData['label'] = $data['name'];
-        }
-        if (isset($data['description'])) {
-            $assetData['description'] = $data['description'];
-        }
-        if (isset($data['type'])) {
-            $assetData['type'] = ($data['type'] === 'service') ? 1 : 0;
-        }
-        if (isset($data['purchase_price'])) {
-            $assetData['price'] = $data['purchase_price'];
-            $assetData['price_ttc'] = $data['purchase_price'];
-        }
-        if (isset($data['tax_rate'])) {
-            $assetData['tva_tx'] = $data['tax_rate'];
-        }
-        if (isset($data['weight'])) {
-            $assetData['weight'] = $data['weight'];
-        }
-        if (isset($data['weight_units'])) {
-            $assetData['weight_units'] = $data['weight_units'];
-        }
-        if (isset($data['length'])) {
-            $assetData['length'] = $data['length'];
-        }
-        if (isset($data['width'])) {
-            $assetData['width'] = $data['width'];
-        }
-        if (isset($data['height'])) {
-            $assetData['height'] = $data['height'];
-        }
-        if (isset($data['length_units'])) {
-            $assetData['length_units'] = $data['length_units'];
-        }
-        if (isset($data['surface'])) {
-            $assetData['surface'] = $data['surface'];
-        }
-        if (isset($data['surface_units'])) {
-            $assetData['surface_units'] = $data['surface_units'];
-        }
-        if (isset($data['volume'])) {
-            $assetData['volume'] = $data['volume'];
-        }
-        if (isset($data['volume_units'])) {
-            $assetData['volume_units'] = $data['volume_units'];
-        }
-        if (isset($data['stock_alert'])) {
-            $assetData['stock_alert'] = $data['stock_alert'];
-        }
+        $statusMapping = [
+            'active' => 1,
+            'maintenance' => 1,
+            'retired' => 0,
+            'damaged' => 0,
+        ];
+
+        $assetData = [
+            'label' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'type' => isset($data['type']) ? (($data['type'] === 'service') ? 1 : 0) : null,
+            'price' => $data['purchase_price'] ?? null,
+            'price_ttc' => $data['purchase_price'] ?? null,
+            'date_purchase' => isset($data['purchase_date']) ? strtotime($data['purchase_date']) : null,
+            'statut' => isset($data['status']) ? $statusMapping[$data['status']] : null,
+            'warehouse_id' => $data['warehouse_id'] ?? null,
+            'array_options' => [
+                'options_model' => $data['model'] ?? null,
+                'options_brand' => $data['brand'] ?? null,
+                'options_location' => $data['location'] ?? null,
+            ],
+        ];
+
+        // Remove null values
+        $assetData = array_filter($assetData, function($value) {
+            return $value !== null;
+        });
 
         return $dolibarrService->updateAsset($id, $assetData);
     }

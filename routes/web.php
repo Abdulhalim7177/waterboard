@@ -225,15 +225,10 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::put('/complaints/{complaint}/status', [StaffComplaintController::class, 'updateStatus'])->name('complaints.updateStatus');
 
     // Asset Management Routes
-    Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
-    Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
-    Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
-    Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
-    Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
-    Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
-    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
-    Route::get('/assets/sync', [AssetController::class, 'sync'])->name('assets.sync');
-    Route::get('/assets/import', [AssetController::class, 'importFromDolibarr'])->name('assets.import');
+    Route::resource('assets', AssetController::class);
+
+    // Warehouse Management Routes
+    Route::resource('warehouses', \App\Http\Controllers\Staff\WarehouseController::class);
 
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');

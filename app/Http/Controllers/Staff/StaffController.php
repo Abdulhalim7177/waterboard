@@ -90,9 +90,7 @@ class StaffController extends Controller
                         $status = $asset['status'] ?? 1;
                         if ($status == 1) {
                             $activeAssets++;
-                        } elseif ($status == 0) {
-                            $maintenanceAssets++;
-                        
+                        } else {
                             $retiredAssets++;
                         }
                     }
@@ -100,11 +98,6 @@ class StaffController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Dolibarr API Error for assets: ' . $e->getMessage());
-            // Fallback to local counts if Dolibarr fails
-            $totalAssets = \App\Models\Asset::count();
-            $activeAssets = \App\Models\Asset::where('status', 'active')->count();
-            $maintenanceAssets = \App\Models\Asset::where('status', 'maintenance')->count();
-            $retiredAssets = \App\Models\Asset::where('status', 'retired')->count();
         }
         
         // Get recent role assignments (last 5)
@@ -149,7 +142,7 @@ class StaffController extends Controller
             'totalComplaints',
             'openComplaints',
             'inProgressComplaints',
-            'resolvedComplaints',
+            // 'resolvedComplaints',
             'totalAssets',
             'activeAssets',
             'maintenanceAssets',

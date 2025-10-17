@@ -475,6 +475,14 @@
                                             <span class="menu-title">Add New Asset</span>
                                         </a>
                                     </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="{{ route('staff.warehouses.index') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">Warehouse Management</span>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="menu-item">

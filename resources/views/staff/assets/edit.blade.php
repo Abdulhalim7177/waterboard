@@ -55,11 +55,11 @@
                                 <option value="">Select Asset Type</option>
                                 <option value="product" {{ old('type', $asset['type'] ?? '') == 'product' ? 'selected' : '' }}>Product</option>
                                 <option value="service" {{ old('type', $asset['type'] ?? '') == 'service' ? 'selected' : '' }}>Service</option>
-                                <option value="equipment" {{ old('type', $asset['category'] ?? '') == 'equipment' ? 'selected' : '' }}>Equipment</option>
-                                <option value="infrastructure" {{ old('type', $asset['category'] ?? '') == 'infrastructure' ? 'selected' : '' }}>Infrastructure</option>
-                                <option value="vehicle" {{ old('type', $asset['category'] ?? '') == 'vehicle' ? 'selected' : '' }}>Vehicle</option>
-                                <option value="tool" {{ old('type', $asset['category'] ?? '') == 'tool' ? 'selected' : '' }}>Tool</option>
-                                <option value="other" {{ old('type', $asset['category'] ?? '') == 'other' ? 'selected' : '' }}>Other</option>
+                                <option value="equipment" {{ old('type', $asset['type'] ?? '') == 'equipment' ? 'selected' : '' }}>Equipment</option>
+                                <option value="infrastructure" {{ old('type', $asset['type'] ?? '') == 'infrastructure' ? 'selected' : '' }}>Infrastructure</option>
+                                <option value="vehicle" {{ old('type', $asset['type'] ?? '') == 'vehicle' ? 'selected' : '' }}>Vehicle</option>
+                                <option value="tool" {{ old('type', $asset['type'] ?? '') == 'tool' ? 'selected' : '' }}>Tool</option>
+                                <option value="other" {{ old('type', $asset['type'] ?? '') == 'other' ? 'selected' : '' }}>Other</option>
                             </select>
                             @error('type')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -108,15 +108,15 @@
                             @enderror
                         </div>
                         <div class="col-md-6 mb-6">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select form-select-solid @error('status') is-invalid @enderror" 
-                                    id="status" name="status">
-                                <option value="active" {{ old('status', $asset['status'] ?? 'active') == 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="maintenance" {{ old('status', $asset['status'] ?? 'active') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                <option value="retired" {{ old('status', $asset['status'] ?? 'active') == 'retired' ? 'selected' : '' }}>Retired</option>
-                                <option value="damaged" {{ old('status', $asset['status'] ?? 'active') == 'damaged' ? 'selected' : '' }}>Damaged</option>
+                            <label for="warehouse_id" class="form-label">Warehouse</label>
+                            <select class="form-select form-select-solid @error('warehouse_id') is-invalid @enderror" 
+                                    id="warehouse_id" name="warehouse_id" required>
+                                <option value="">Select Warehouse</option>
+                                @foreach($warehouses as $warehouse)
+                                    <option value="{{ $warehouse['id'] }}" {{ old('warehouse_id', $asset['warehouse_id'] ?? '') == $warehouse['id'] ? 'selected' : '' }}>{{ $warehouse['label'] }}</option>
+                                @endforeach
                             </select>
-                            @error('status')
+                            @error('warehouse_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

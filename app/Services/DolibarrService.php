@@ -135,30 +135,7 @@ class DolibarrService
      */
     public function createAsset($assetData)
     {
-        // Map our asset fields to Dolibarr product fields
-        $productData = [
-            'ref' => $assetData['ref'] ?? 'AUTO',
-            'label' => $assetData['label'] ?? $assetData['name'] ?? 'Asset',
-            'description' => $assetData['description'] ?? '',
-            'type' => $assetData['type'] ?? 0, // 0 for product, 1 for service
-            'price' => $assetData['price'] ?? 0,
-            'price_ttc' => $assetData['price_ttc'] ?? 0,
-            'tva_tx' => $assetData['tax_rate'] ?? 0,
-            'weight' => $assetData['weight'] ?? 0,
-            'weight_units' => $assetData['weight_units'] ?? 0,
-            'length' => $assetData['length'] ?? 0,
-            'width' => $assetData['width'] ?? 0,
-            'height' => $assetData['height'] ?? 0,
-            'length_units' => $assetData['length_units'] ?? 0,
-            'surface' => $assetData['surface'] ?? 0,
-            'surface_units' => $assetData['surface_units'] ?? 0,
-            'volume' => $assetData['volume'] ?? 0,
-            'volume_units' => $assetData['volume_units'] ?? 0,
-            'stock_alert' => $assetData['stock_alert'] ?? 0,
-            'customdata' => $assetData['custom_data'] ?? [], // Custom fields if needed
-        ];
-
-        return $this->makeRequest('POST', '/products', $productData);
+        return $this->makeRequest('POST', '/products', $assetData);
     }
 
     /**
@@ -166,33 +143,7 @@ class DolibarrService
      */
     public function updateAsset($id, $assetData)
     {
-        $productData = [
-            'label' => $assetData['label'] ?? $assetData['name'] ?? null,
-            'description' => $assetData['description'] ?? null,
-            'type' => $assetData['type'] ?? null,
-            'price' => $assetData['price'] ?? null,
-            'price_ttc' => $assetData['price_ttc'] ?? null,
-            'tva_tx' => $assetData['tax_rate'] ?? null,
-            'weight' => $assetData['weight'] ?? null,
-            'weight_units' => $assetData['weight_units'] ?? null,
-            'length' => $assetData['length'] ?? null,
-            'width' => $assetData['width'] ?? null,
-            'height' => $assetData['height'] ?? null,
-            'length_units' => $assetData['length_units'] ?? null,
-            'surface' => $assetData['surface'] ?? null,
-            'surface_units' => $assetData['surface_units'] ?? null,
-            'volume' => $assetData['volume'] ?? null,
-            'volume_units' => $assetData['volume_units'] ?? null,
-            'stock_alert' => $assetData['stock_alert'] ?? null,
-            'customdata' => $assetData['custom_data'] ?? null,
-        ];
-
-        // Remove null values
-        $productData = array_filter($productData, function($value) {
-            return $value !== null;
-        });
-
-        return $this->makeRequest('PUT', "/products/{$id}", $productData);
+        return $this->makeRequest('PUT', "/products/{$id}", $assetData);
     }
 
     /**
@@ -237,5 +188,50 @@ class DolibarrService
         ];
         
         return $this->makeRequest('POST', "/products/{$id}/stock/movement", $stockData);
+    }
+
+    /**
+     * Get all warehouses
+     */
+    public function getWarehouses($limit = 100, $page = 0)
+    {
+        $params = [
+            'limit' => $limit,
+            'page' => $page,
+        ];
+        
+        return $this->makeRequest('GET', '/warehouses', $params);
+    }
+
+    /**
+     * Get a specific warehouse by ID
+     */
+    public function getWarehouse($id)
+    {
+        return $this->makeRequest('GET', "/warehouses/{$id}");
+    }
+
+    /**
+     * Create a new warehouse
+     */
+    public function createWarehouse($warehouseData)
+    {
+        return $this->makeRequest('POST', '/warehouses', $warehouseData);
+    }
+
+    /**
+     * Update an existing warehouse
+     */
+    public function updateWarehouse($id, $warehouseData)
+    {
+        return $this->makeRequest('PUT', "/warehouses/{$id}", $warehouseData);
+    }
+
+    /**
+     * Delete a warehouse
+     */
+    public function deleteWarehouse($id)
+    {
+        return $this->makeRequest('DELETE', "/warehouses/{$id}");
     }
 }

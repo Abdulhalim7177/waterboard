@@ -21,7 +21,7 @@
             <!--end::Card header-->
             <!--begin::Card body-->
             <div class="card-body pt-0">
-                <form action="{{ route('staff.assets.store') }}" method="POST">
+                <form id="kt_asset_create_form" action="{{ route('staff.assets.store') }}" method="POST">
                     @csrf
                     
                     <!--begin::Input group-->
@@ -105,6 +105,19 @@
                             @enderror
                         </div>
                         <div class="col-md-6 mb-6">
+                            <label for="warehouse_id" class="form-label">Warehouse</label>
+                            <select class="form-select form-select-solid @error('warehouse_id') is-invalid @enderror" 
+                                    id="warehouse_id" name="warehouse_id" required>
+                                <option value="">Select Warehouse</option>
+                                @foreach($warehouses as $warehouse)
+                                    <option value="{{ $warehouse['id'] }}" {{ old('warehouse_id') == $warehouse['id'] ? 'selected' : '' }}>{{ $warehouse['label'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('warehouse_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6 mb-6">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select form-select-solid @error('status') is-invalid @enderror" 
                                     id="status" name="status">
@@ -165,4 +178,24 @@
         <!--end::Card-->
     </div>
     <!--end::Container-->
+@endsection
+
+@section('scripts')
+    <script>
+        // Direct form submission without using FormValidation to avoid conflicts with global scripts
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('kt_asset_create_form');
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Remove any potential event listeners from global scripts
+            if (form) {
+                // Handle form submission directly
+                form.onsubmit = function(e) {
+                    submitButton.setAttribute('data-kt-indicator', 'on');
+                    submitButton.disabled = true;
+                    return true; // Allow form to submit normally
+                };
+            }
+        });
+    </script>
 @endsection
