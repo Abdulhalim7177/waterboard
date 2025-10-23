@@ -34,7 +34,7 @@ class PaymentController extends Controller
             return redirect()->route('customer.bills')->with('error', 'Payment not found.');
         }
 
-        // Verify transaction with NABRoll - format: PayerRefNo + Amount + TransactionRef + ApiKey
+        // Verify transaction with NABRoll
         $amount = number_format($payment->amount, 2, '.', '');
         $hashString = $payment->payer_ref_no . $amount . $transactionRef . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);

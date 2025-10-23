@@ -215,6 +215,17 @@
                             </div>
                         </div>
                         <div class="position-relative align-self-end">
+                            <select name="per_page" id="per_page" class="form-select form-select-solid" onchange="this.form.submit()">
+                                <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 per page</option>
+                                <option value="20" {{ request('per_page') == '20' ? 'selected' : '' }}>20 per page</option>
+                                <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 per page</option>
+                                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 per page</option>
+                                <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500 per page</option>
+                                <option value="1000" {{ request('per_page') == '1000' ? 'selected' : '' }}>1000 per page</option>
+                                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                            </select>
+                        </div>
+                        <div class="position-relative align-self-end">
                             <button type="submit" class="btn btn-primary btn-sm">Apply Billing Filters</button>
                             <a href="{{ route('staff.bills.index') }}" class="btn btn-light btn-sm ms-2">Clear Billing Filters</a>
                         </div>
@@ -425,33 +436,11 @@
                     </tbody>
                 </table>
             </div>
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    @if ($bills->onFirstPage())
-                        <li class="page-item disabled">
-                            <span class="page-link">Previous</span>
-                        </li>
-                    @else
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $bills->previousPageUrl() }}&year_month={{ request('year_month') }}&customer_id={{ request('customer_id') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}">Previous</a>
-                        </li>
-                    @endif
-                    @foreach ($bills->getUrlRange(1, $bills->lastPage()) as $page => $url)
-                        <li class="page-item {{ $page == $bills->currentPage() ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $url }}&year_month={{ request('year_month') }}&customer_id={{ request('customer_id') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}">{{ $page }}</a>
-                        </li>
-                    @endforeach
-                    @if ($bills->hasMorePages())
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $bills->nextPageUrl() }}&year_month={{ request('year_month') }}&customer_id={{ request('customer_id') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}">Next</a>
-                        </li>
-                    @else
-                        <li class="page-item disabled">
-                            <span class="page-link">Next</span>
-                        </li>
-                    @endif
-                </ul>
-            </nav>
+            @if ($bills instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                <div class="mt-3">
+                    {{ $bills->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -478,6 +467,7 @@
             const lgaSelect = document.getElementById('lga_id_filter');
             const wardSelect = document.getElementById('ward_id_filter');
             const areaSelect = document.getElementById('area_id_filter');
+            const perPageSelect = document.getElementById('per_page');
             const filterForm = document.getElementById('filter-form');
             let filterTimeout;
 
@@ -497,6 +487,7 @@
                 if (lga) url.searchParams.set('lga_id', lga);
                 if (ward) url.searchParams.set('ward_id', ward);
                 if (area) url.searchParams.set('area_id', area);
+                if (perPageSelect.value) url.searchParams.set('per_page', perPageSelect.value);
                 window.location.href = url.toString();
             }
 
@@ -512,6 +503,7 @@
             lgaSelect.addEventListener('change', handleInput);
             wardSelect.addEventListener('change', handleInput);
             areaSelect.addEventListener('change', handleInput);
+            perPageSelect.addEventListener('change', handleInput);
 
             // Prevent Select2 keypress events from bubbling
             document.addEventListener('keydown', function (event) {

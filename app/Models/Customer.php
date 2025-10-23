@@ -99,7 +99,7 @@ class Customer extends Authenticatable
                 $count = $monthSerial->count + 1;
             }
 
-            $monthSerialPadded = str_pad($count, 6, '0', STR_PAD_LEFT);
+            $monthSerialPadded = str_pad($count, 4, '0', STR_PAD_LEFT);
             return $yearMonth . $catcode . $monthSerialPadded;
         } catch (\Exception $e) {
             Log::error('Failed to generate billing ID', [

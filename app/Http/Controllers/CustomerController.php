@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
@@ -87,9 +88,9 @@ class CustomerController extends Controller
         ]);
 
         $amount = number_format($validated['amount'], 2, '.', '');
-        $payerRefNo = 'REF' . now()->format('YmdHis') . '_' . uniqid();
+        $payerRefNo = 'REF' . now()->format('YmdHis') . '_' . Str::random(10);
 
-        // Generate hash
+        // Generate hash for NABRoll - format: PayerRefNo + Amount + ApiKey
         $hashString = $payerRefNo . $amount . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);
 
@@ -120,7 +121,7 @@ class CustomerController extends Controller
                 'Mobile' => $customer->phone_number ?? '08000000000',
                 'Description' => 'Payment for water bill(s)',
                 'ResponseUrl' => route('payments.callback'),
-                'FeeBearer' => 'Customer',
+                'FeeBearer' => 'Customer', // Options: Customer, Merchant
                 'MetaData' => $metadata,
             ];
 

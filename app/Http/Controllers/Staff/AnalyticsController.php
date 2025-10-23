@@ -14,12 +14,7 @@ use App\Models\Lga;
 use App\Models\Ward;
 use App\Models\Area;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -45,6 +40,9 @@ class AnalyticsController extends Controller
         $customersByCategory = $data['customersByCategory'];
         $customersByTariff = $data['customersByTariff'];
         $customersByLga = $data['customersByLga'];
+        $lgas = $data['lgas'];
+        $wards = $data['wards'];
+        $areas = $data['areas'];
 
         return view('staff.analytics.index', compact(
             'stats',
@@ -54,7 +52,10 @@ class AnalyticsController extends Controller
             'tariffByCategory',
             'customersByCategory',
             'customersByTariff',
-            'customersByLga'
+            'customersByLga',
+            'lgas',
+            'wards',
+            'areas'
         ));
     }
 
@@ -223,6 +224,34 @@ class AnalyticsController extends Controller
             // Get the current analytics data
             $data = $this->getAnalyticsData($request);
             
+            // Add pagination variables for detailed data
+            $page = $request->get('page', 1);
+            $perPage = $request->get('per_page', 10);
+            
+            // Extract data for pagination
+            $customersByCategory = $data['customersByCategory'] ?? [];
+            $customersByTariff = $data['customersByTariff'] ?? [];
+            $tariffByCategory = $data['tariffByCategory'] ?? [];
+            $customersByLga = $data['customersByLga'] ?? [];
+            
+            // Paginate the arrays
+            $customersByCategoryPaginated = array_slice($customersByCategory, ($page - 1) * $perPage, $perPage);
+            $customersByTariffPaginated = array_slice($customersByTariff, ($page - 1) * $perPage, $perPage);
+            $tariffByCategoryPaginated = array_slice($tariffByCategory, ($page - 1) * $perPage, $perPage);
+            $customersByLgaPaginated = array_slice($customersByLga, ($page - 1) * $perPage, $perPage);
+            
+            // Update the data array with paginated results
+            $data['customersByCategoryPaginated'] = $customersByCategoryPaginated;
+            $data['customersByTariffPaginated'] = $customersByTariffPaginated;
+            $data['tariffByCategoryPaginated'] = $tariffByCategoryPaginated;
+            $data['customersByLgaPaginated'] = $customersByLgaPaginated;
+            $data['currentPage'] = $page;
+            $data['perPage'] = $perPage;
+            $data['totalCustomersByCategory'] = count($customersByCategory);
+            $data['totalCustomersByTariff'] = count($customersByTariff);
+            $data['totalTariffByCategory'] = count($tariffByCategory);
+            $data['totalCustomersByLga'] = count($customersByLga);
+            
             // Return the report view with data
             return view('staff.analytics.report', compact('data'));
         } catch (\Exception $e) {
@@ -265,12 +294,38 @@ class AnalyticsController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $statusFilter = $request->input('status_filter');
+        $timeframe = $request->input('timeframe', 'monthly'); // Default to monthly
+        $period = $request->input('period', 12); // Default to 12 periods
+        $lgaId = $request->input('lga_id');
+        $wardId = $request->input('ward_id');
+        $areaId = $request->input('area_id');
+        $drilldown = $request->input('drilldown'); // For chart drill-down functionality
+        $categoryFilter = $request->input('category_filter'); // For category drill-down
+        $tariffFilter = $request->input('tariff_filter'); // For tariff drill-down
+        $lgaFilter = $request->input('lga_filter'); // For LGA drill-down (if needed)
 
         // Determine date range
-        $start = $startDate && $endDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : now()->subMonths(11)->startOfMonth();
-        $end = $startDate && $endDate ? \Carbon\Carbon::parse($endDate)->endOfDay() : now()->endOfMonth();
+        if ($startDate && $endDate) {
+            $start = \Carbon\Carbon::parse($startDate)->startOfDay();
+            $end = \Carbon\Carbon::parse($endDate)->endOfDay();
+        } else {
+            $start = $this->getStartDate($timeframe, $period);
+            $end = now()->endOfMonth(); // Or based on timeframe/period if needed
+        }
 
         // Basic stats with filters
+        $lgas = Lga::when($startDate && $endDate, function ($query) use ($start, $end) {
+            return $query->whereBetween('created_at', [$start, $end]);
+        })->get();
+        
+        $wards = Ward::when($startDate && $endDate, function ($query) use ($start, $end) {
+            return $query->whereBetween('created_at', [$start, $end]);
+        })->get();
+        
+        $areas = Area::when($startDate && $endDate, function ($query) use ($start, $end) {
+            return $query->whereBetween('created_at', [$start, $end]);
+        })->get();
+
         $stats = [
             'staff' => [
                 'total' => Staff::when($startDate && $endDate, function ($query) use ($start, $end) {
@@ -284,84 +339,404 @@ class AnalyticsController extends Controller
             'customers' => [
                 'total' => Customer::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->where('lga_id', $lgaId);
+                })
+                ->when($wardId, function ($query) use ($wardId) {
+                    return $query->where('ward_id', $wardId);
+                })
+                ->when($areaId, function ($query) use ($areaId) {
+                    return $query->where('area_id', $areaId);
+                })
+                ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                    return $query->whereHas('category', function ($q) use ($categoryFilter) {
+                        $q->where('name', $categoryFilter);
+                    });
+                })
+                ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                    return $query->whereHas('tariff', function ($q) use ($tariffFilter) {
+                        $q->where('name', $tariffFilter);
+                    });
+                })
+                ->count(),
                 'approved' => Customer::where('status', 'approved')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->where('lga_id', $lgaId);
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->where('ward_id', $wardId);
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->where('area_id', $areaId);
+                    })
+                    ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                        return $query->whereHas('category', function ($q) use ($categoryFilter) {
+                            $q->where('name', $categoryFilter);
+                        });
+                    })
+                    ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                        return $query->whereHas('tariff', function ($q) use ($tariffFilter) {
+                            $q->where('name', $tariffFilter);
+                        });
+                    })
+                    ->count(),
                 'pending' => Customer::where('status', 'pending')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->where('lga_id', $lgaId);
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->where('ward_id', $wardId);
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->where('area_id', $areaId);
+                    })
+                    ->count(),
                 'rejected' => Customer::where('status', 'rejected')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->where('lga_id', $lgaId);
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->where('ward_id', $wardId);
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->where('area_id', $areaId);
+                    })
+                    ->count(),
                 'monthly_registered' => Customer::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
                     ->when($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected']), function ($query) use ($statusFilter) {
                         return $query->where('status', $statusFilter);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->where('lga_id', $lgaId);
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->where('ward_id', $wardId);
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->where('area_id', $areaId);
+                    })
+                    ->count(),
             ],
             'pending_updates' => [
                 'total' => PendingCustomerUpdate::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->whereHas('customer', function ($q) use ($lgaId) {
+                        $q->where('lga_id', $lgaId);
+                    });
+                })
+                ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                    return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                        $q->where('name', $categoryFilter);
+                    });
+                })
+                ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                    return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                        $q->where('name', $tariffFilter);
+                    });
+                })
+                ->count(),
                 'pending' => PendingCustomerUpdate::where('status', 'pending')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                        return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                            $q->where('name', $categoryFilter);
+                        });
+                    })
+                    ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                        return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                            $q->where('name', $tariffFilter);
+                        });
+                    })
+                    ->count(),
             ],
             'bills' => [
                 'total' => Bill::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
+                })
+                ->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
                     return $query->where('status', $statusFilter);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->whereHas('customer', function ($q) use ($lgaId) {
+                        $q->where('lga_id', $lgaId);
+                    });
+                })
+                ->when($wardId, function ($query) use ($wardId) {
+                    return $query->whereHas('customer', function ($q) use ($wardId) {
+                        $q->where('ward_id', $wardId);
+                    });
+                })
+                ->when($areaId, function ($query) use ($areaId) {
+                    return $query->whereHas('customer', function ($q) use ($areaId) {
+                        $q->where('area_id', $areaId);
+                    });
+                })
+                ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                    return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                        $q->where('name', $categoryFilter);
+                    });
+                })
+                ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                    return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                        $q->where('name', $tariffFilter);
+                    });
+                })
+                ->count(),
                 'pending' => Bill::where('status', 'pending')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customer', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customer', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                        return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                            $q->where('name', $categoryFilter);
+                        });
+                    })
+                    ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                        return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                            $q->where('name', $tariffFilter);
+                        });
+                    })
+                    ->count(),
                 'overdue' => Bill::where('status', 'overdue')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customer', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customer', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->count(),
                 'total_amount' => Bill::where('approval_status', 'approved')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
+                    })
+                    ->when($statusFilter && in_array($statusFilter, ['pending', 'overdue']), function ($query) use ($statusFilter) {
                         return $query->where('status', $statusFilter);
-                    })->sum('amount'),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customer', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customer', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->sum('amount'),
             ],
             'payments' => [
                 'total' => Payment::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->whereHas('customer', function ($q) use ($lgaId) {
+                        $q->where('lga_id', $lgaId);
+                    });
+                })
+                ->when($wardId, function ($query) use ($wardId) {
+                    return $query->whereHas('customer', function ($q) use ($wardId) {
+                        $q->where('ward_id', $wardId);
+                    });
+                })
+                ->when($areaId, function ($query) use ($areaId) {
+                    return $query->whereHas('customer', function ($q) use ($areaId) {
+                        $q->where('area_id', $areaId);
+                    });
+                })
+                ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                    return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                        $q->where('name', $categoryFilter);
+                    });
+                })
+                ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                    return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                        $q->where('name', $tariffFilter);
+                    });
+                })
+                ->count(),
                 'successful' => Payment::where('payment_status', 'successful')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customer', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customer', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->when($categoryFilter, function ($query) use ($categoryFilter) {
+                        return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
+                            $q->where('name', $categoryFilter);
+                        });
+                    })
+                    ->when($tariffFilter, function ($query) use ($tariffFilter) {
+                        return $query->whereHas('customer.tariff', function ($q) use ($tariffFilter) {
+                            $q->where('name', $tariffFilter);
+                        });
+                    })
+                    ->count(),
                 'total_amount' => Payment::where('payment_status', 'successful')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->sum('amount'),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customer', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customer', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customer', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->sum('amount'),
             ],
             'tariffs' => [
                 'total' => Tariff::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->whereHas('customers', function ($q) use ($lgaId) {
+                        $q->where('lga_id', $lgaId);
+                    });
+                })
+                ->when($wardId, function ($query) use ($wardId) {
+                    return $query->whereHas('customers', function ($q) use ($wardId) {
+                        $q->where('ward_id', $wardId);
+                    });
+                })
+                ->when($areaId, function ($query) use ($areaId) {
+                    return $query->whereHas('customers', function ($q) use ($areaId) {
+                        $q->where('area_id', $areaId);
+                    });
+                })
+                ->count(),
                 'approved' => Tariff::where('status', 'approved')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customers', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customers', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customers', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->count(),
             ],
             'categories' => [
                 'total' => Category::when($startDate && $endDate, function ($query) use ($start, $end) {
                     return $query->whereBetween('created_at', [$start, $end]);
-                })->count(),
+                })
+                ->when($lgaId, function ($query) use ($lgaId) {
+                    return $query->whereHas('customers', function ($q) use ($lgaId) {
+                        $q->where('lga_id', $lgaId);
+                    });
+                })
+                ->when($wardId, function ($query) use ($wardId) {
+                    return $query->whereHas('customers', function ($q) use ($wardId) {
+                        $q->where('ward_id', $wardId);
+                    });
+                })
+                ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customers', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                ->count(),
                 'approved' => Category::where('status', 'approved')
                     ->when($startDate && $endDate, function ($query) use ($start, $end) {
                         return $query->whereBetween('created_at', [$start, $end]);
-                    })->count(),
+                    })
+                    ->when($lgaId, function ($query) use ($lgaId) {
+                        return $query->whereHas('customers', function ($q) use ($lgaId) {
+                            $q->where('lga_id', $lgaId);
+                        });
+                    })
+                    ->when($wardId, function ($query) use ($wardId) {
+                        return $query->whereHas('customers', function ($q) use ($wardId) {
+                            $q->where('ward_id', $wardId);
+                        });
+                    })
+                    ->when($areaId, function ($query) use ($areaId) {
+                        return $query->whereHas('customers', function ($q) use ($areaId) {
+                            $q->where('area_id', $areaId);
+                        });
+                    })
+                    ->count(),
             ],
             'lgas' => [
                 'total' => Lga::when($startDate && $endDate, function ($query) use ($start, $end) {
@@ -410,6 +785,21 @@ class AnalyticsController extends Controller
             if ($statusFilter && in_array($statusFilter, ['pending', 'overdue'])) {
                 $billQuery->where('status', $statusFilter);
             }
+            if ($lgaId) {
+                $billQuery->whereHas('customer', function ($q) use ($lgaId) {
+                    $q->where('lga_id', $lgaId);
+                });
+            }
+            if ($wardId) {
+                $billQuery->whereHas('customer', function ($q) use ($wardId) {
+                    $q->where('ward_id', $wardId);
+                });
+            }
+            if ($areaId) {
+                $billQuery->whereHas('customer', function ($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
+                });
+            }
             $billAmount = (float) $billQuery->sum('amount');
             $billAmounts[] = $billAmount;
 
@@ -418,6 +808,21 @@ class AnalyticsController extends Controller
                 ->when($startDate && $endDate, function ($query) use ($monthStart, $monthEnd) {
                     return $query->whereBetween('created_at', [$monthStart, $monthEnd]);
                 });
+            if ($lgaId) {
+                $paymentQuery->whereHas('customer', function ($q) use ($lgaId) {
+                    $q->where('lga_id', $lgaId);
+                });
+            }
+            if ($wardId) {
+                $paymentQuery->whereHas('customer', function ($q) use ($wardId) {
+                    $q->where('ward_id', $wardId);
+                });
+            }
+            if ($areaId) {
+                $paymentQuery->whereHas('customer', function ($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
+                });
+            }
             $paymentAmount = (float) $paymentQuery->sum('amount');
             $paymentAmounts[] = $paymentAmount;
 
@@ -425,45 +830,90 @@ class AnalyticsController extends Controller
         }
 
         // Pie chart data
-        $tariffByCategory = Category::withCount(['tariffs' => function ($query) use ($startDate, $endDate, $statusFilter) {
+        $tariffByCategory = Category::withCount(['tariffs' => function ($query) use ($startDate, $endDate, $statusFilter, $lgaId, $wardId, $areaId, $categoryFilter, $tariffFilter) {
             if ($statusFilter && in_array($statusFilter, ['approved', 'pending'])) {
                 $query->where('status', $statusFilter);
             }
             if ($startDate && $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             }
+            if ($lgaId) {
+                $query->whereHas('customers', function ($q) use ($lgaId) {
+                    $q->where('lga_id', $lgaId);
+                });
+            }
+            if ($wardId) {
+                $query->whereHas('customers', function ($q) use ($wardId) {
+                    $q->where('ward_id', $wardId);
+                });
+            }
+            if ($areaId) {
+                $query->whereHas('customers', function ($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
+                });
+            }
+            if ($categoryFilter) {
+                $query->where('name', $categoryFilter);
+            }
         }])->get()->pluck('tariffs_count', 'name')->toArray();
 
-        $customersByCategory = Category::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
+        $customersByCategory = Category::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter, $lgaId, $wardId, $areaId, $categoryFilter, $tariffFilter) {
             if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
                 $query->where('status', $statusFilter);
             }
             if ($startDate && $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
+            }
+            if ($lgaId) {
+                $query->where('lga_id', $lgaId);
+            }
+            if ($wardId) {
+                $query->where('ward_id', $wardId);
+            }
+            if ($areaId) {
+                $query->where('area_id', $areaId);
+            }
+            if ($categoryFilter) {
+                $query->where('category_id', function($q) use ($categoryFilter) {
+                    return $q->where('name', $categoryFilter)->select('id')->from('categories');
+                });
             }
         }])->get()->pluck('customers_count', 'name')->toArray();
 
-        $customersByTariff = Tariff::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
+        $customersByTariff = Tariff::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter, $lgaId, $wardId, $areaId) {
             if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
                 $query->where('status', $statusFilter);
             }
             if ($startDate && $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
+            }
+            if ($lgaId) {
+                $query->where('lga_id', $lgaId);
+            }
+            if ($wardId) {
+                $query->where('ward_id', $wardId);
+            }
+            if ($areaId) {
+                $query->where('area_id', $areaId);
             }
         }])->get()->pluck('customers_count', 'name')->toArray();
 
-        $customersByLga = Lga::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter) {
+        $customersByLga = Lga::withCount(['customers' => function ($query) use ($startDate, $endDate, $statusFilter, $lgaId, $wardId, $areaId) {
             if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
                 $query->where('status', $statusFilter);
             }
             if ($startDate && $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
+            }
+            if ($lgaId) {
+                $query->where('id', $lgaId); // Only get the specific LGA if selected
             }
         }])->get()->pluck('customers_count', 'name')->toArray();
 
         return compact(
             'stats', 'months', 'billAmounts', 'paymentAmounts',
-            'tariffByCategory', 'customersByCategory', 'customersByTariff', 'customersByLga'
+            'tariffByCategory', 'customersByCategory', 'customersByTariff', 'customersByLga', 
+            'drilldown', 'lgas', 'wards', 'areas'
         );
     }
 

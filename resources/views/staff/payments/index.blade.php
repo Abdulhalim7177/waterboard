@@ -28,6 +28,17 @@
                 <form method="GET" action="{{ route('staff.payments.index') }}" class="d-flex flex-stack flex-wrap gap-4">
                     <div class="row g-3">
                         <div class="col-md-4">
+                            <select name="per_page" id="per_page" class="form-control form-control-solid" onchange="this.form.submit()">
+                                <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 per page</option>
+                                <option value="20" {{ request('per_page') == '20' ? 'selected' : '' }}>20 per page</option>
+                                <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 per page</option>
+                                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 per page</option>
+                                <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500 per page</option>
+                                <option value="1000" {{ request('per_page') == '1000' ? 'selected' : '' }}>1000 per page</option>
+                                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
                                 <option value="">All Customers</option>
                                 @foreach ($customers as $customer)
@@ -146,33 +157,11 @@
                     @endforelse
                 </tbody>
             </table>
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    @if ($payments->onFirstPage())
-                        <li class="page-item disabled">
-                            <span class="page-link">Previous</span>
-                        </li>
-                    @else
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $payments->previousPageUrl() }}&customer_id={{ request('customer_id') }}&status={{ request('status') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}&start_date={{ request('start_date') }}&end_date={{ request('end_date') }}">Previous</a>
-                        </li>
-                    @endif
-                    @foreach ($payments->getUrlRange(1, $payments->lastPage()) as $page => $url)
-                        <li class="page-item {{ $page == $payments->currentPage() ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $url }}&customer_id={{ request('customer_id') }}&status={{ request('status') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}&start_date={{ request('start_date') }}&end_date={{ request('end_date') }}">{{ $page }}</a>
-                        </li>
-                    @endforeach
-                    @if ($payments->hasMorePages())
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $payments->nextPageUrl() }}&customer_id={{ request('customer_id') }}&status={{ request('status') }}&category_id={{ request('category_id') }}&tariff_id={{ request('tariff_id') }}&lga_id={{ request('lga_id') }}&ward_id={{ request('ward_id') }}&area_id={{ request('area_id') }}&start_date={{ request('start_date') }}&end_date={{ request('end_date') }}">Next</a>
-                        </li>
-                    @else
-                        <li class="page-item disabled">
-                            <span class="page-link">Next</span>
-                        </li>
-                    @endif
-                </ul>
-            </nav>
+            @if ($payments instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                <div class="mt-3">
+                    {{ $payments->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
         </div>
     </div>
@@ -202,6 +191,7 @@
             const areaSelect = document.getElementById('area_id');
             const startDateInput = document.getElementById('start_date');
             const endDateInput = document.getElementById('end_date');
+            const perPageSelect = document.getElementById('per_page');
             let filterTimeout;
 
             function updateURL() {
@@ -224,6 +214,7 @@
                 if (area) url.searchParams.set('area_id', area);
                 if (startDate) url.searchParams.set('start_date', startDate);
                 if (endDate) url.searchParams.set('end_date', endDate);
+                if (perPageSelect.value) url.searchParams.set('per_page', perPageSelect.value);
                 window.location.href = url.toString();
             }
 
@@ -241,6 +232,7 @@
             areaSelect.addEventListener('change', handleInput);
             startDateInput.addEventListener('change', handleInput);
             endDateInput.addEventListener('change', handleInput);
+            perPageSelect.addEventListener('change', handleInput);
 
             // Prevent Select2 keypress events from bubbling
             document.addEventListener('keydown', function (event) {

@@ -3,10 +3,12 @@ namespace App\Models;
 use App\Traits\Auditable;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Bill extends Model
 {
+    use HasFactory;
     use Auditable;
 
     protected $fillable = [

@@ -81,6 +81,33 @@
                                     <option value="resolved" {{ request('status_filter') == 'resolved' ? 'selected' : '' }}>Resolved</option>
                                 </select>
                             </div>
+                            <div class="w-150px">
+                                <label for="lga_filter" class="form-label fs-7 fw-bold text-gray-600">LGA</label>
+                                <select name="lga_id" id="lga_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All LGAs">
+                                    <option value="">All LGAs</option>
+                                    @foreach ($lgas as $lga)
+                                        <option value="{{ $lga->id }}" {{ request('lga_id') == $lga->id ? 'selected' : '' }}>{{ $lga->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="w-150px">
+                                <label for="ward_filter" class="form-label fs-7 fw-bold text-gray-600">Ward</label>
+                                <select name="ward_id" id="ward_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All Wards">
+                                    <option value="">All Wards</option>
+                                    @foreach ($wards as $ward)
+                                        <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected' : '' }}>{{ $ward->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="w-150px">
+                                <label for="area_filter" class="form-label fs-7 fw-bold text-gray-600">Area</label>
+                                <select name="area_id" id="area_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All Areas">
+                                    <option value="">All Areas</option>
+                                    @foreach ($areas as $area)
+                                        <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         <div class="d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-sm btn-primary">Filter</button>
@@ -93,7 +120,7 @@
         <!--end::Filter Form-->
 
         <!--begin::Applied Filters-->
-        @if (request()->hasAny(['start_date', 'end_date', 'status_filter']))
+        @if (request()->hasAny(['start_date', 'end_date', 'status_filter', 'lga_id', 'ward_id', 'area_id', 'category_filter', 'tariff_filter']))
             <div class="alert alert-light-info mb-5 shadow-sm rounded">
                 <div class="d-flex align-items-center">
                     <i class="ki-duotone ki-information-5 fs-2 text-info me-4">
@@ -106,6 +133,11 @@
                         @if (request('start_date')) Start Date: {{ request('start_date') }} @endif
                         @if (request('end_date')) | End Date: {{ request('end_date') }} @endif
                         @if (request('status_filter')) | Status: {{ ucfirst(request('status_filter')) }} @endif
+                        @if (request('lga_id')) | LGA: {{ $lgas->firstWhere('id', request('lga_id'))->name ?? 'N/A' }} @endif
+                        @if (request('ward_id')) | Ward: {{ $wards->firstWhere('id', request('ward_id'))->name ?? 'N/A' }} @endif
+                        @if (request('area_id')) | Area: {{ $areas->firstWhere('id', request('area_id'))->name ?? 'N/A' }} @endif
+                        @if (request('category_filter')) | Category: {{ request('category_filter') }} @endif
+                        @if (request('tariff_filter')) | Tariff: {{ request('tariff_filter') }} @endif
                     </div>
                 </div>
             </div>
@@ -679,10 +711,25 @@
                 return;
             }
 
-            // Initialize Select2 for status filter
+            // Initialize Select2 for all filters
             $('#status_filter').select2({
                 minimumResultsForSearch: 10,
                 placeholder: 'All Statuses',
+                dropdownCssClass: 'custom-select2-dropdown'
+            });
+            
+            $('#lga_filter').select2({
+                placeholder: 'All LGAs',
+                dropdownCssClass: 'custom-select2-dropdown'
+            });
+            
+            $('#ward_filter').select2({
+                placeholder: 'All Wards',
+                dropdownCssClass: 'custom-select2-dropdown'
+            });
+            
+            $('#area_filter').select2({
+                placeholder: 'All Areas',
                 dropdownCssClass: 'custom-select2-dropdown'
             });
 
@@ -760,6 +807,16 @@
             // Store chart instances globally
             let billingChartInstance = null;
             let paymentChartInstance = null;
+
+            // Function to update URL with chart filter parameters
+            function updateChartFilter(chartName, value) {
+                const url = new URL(window.location);
+                url.searchParams.set('chart_filter', chartName);
+                url.searchParams.set('chart_value', value);
+                
+                // Update the URL without reloading the page
+                window.history.pushState({}, '', url);
+            }
 
             // Initialize Billing Chart (Line)
             const billingCtx = document.getElementById('billingChart').getContext('2d');
@@ -881,7 +938,7 @@
                 paymentCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-wallet fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i><br/>No payment data available. Try adjusting filters or adding payment records.</div>';
             }
 
-            // Initialize Tariff by Category Chart (Doughnut)
+            // Initialize Tariff by Category Chart with drill-down capability
             const tariffCategoryCtx = document.getElementById('tariffCategoryChart').getContext('2d');
             if (Object.keys(tariffByCategory).length) {
                 new Chart(tariffCategoryCtx, {
@@ -900,6 +957,17 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '60%',
+                        onClick: (event, elements) => {
+                            if (elements.length) {
+                                const elementIndex = elements[0].index;
+                                const selectedCategory = tariffCategoryCtx.chart.data.labels[elementIndex];
+                                
+                                // Update filters to drill down to this category
+                                const url = new URL(window.location);
+                                url.searchParams.set('category_filter', selectedCategory);
+                                window.location.href = url.toString();
+                            }
+                        },
                         plugins: {
                             legend: { 
                                 position: 'bottom',
@@ -938,7 +1006,7 @@
                 tariffCategoryCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-chart-pie fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i><br/>No tariff data available. Try adjusting filters or adding tariff records.</div>';
             }
 
-            // Initialize Customers by Category Chart (Pie)
+            // Initialize Customers by Category Chart with drill-down capability
             const customerCategoryCtx = document.getElementById('customerCategoryChart').getContext('2d');
             if (Object.keys(customersByCategory).length) {
                 new Chart(customerCategoryCtx, {
@@ -956,6 +1024,17 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        onClick: (event, elements) => {
+                            if (elements.length) {
+                                const elementIndex = elements[0].index;
+                                const selectedCategory = customerCategoryCtx.chart.data.labels[elementIndex];
+                                
+                                // Update filters to drill down to this category
+                                const url = new URL(window.location);
+                                url.searchParams.set('category_filter', selectedCategory);
+                                window.location.href = url.toString();
+                            }
+                        },
                         plugins: {
                             legend: { 
                                 position: 'bottom',
@@ -994,7 +1073,7 @@
                 customerCategoryCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-chart-pie fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i><br/>No customer category data available. Try adjusting filters or adding customer records.</div>';
             }
 
-            // Initialize Customers by Tariff Chart (Doughnut)
+            // Initialize Customers by Tariff Chart with drill-down capability
             const customerTariffCtx = document.getElementById('customerTariffChart').getContext('2d');
             if (Object.keys(customersByTariff).length) {
                 new Chart(customerTariffCtx, {
@@ -1013,6 +1092,17 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '60%',
+                        onClick: (event, elements) => {
+                            if (elements.length) {
+                                const elementIndex = elements[0].index;
+                                const selectedTariff = customerTariffCtx.chart.data.labels[elementIndex];
+                                
+                                // Update filters to drill down to this tariff
+                                const url = new URL(window.location);
+                                url.searchParams.set('tariff_filter', selectedTariff);
+                                window.location.href = url.toString();
+                            }
+                        },
                         plugins: {
                             legend: { 
                                 position: 'bottom',
@@ -1051,7 +1141,7 @@
                 customerTariffCtx.canvas.parentNode.innerHTML = '<div class="text-center text-muted p-10"><i class="ki-duotone ki-chart-pie fs-3x text-gray-300 mb-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i><br/>No customer tariff data available. Try adjusting filters or adding customer records.</div>';
             }
 
-            // Initialize Customers by LGA Chart (Bar)
+            // Initialize Customers by LGA Chart with drill-down capability
             const customerLgaCtx = document.getElementById('customerLgaChart').getContext('2d');
             if (Object.keys(customersByLga).length) {
                 new Chart(customerLgaCtx, {
@@ -1096,6 +1186,17 @@
                             },
                             zoom: zoomOptions.zoom,
                             pan: zoomOptions.pan
+                        },
+                        onClick: (event, elements) => {
+                            if (elements.length) {
+                                const elementIndex = elements[0].index;
+                                const selectedLga = customerLgaCtx.chart.data.labels[elementIndex];
+                                
+                                // Update filters to drill down to this LGA
+                                const url = new URL(window.location);
+                                url.searchParams.set('lga_filter', selectedLga);
+                                window.location.href = url.toString();
+                            }
                         }
                     }
                 });

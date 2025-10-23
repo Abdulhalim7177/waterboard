@@ -328,20 +328,7 @@
                                 </a>
                                 </div>
                             @endcan
-                            @can('view-complaints', 'staff')
-                            <div class="menu-item">
-                                <a class="menu-link" href="{{ route('staff.complaints.index') }}">
-                                    <span class="menu-icon">
-                                        <i class="ki-duotone ki-information-2 fs-2">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                            <span class="path3"></span>
-                                        </i>
-                                    </span>
-                                    <span class="menu-title">Complaint Management</span>
-                                </a>
-                                </div>
-                            @endcan
+
                             @can('view-analytics', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.analytics.index') }}">

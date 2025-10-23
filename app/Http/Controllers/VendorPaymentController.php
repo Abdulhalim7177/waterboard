@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class VendorPaymentController extends Controller
 {
@@ -32,9 +33,9 @@ class VendorPaymentController extends Controller
         ]);
 
         $amount = number_format($validated['amount'], 2, '.', '');
-        $payerRefNo = 'VENDOR_FUND_' . now()->format('YmdHis') . '_' . uniqid();
+        $payerRefNo = 'VENDOR_FUND_' . now()->format('YmdHis') . '_' . Str::random(10);
 
-        // Generate hash
+        // Generate hash for NABRoll - format: PayerRefNo + Amount + ApiKey
         $hashString = $payerRefNo . $amount . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);
 
@@ -65,7 +66,7 @@ class VendorPaymentController extends Controller
                 'Mobile' => '08000000000', // Default mobile for vendor
                 'Description' => 'Vendor account funding',
                 'ResponseUrl' => route('vendor.payments.fund.callback'),
-                'FeeBearer' => 'Merchant',
+                'FeeBearer' => 'Merchant', // Options: Customer, Merchant
                 'MetaData' => $metadata,
             ];
 
@@ -124,7 +125,7 @@ class VendorPaymentController extends Controller
             return redirect()->route('vendor.dashboard')->with('error', 'Funding payment not found.');
         }
 
-        // Verify transaction with NABRoll
+        // Verify transaction with NABRoll - format: PayerRefNo + Amount + TransactionRef + ApiKey
         $amount = number_format($vendorPayment->amount, 2, '.', '');
         $hashString = $vendorPayment->payer_ref_no . $amount . $transactionRef . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);
@@ -280,9 +281,9 @@ class VendorPaymentController extends Controller
 
     private function initiateOnlinePayment($vendor, $customer, $amount)
     {
-        $payerRefNo = 'VENDOR_PAYMENT_' . now()->format('YmdHis') . '_' . uniqid();
+        $payerRefNo = 'VENDOR_PAYMENT_' . now()->format('YmdHis') . '_' . Str::random(10);
 
-        // Generate hash
+        // Generate hash for NABRoll - format: PayerRefNo + Amount + ApiKey
         $hashString = $payerRefNo . $amount . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);
 
@@ -303,23 +304,21 @@ class VendorPaymentController extends Controller
                 'transaction_type' => 'payment', // Mark as payment transaction
             ]);
 
-            // Initiate NABRoll transaction
-            $metadata = "vendor_payment_id:{$vendorPayment->id}";
-            $payload = [
-                'ApiKey' => $this->apiKey,
-                'Hash' => $hash,
-                'Amount' => $amount,
-                'PayerRefNo' => $payerRefNo,
-                'PayerName' => $vendor->name,
-                'Email' => $vendor->email,
-                'Mobile' => '08000000000', // Default mobile for vendor
-                'Description' => 'Payment for customer water bill',
-                'ResponseUrl' => route('vendor.payments.callback'),
-                'FeeBearer' => 'Merchant',
-                'MetaData' => $metadata,
-            ];
-
-            Log::debug('Initiating NABRoll transaction for vendor payment', ['payload' => $payload]);
+                    // Initiate NABRoll transaction
+                    $metadata = "vendor_payment_id:{$vendorPayment->id}";
+                            $payload = [
+                                'ApiKey' => $this->apiKey,
+                                'Hash' => $hash,
+                                'Amount' => $amount,
+                                'PayerRefNo' => $payerRefNo,
+                                'PayerName' => $vendor->name,
+                                'Email' => $vendor->email,
+                                'Mobile' => '08000000000', // Default mobile for vendor
+                                'Description' => 'Payment for customer water bill',
+                                'ResponseUrl' => route('vendor.payments.callback'),
+                                'FeeBearer' => 'Merchant', // Options: Customer, Merchant
+                                'MetaData' => $metadata,
+                            ];            Log::debug('Initiating NABRoll transaction for vendor payment', ['payload' => $payload]);
 
             $response = Http::asForm()->post("{$this->baseUrl}/transactions/initiate", $payload);
             $result = $response->json();
@@ -374,7 +373,7 @@ class VendorPaymentController extends Controller
             return redirect()->route('vendor.dashboard')->with('error', 'Payment not found.');
         }
 
-        // Verify transaction with NABRoll
+        // Verify transaction with NABRoll - format: PayerRefNo + Amount + TransactionRef + ApiKey
         $amount = number_format($vendorPayment->amount, 2, '.', '');
         $hashString = $vendorPayment->payer_ref_no . $amount . $transactionRef . $this->apiKey;
         $hash = hash_hmac('sha256', $hashString, $this->secret);

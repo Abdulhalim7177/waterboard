@@ -77,7 +77,7 @@
                         <img src="https://media.istockphoto.com/id/1369464717/photo/engineer-take-water-from-wastewater-treatment-pond-to-check-the-quality-of-the-water-after.jpg?s=2048x2048&w=is&k=20&c=5D6RI05gGhQqUwrea9_gjOQBWw6WlaRtH7SRYqZHCfI=" alt="Customer Support">
                         <div class="absolute bottom-10 left-10 text-white bg-black bg-opacity-50 p-4 rounded">
                             <h3 class="text-2xl md:text-3xl font-bold">Robust Customer Support</h3>
-                            <p class="text-lg md:text-xl">Submit and track complaints effortlessly for quick resolutions.</p>
+
                         </div>
                     </div>
                 </div>

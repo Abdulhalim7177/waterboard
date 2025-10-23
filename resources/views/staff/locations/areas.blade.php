@@ -81,7 +81,6 @@
                                     </div>
                                 </th>
                                 <th class="min-w-100px">Name</th>
-                                <th class="min-w-75px">Code</th>
                                 <th class="min-w-100px">Ward</th>
                                 <th class="min-w-100px">Status</th>
                                 <th class="text-end min-w-75px">Actions</th>
@@ -99,15 +98,12 @@
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex flex-column">
                                                 <span class="text-gray-800 text-hover-primary mb-1">{{ $area->name }}</span>
-                                                <span class="text-muted fs-7">Code: {{ $area->code }}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="d-none d-md-table-cell">{{ $area->code }}</td>
                                     <td>
                                         <div class="d-flex flex-column">
                                             <span class="text-gray-800 text-hover-primary mb-1">{{ $area->ward ? $area->ward->name : '—' }}</span>
-                                            <span class="text-muted fs-7 d-md-none">Code: {{ $area->code }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -170,7 +166,6 @@
                                             </div>
                                             <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
                                                 Name: {{ $area->name }}<br>
-                                                Code: {{ $area->code }}<br>
                                                 Ward: {{ $area->ward ? $area->ward->name : '—' }}<br>
                                                 LGA: {{ ($area->ward && $area->ward->lga) ? $area->ward->lga->name : '—' }}<br>
                                                 Status: {{ ucfirst(str_replace('_', ' ', $area->status)) }}
@@ -199,10 +194,6 @@
                                                         <div class="fv-row mb-10">
                                                             <label class="fs-5 fw-semibold form-label mb-5">Name</label>
                                                             <input type="text" name="name" value="{{ $area->name }}" class="form-control form-control-solid" required />
-                                                        </div>
-                                                        <div class="fv-row mb-10">
-                                                            <label class="fs-5 fw-semibold form-label mb-5">Code</label>
-                                                            <input type="text" name="code" value="{{ $area->code }}" class="form-control form-control-solid" required />
                                                         </div>
                                                         <div class="fv-row mb-10">
                                                             <label class="fs-5 fw-semibold form-label mb-5">Ward</label>
@@ -237,7 +228,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
-                                                    Are you sure you want to request deletion of {{ $area->name }} ({{ $area->code }})? This action will set the status to pending for admin approval.
+                                                    Are you sure you want to request deletion of {{ $area->name }}? This action will set the status to pending for admin approval.
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
@@ -359,10 +350,6 @@
                             <div class="fv-row mb-10">
                                 <label class="fs-5 fw-semibold form-label mb-5">Name</label>
                                 <input type="text" name="name" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Code</label>
-                                <input type="text" name="code" class="form-control form-control-solid" required />
                             </div>
                             <div class="fv-row mb-10">
                                 <label class="fs-5 fw-semibold form-label mb-5">Ward</label>

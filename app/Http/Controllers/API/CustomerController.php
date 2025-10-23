@@ -80,7 +80,7 @@ class CustomerController extends Controller
             'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
         ]);
 
-        $import = new \App\Imports\Staff\CustomersImport();
+        $import = new \App\Imports\CustomerImport();
         \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
 
         $errors = $import->getErrors();
@@ -319,5 +319,42 @@ class CustomerController extends Controller
         $update->update(['status' => 'rejected']);
 
         return response()->json(['message' => 'Update rejected successfully.']);
+    }
+
+    /**
+     * Parse polygon coordinates from different formats
+     * Supports JSON format: [{"lat": 12.941289, "lng": 7.599873}, ...]
+     * Supports string format: "12.941289 7.599873 0 0;12.941075 7.599733 0 0"
+     */
+    protected function parsePolygonCoordinates($input)
+    {
+        if (empty($input)) {
+            return null;
+        }
+
+        // Try JSON decoding first
+        $coords = json_decode($input, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($coords)) {
+            if (empty($coords) || collect($coords)->every(function($point) {
+                return is_array($point) && count($point) >= 2 && is_numeric($point[0]) && is_numeric($point[1]);
+            })) {
+                return array_map(function($point) {
+                    return [(float) $point[0], (float) $point[1]];
+                }, $coords);
+            }
+        }
+
+        // Handle semicolon-separated format (e.g., "12.941289 7.599873 0 0;12.941075 7.599733 0 0")
+        $points = array_filter(explode(';', trim($input, ';')));
+        $coords = [];
+        foreach ($points as $point) {
+            $values = array_map('trim', array_filter(explode(' ', trim($point))));
+            if (count($values) >= 2 && is_numeric($values[0]) && is_numeric($values[1])) {
+                $coords[] = [(float) $values[0], (float) $values[1]]; // Only take lat,lng, ignore extra values
+            } else {
+                return null;
+            }
+        }
+        return !empty($coords) ? $coords : null;
     }
 }

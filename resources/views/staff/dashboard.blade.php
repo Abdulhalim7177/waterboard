@@ -69,7 +69,7 @@
                         </div>
                         <div class="d-flex flex-wrap gap-3 mt-10">
                             <a href="{{ route('staff.assets.index') }}" class="btn btn-light-info hover-elevate-up">Manage Assets</a>
-                            <a href="{{ route('staff.complaints.index') }}" class="btn btn-light-warning hover-elevate-up">Manage Customer Complaints</a>
+
                             <a href="{{ route('staff.customers.index') }}" class="btn btn-primary hover-elevate-up">Manage Customer Accounts</a>
                             <a href="{{ route('staff.bills.index') }}" class="btn btn-light-success hover-elevate-up">Manage Customer Billing</a>
                         </div>
@@ -455,18 +455,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <div class="col-md-12 mb-5">
-                                <a href="{{ route('staff.complaints.index') }}" class="btn btn-flex btn-center btn-light-warning w-100 mb-5 p-5">
-                                    <i class="ki-duotone ki-message-question fs-2x me-3">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    <div class="d-flex flex-column justify-content-start">
-                                        <span class="fs-4 fw-bold">Complaints</span>
-                                        <span class="text-muted fs-7">Manage customer complaints</span>
-                                    </div>
-                                </a>
-                            </div>
+
                             <div class="col-md-12 mb-5">
                                 <a href="{{ route('staff.bills.index') }}" class="btn btn-flex btn-center btn-light-primary w-100 mb-5 p-5">
                                     <i class="ki-duotone ki-credit-cart fs-2x me-3">

@@ -22,6 +22,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ session('warning') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         <!--end::Alerts-->
 
         <!--begin::Stats Widget-->
@@ -140,6 +146,17 @@
                                 @foreach (App\Models\Tariff::where('status', 'approved')->when(request('category_filter'), function($query) { return $query->where('category_id', request('category_filter')); })->get() as $tariff)
                                     <option value="{{ $tariff->id }}" {{ request('tariff_filter') == $tariff->id ? 'selected' : '' }}>{{ $tariff->name }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div class="w-150px">
+                            <select name="per_page" id="per_page" class="form-select form-select-solid" data-control="select2" data-hide-search="true">
+                                <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 per page</option>
+                                <option value="20" {{ request('per_page') == '20' ? 'selected' : '' }}>20 per page</option>
+                                <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 per page</option>
+                                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 per page</option>
+                                <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500 per page</option>
+                                <option value="1000" {{ request('per_page') == '1000' ? 'selected' : '' }}>1000 per page</option>
+                                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
                             </select>
                         </div>
                         <!--end::Filters-->
@@ -363,15 +380,18 @@
                 </table>
                 <!--end::Table-->
                 <div class="mt-3">
-                    {{ $customers->appends([
-                        'search_customer' => request('search_customer'),
-                        'lga_filter' => request('lga_filter'),
-                        'ward_filter' => request('ward_filter'),
-                        'area_filter' => request('area_filter'),
-                        'category_filter' => request('category_filter'),
-                        'tariff_filter' => request('tariff_filter'),
-                        'status_filter' => request('status_filter')
-                    ])->links('pagination::bootstrap-5') }}
+                    @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                        {{ $customers->appends([
+                            'search_customer' => request('search_customer'),
+                            'lga_filter' => request('lga_filter'),
+                            'ward_filter' => request('ward_filter'),
+                            'area_filter' => request('area_filter'),
+                            'category_filter' => request('category_filter'),
+                            'tariff_filter' => request('tariff_filter'),
+                            'status_filter' => request('status_filter'),
+                            'per_page' => request('per_page')
+                        ])->links('pagination::bootstrap-5') }}
+                    @endif
                 </div>
             </div>
             </div>
@@ -436,7 +456,7 @@
             });
 
             // Submit form on dropdown change
-            $('#lga_filter, #ward_filter, #area_filter, #category_filter, #tariff_filter, #status_filter').on('change', function() {
+            $('#lga_filter, #ward_filter, #area_filter, #category_filter, #tariff_filter, #status_filter, #per_page').on('change', function() {
                 $('#customer_filter_form').submit();
             });
 

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Jess - Giant Slalom Performance Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#1193d4",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101c22",
+              },
+              fontFamily: {
+                "display": ["Space Grotesk", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-64 bg-[#111c22] p-4 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-3 mb-8">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Profile picture of Jess" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA7UUWQ20SvyuEjJBDnZC1fBqKiXxWZVC1QVVwSvOHLqwymkl-j5czUN14kUQ8-11Jdah7zaGjK9szjkKWA2lDrOLtvyjp48ICoCFjPn7bR4C1xmvJ-yhGJ8bBmA6nN0owz1UvwKclV2XwoUqOm8ialcy5wosTwcadKDAE8FW9LkBnTF1OaE8pacW2eVv6pzMf2wiT5SMM9N5D7LJ4xuvfKGrOQzJ4TiaLF9P0L5Fhy5FZQAa9iReJ6ipjZOQK0rWMNEaSjj9qUZ9JT");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-medium leading-normal">Jess</h1>
+<p class="text-[#92b7c9] text-sm font-normal leading-normal">Giant Slalom Athlete</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#233c48]" href="#">
+<span class="material-symbols-outlined text-white">dashboard</span>
+<p class="text-white text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2" href="#">
+<span class="material-symbols-outlined text-white">menu_book</span>
+<p class="text-white text-sm font-medium leading-normal">Training Log</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2" href="#">
+<span class="material-symbols-outlined text-white">flag</span>
+<p class="text-white text-sm font-medium leading-normal">Goals</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2" href="#">
+<span class="material-symbols-outlined text-white">monitoring</span>
+<p class="text-white text-sm font-medium leading-normal">Reports</p>
+</a>
+</nav>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2" href="#">
+<span class="material-symbols-outlined text-white">settings</span>
+<p class="text-white text-sm font-medium leading-normal">Settings</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2" href="#">
+<span class="material-symbols-outlined text-white">help</span>
+<p class="text-white text-sm font-medium leading-normal">Help</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8">
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between gap-3 mb-6">
+<div class="flex min-w-72 flex-col gap-3">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Performance Dashboard</h1>
+<p class="text-[#92b7c9] text-base font-normal leading-normal">Welcome back, Jess! Here is a summary of your latest performance.</p>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Download Report</span>
+</button>
+</div>
+<!-- Chips -->
+<div class="flex gap-3 mb-6">
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/20 text-primary pl-4 pr-2">
+<p class="text-sm font-medium leading-normal">Last 7 Days</p>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#233c48] pl-4 pr-2">
+<p class="text-white text-sm font-medium leading-normal">Last 30 Days</p>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#233c48] pl-4 pr-2">
+<p class="text-white text-sm font-medium leading-normal">Last 6 Months</p>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#233c48] pl-4 pr-2">
+<p class="text-white text-sm font-medium leading-normal">All Time</p>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#325567]">
+<p class="text-white text-base font-medium leading-normal">Top Speed</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">85 mph</p>
+<p class="text-[#0bda57] text-base font-medium leading-normal">+2%</p>
+</div>
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#325567]">
+<p class="text-white text-base font-medium leading-normal">Avg. Run Time</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">1:25.32</p>
+<p class="text-[#fa5f38] text-base font-medium leading-normal">-1.5%</p>
+</div>
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#325567]">
+<p class="text-white text-base font-medium leading-normal">Gate Consistency</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">92%</p>
+<p class="text-[#0bda57] text-base font-medium leading-normal">+5%</p>
+</div>
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#325567]">
+<p class="text-white text-base font-medium leading-normal">Fastest Split</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">28.4s</p>
+<p class="text-[#0bda57] text-base font-medium leading-normal">+0.8%</p>
+</div>
+</div>
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+<div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#325567] p-6">
+<p class="text-white text-base font-medium leading-normal">Performance Over Time</p>
+<p class="text-white tracking-light text-[32px] font-bold leading-tight truncate">1:25.32</p>
+<div class="flex gap-1">
+<p class="text-[#92b7c9] text-base font-normal leading-normal">Last 30 Days</p>
+<p class="text-[#fa5f38] text-base font-medium leading-normal">-1.5%</p>
+</div>
+<div class="flex min-h-[180px] flex-1 flex-col gap-8 py-4">
+<svg fill="none" height="148" preserveaspectratio="none" viewbox="-3 0 478 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V149H326.769H0V109Z" fill="url(#paint0_linear_1131_5935)"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="#1193d4" stroke-linecap="round" stroke-width="3"></path>
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="paint0_linear_1131_5935" x1="236" x2="236" y1="1" y2="149">
+<stop stop-color="#1193d4" stop-opacity="0.3"></stop>
+<stop offset="1" stop-color="#1193d4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-around">
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">Week 1</p>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">Week 2</p>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">Week 3</p>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">Week 4</p>
+</div>
+</div>
+</div>
+<div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#325567] p-6">
+<p class="text-white text-base font-medium leading-normal">Run Analysis</p>
+<p class="text-white tracking-light text-[32px] font-bold leading-tight truncate">2.1s</p>
+<div class="flex gap-1">
+<p class="text-[#92b7c9] text-base font-normal leading-normal">Run #12</p>
+<p class="text-[#0bda57] text-base font-medium leading-normal">+3%</p>
+</div>
+<div class="grid min-h-[180px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3 pt-4">
+<div class="bg-primary/20 w-full" style="height: 40%;"></div>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">G 1-2</p>
+<div class="bg-primary/20 w-full" style="height: 60%;"></div>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">G 2-3</p>
+<div class="bg-primary/20 w-full" style="height: 10%;"></div>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">G 3-4</p>
+<div class="bg-primary/20 w-full" style="height: 20%;"></div>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">G 4-5</p>
+<div class="bg-primary/20 w-full" style="height: 50%;"></div>
+<p class="text-[#92b7c9] text-[13px] font-bold leading-normal tracking-[0.015em]">G 5-6</p>
+</div>
+</div>
+</div>
+<!-- Recent Runs Table -->
+<div class="rounded-lg border border-[#325567] overflow-hidden">
+<div class="p-6">
+<h2 class="text-white text-lg font-bold">Recent Runs</h2>
+</div>
+<table class="w-full text-left">
+<thead class="bg-[#233c48]">
+<tr>
+<th class="p-4 text-sm font-semibold text-white">Date</th>
+<th class="p-4 text-sm font-semibold text-white">Location</th>
+<th class="p-4 text-sm font-semibold text-white">Run Time</th>
+<th class="p-4 text-sm font-semibold text-white">Top Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-t border-[#325567]">
+<td class="p-4 text-white">2024-03-15</td>
+<td class="p-4 text-white">Aspen, CO</td>
+<td class="p-4 text-white">1:24.11</td>
+<td class="p-4 text-white">86 mph</td>
+</tr>
+<tr class="border-t border-[#325567]">
+<td class="p-4 text-white">2024-03-14</td>
+<td class="p-4 text-white">Aspen, CO</td>
+<td class="p-4 text-white">1:25.03</td>
+<td class="p-4 text-white">84 mph</td>
+</tr>
+<tr class="border-t border-[#325567]">
+<td class="p-4 text-white">2024-03-12</td>
+<td class="p-4 text-white">Vail, CO</td>
+<td class="p-4 text-white">1:23.98</td>
+<td class="p-4 text-white">87 mph</td>
+</tr>
+<tr class="border-t border-[#325567]">
+<td class="p-4 text-white">2024-03-11</td>
+<td class="p-4 text-white">Vail, CO</td>
+<td class="p-4 text-white">1:26.54</td>
+<td class="p-4 text-white">82 mph</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+</div>
+</body></html>

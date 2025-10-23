@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\GLPITestController;
+
 use App\Http\Controllers\Staff\GisController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Staff\AssetController;
@@ -16,8 +16,7 @@ use App\Http\Controllers\VendorPaymentController;
 use App\Http\Controllers\Staff\CategoryController;
 use App\Http\Controllers\Staff\LocationController;
 use App\Http\Controllers\Staff\AnalyticsController;
-use App\Http\Controllers\CustomerComplaintController;
-use App\Http\Controllers\Staff\StaffComplaintController;
+
 use App\Http\Controllers\Staff\CustomerCreationController;
 use App\Http\Controllers\Staff\VendorController as StaffVendorController;
 
@@ -218,11 +217,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
     });
 
-    // Complaint Management Routes
-    Route::get('/complaints', [StaffComplaintController::class, 'index'])->name('complaints.index');
-    Route::get('/complaints/{complaint}', [StaffComplaintController::class, 'show'])->name('complaints.show');
-    Route::post('/complaints/{complaint}/assign', [StaffComplaintController::class, 'assign'])->name('complaints.assign');
-    Route::put('/complaints/{complaint}/status', [StaffComplaintController::class, 'updateStatus'])->name('complaints.updateStatus');
+
 
     // Asset Management Routes
     Route::resource('assets', AssetController::class);
@@ -254,11 +249,7 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
     Route::get('/profile', [CustomerController::class, 'profile'])->name('customer.profile');
     Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
 
-    // Complaints routes
-    Route::get('/complaints', [CustomerComplaintController::class, 'index'])->name('customer.complaints.index');
-    Route::get('/complaints/create', [CustomerComplaintController::class, 'create'])->name('customer.complaints.create');
-    Route::post('/complaints', [CustomerComplaintController::class, 'store'])->name('customer.complaints.store');
-    Route::get('/complaints/{complaint}', [CustomerComplaintController::class, 'show'])->name('customer.complaints.show');
+
 
     // Bill and payment routes
     Route::get('/bills', [CustomerController::class, 'bills'])->name('customer.bills');
@@ -287,8 +278,7 @@ Route::get('/display-customers', function () {
     return view('display-customers', ['customers' => $customers]);
 });
 
-Route::get('glpi/test/connection', [GLPITestController::class, 'testConnection']);
-Route::get('glpi/test/ticket', [GLPITestController::class, 'testTicketCreation']);
+
 
 Route::get('customer/login', [LoginController::class, 'showCustomerLoginForm'])->name('customer.login')->middleware('restrict.login');
 Route::post('customer/login', [LoginController::class, 'customerLogin'])->name('customer.login.submit')->middleware('restrict.login');

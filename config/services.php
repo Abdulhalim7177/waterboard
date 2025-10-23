@@ -25,6 +25,7 @@ return [
         'username' => env('GLPI_USERNAME'),
         'password' => env('GLPI_PASSWORD'),
         'api_token' => env('GLPI_API_TOKEN'),
+        'app_token' => env('GLPI_APP_TOKEN'),
     ],
 
     'dolibarr' => [

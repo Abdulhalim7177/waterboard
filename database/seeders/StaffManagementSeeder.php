@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Staff;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
 
 class StaffManagementSeeder extends Seeder
@@ -15,92 +13,9 @@ class StaffManagementSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Staff Management Permissions
-        $this->createStaffPermissions();
-        
-        // Update Roles with Staff Management Permissions
-        $this->updateRolePermissions();
-        
-        // Create Sample Staff Members
         $this->createStaffMembers();
         
         $this->command->info('Staff Management data seeded successfully!');
-    }
-    
-    /**
-     * Create all staff management permissions
-     */
-    private function createStaffPermissions(): void
-    {
-        $staffPermissions = [
-            // Zone Management Permissions
-            'create-zone', 'edit-zone', 'delete-zone', 'approve-zone', 'reject-zone', 'view-zones',
-            
-            // District Management Permissions
-            'create-district', 'edit-district', 'delete-district', 'approve-district', 'reject-district', 'view-districts',
-            
-            // Paypoint Management Permissions
-            'create-paypoint', 'edit-paypoint', 'delete-paypoint', 'approve-paypoint', 'reject-paypoint', 'view-paypoints',
-            
-            // Staff Management Permissions
-            'create-staff', 'edit-staff', 'delete-staff', 'approve-staff', 'reject-staff', 'view-staff',
-            'assign-staff-role', 'revoke-staff-role', 'manage-staff-permissions',
-            
-            // Location Management Permissions
-            'manage-district-wards', 'view-location-details',
-        ];
-        
-        // Add staff management permissions to the existing permissions
-        foreach ($staffPermissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission,
-                'guard_name' => 'staff'
-            ], ['status' => 'approved']);
-        }
-    }
-    
-    /**
-     * Update roles with appropriate permissions
-     */
-    private function updateRolePermissions(): void
-    {
-        $superAdmin = Role::where('name', 'super-admin')->where('guard_name', 'staff')->first();
-        if ($superAdmin) {
-            // Give super admin all staff management permissions
-            $allStaffPermissions = [
-                'create-zone', 'edit-zone', 'delete-zone', 'approve-zone', 'reject-zone', 'view-zones',
-                'create-district', 'edit-district', 'delete-district', 'approve-district', 'reject-district', 'view-districts',
-                'create-paypoint', 'edit-paypoint', 'delete-paypoint', 'approve-paypoint', 'reject-paypoint', 'view-paypoints',
-                'create-staff', 'edit-staff', 'delete-staff', 'approve-staff', 'reject-staff', 'view-staff',
-                'assign-staff-role', 'revoke-staff-role', 'manage-staff-permissions',
-                'manage-district-wards', 'view-location-details',
-            ];
-            
-            $superAdmin->givePermissionTo($allStaffPermissions);
-        }
-        
-        $manager = Role::where('name', 'manager')->where('guard_name', 'staff')->first();
-        if ($manager) {
-            // Give manager appropriate staff management permissions
-            $managerPermissions = [
-                'create-staff', 'edit-staff', 'delete-staff', 'view-staff',
-                'view-zones', 'view-districts', 'view-paypoints',
-                'manage-district-wards', 'view-location-details',
-            ];
-            
-            $manager->givePermissionTo($managerPermissions);
-        }
-        
-        $staffRole = Role::where('name', 'staff')->where('guard_name', 'staff')->first();
-        if ($staffRole) {
-            // Give regular staff basic permissions
-            $basicStaffPermissions = [
-                'view-staff', 'view-zones', 'view-districts', 'view-paypoints',
-                'view-location-details',
-            ];
-            
-            $staffRole->givePermissionTo($basicStaffPermissions);
-        }
     }
     
     /**

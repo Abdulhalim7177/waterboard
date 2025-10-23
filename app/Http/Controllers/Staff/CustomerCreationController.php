@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PendingCustomerUpdate;
 use App\Exports\Staff\CustomersExport;
-use App\Imports\Staff\CustomersImport;
+use App\Imports\CustomerImport;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Access\AuthorizationException;
 use App\Services\BreadcrumbService;
@@ -71,7 +71,12 @@ class CustomerCreationController extends Controller
             $customersQuery->whereIn('ward_id', $accessibleWardIds);
         }
         
-        $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->get();
+        } else {
+            $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->paginate($perPage);
+        }
 
         return view('staff.customers.index', compact('stats', 'customers'));
     }
@@ -85,7 +90,7 @@ class CustomerCreationController extends Controller
                 'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
             ]);
 
-            $import = new CustomersImport();
+            $import = new CustomerImport();
             Excel::import($import, $request->file('file'));
 
             $errors = $import->getErrors();
@@ -149,6 +154,40 @@ class CustomerCreationController extends Controller
             Log::error('Customer export failed', ['user_id' => Auth::guard('staff')->id(), 'error' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to export customers: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function downloadSample()
+    {
+        $this->authorize('create-customer', \App\Models\Customer::class);
+
+        $filePath = public_path('samples/customer_import_sample.csv');
+
+        if (!file_exists($filePath)) {
+            // Create a sample file if it doesn't exist
+            $sampleData = [
+                ['first_name', 'surname', 'middle_name', 'email', 'phone_number', 'alternate_phone_number', 'street_name', 'house_number', 'landmark', 'lga', 'ward', 'area', 'category', 'tariff', 'delivery_code', 'billing_condition', 'water_supply_status', 'latitude', 'longitude', 'altitude', 'pipe_path', 'polygon_coordinates', 'password', 'account_balance', 'created_at'],
+                ['John', 'Doe', 'Smith', 'john.doe@example.com', '1234567890', '0987654321', 'Main Street', '123', 'Near Market', 'Lagos Island', 'Ikeja', 'GRA', 'Residential', 'Basic', 'DEL001', 'Non-Metered', 'Functional', '6.4566', '3.3912', '50', null, null, 'password123', '0', now()],
+                ['Jane', 'Smith', '', 'jane.smith@example.com', '1122334455', '', 'N/A', 'N/A', 'School Junction', 'Eti-Osa', 'Victoria Island', 'Ikoyi', 'Commercial', 'Premium', 'DEL002', 'Metered', 'Functional', '6.4345', '3.4162', '45', null, null, 'password123', '5000', now()],
+            ];
+
+            // Create directory if it doesn't exist
+            $directory = dirname($filePath);
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $file = fopen($filePath, 'w');
+            foreach ($sampleData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        }
+
+        if (!file_exists($filePath)) {
+            return redirect()->route('staff.customers.index')->with('error', 'Sample file could not be created.');
+        }
+
+        return response()->download($filePath);
     }
 
      public function edit(Customer $customer)

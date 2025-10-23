@@ -33,22 +33,7 @@ class StaffController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Dashboard');
 
-        // Check GLPI API status
-        $glpiService = app(GLPIService::class);
-        $isGlpiAvailable = false;
-        $glpiApiStatus = 'unknown';
-        
-        try {
-            if ($glpiService) {
-                $sessionToken = $glpiService->initSession();
-                $isGlpiAvailable = $sessionToken !== false;
-                $glpiApiStatus = $isGlpiAvailable ? 'available' : 'unavailable';
-            }
-        } catch (\Exception $e) {
-            $glpiApiStatus = 'error';
-            \Log::error('GLPI API Connection Error: ' . $e->getMessage());
-        }
-
+      
         // Get staff statistics
         $totalStaff = Staff::count();
         $activeStaff = Staff::where('status', 'approved')->count();
@@ -151,9 +136,7 @@ class StaffController extends Controller
             'recentHrUpdates',
             'recentCustomerActivities',
             'recentBillingActivities',
-            
-            'glpiApiStatus',
-            'isGlpiAvailable'
+
         ));
     }
 

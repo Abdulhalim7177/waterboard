@@ -10,7 +10,6 @@ class CreateAreasTable extends Migration
     {
         Schema::create('areas', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('code')->unique();
             $table->string('name');
             $table->unsignedBigInteger('ward_id');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');

@@ -86,7 +86,7 @@ class LocationController extends Controller
         $breadcrumb->addHome()->add('Location Management')->add('Area Management');
 
         $areas = Area::when($request->search_area, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
+            return $query->where('name', 'like', "%{$search}%");
         })->when($request->ward_filter, function ($query, $ward_id) {
             return $query->where('ward_id', $ward_id);
         })->when($request->lga_filter, function ($query, $lga_id) {
@@ -590,32 +590,13 @@ class LocationController extends Controller
 
     public function storeArea(Request $request)
     {
-        // Check if the 'code' parameter is provided and not empty in the request
-        // For AJAX requests from customer forms, we expect no code to be provided
-        $input = $request->all();
-        $hasCode = isset($input['code']) && !empty(trim($input['code']));
-        
-        if (!$hasCode) {
-            // Auto-generate a code based on the area name
-            $code = strtoupper(substr(str_replace(' ', '', $request->name ?? ''), 0, 3) . '_' . time());
-            
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'ward_id' => 'required|exists:wards,id'
-            ]);
-        } else {
-            // For requests that provide a code, validate it
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'code' => 'required|string|unique:areas,code',
-                'ward_id' => 'required|exists:wards,id'
-            ]);
-            $code = $request->code;
-        }
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'ward_id' => 'required|exists:wards,id'
+        ]);
 
         $area = Area::create([
             'name' => $request->name,
-            'code' => $code,
             'ward_id' => $request->ward_id,
             'status' => 'pending'
         ]);
@@ -625,7 +606,6 @@ class LocationController extends Controller
             'area' => [
                 'id' => $area->id,
                 'name' => $area->name,
-                'code' => $area->code,
                 'ward_id' => $area->ward_id,
             ],
             'message' => 'Area creation request submitted for approval.'
@@ -636,13 +616,11 @@ class LocationController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|unique:areas,code,' . $area->id,
             'ward_id' => 'required|exists:wards,id'
         ]);
 
         $area->update([
             'name' => $request->name,
-            'code' => $request->code,
             'ward_id' => $request->ward_id,
             'status' => 'pending'
         ]);

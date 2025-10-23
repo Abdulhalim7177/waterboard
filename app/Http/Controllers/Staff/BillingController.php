@@ -66,7 +66,12 @@ class BillingController extends Controller
             $query->where('customers.id', $customerId);
         }
 
-        $bills = $query->orderBy('bills.created_at', 'DESC')->paginate(10)->appends($request->query());
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $bills = $query->orderBy('bills.created_at', 'DESC')->get();
+        } else {
+            $bills = $query->orderBy('bills.created_at', 'DESC')->paginate($perPage)->appends($request->query());
+        }
 
         $staff = auth()->guard('staff')->user();
         $accessibleWardIds = $staff->getAccessibleWardIds();
@@ -251,7 +256,12 @@ class BillingController extends Controller
             $query->where('customers.area_id', $areaId);
         }
 
-        $payments = $query->orderBy('payments.payment_date', 'DESC')->paginate(10)->appends($request->query());
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $payments = $query->orderBy('payments.payment_date', 'DESC')->get();
+        } else {
+            $payments = $query->orderBy('payments.payment_date', 'DESC')->paginate($perPage)->appends($request->query());
+        }
 
         $staff = auth()->guard('staff')->user();
         $accessibleWardIds = $staff->getAccessibleWardIds();

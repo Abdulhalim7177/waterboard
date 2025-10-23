@@ -339,7 +339,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($data['customersByCategory'] as $category => $count)
+                                        @foreach ($data['customersByCategoryPaginated'] ?? $data['customersByCategory'] as $category => $count)
                                             <tr>
                                                 <td>{{ $category }}</td>
                                                 <td class="text-end">{{ $count }}</td>
@@ -348,6 +348,47 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!--begin::Pagination Controls for Customers by Category-->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    Showing {{ count($data['customersByCategoryPaginated'] ?? $data['customersByCategory']) > 0 ? (($data['currentPage'] ?? 1) - 1) * ($data['perPage'] ?? 10) + 1 : 0 }} to 
+                                    {{ min($data['currentPage'] * $data['perPage'] ?? 10, $data['totalCustomersByCategory'] ?? count($data['customersByCategory'])) }} of 
+                                    {{ $data['totalCustomersByCategory'] ?? count($data['customersByCategory']) }} entries
+                                </div>
+                                <div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            @if (($data['currentPage'] ?? 1) > 1)
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) - 1, 'per_page' => $data['perPage'] ?? 10]) }}">Previous</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Previous</span>
+                                                </li>
+                                            @endif
+
+                                            @for ($i = max(1, ($data['currentPage'] ?? 1) - 2); $i <= min(ceil(($data['totalCustomersByCategory'] ?? count($data['customersByCategory'])) / ($data['perPage'] ?? 10)), ($data['currentPage'] ?? 1) + 2); $i++)
+                                                <li class="page-item {{ $i == ($data['currentPage'] ?? 1) ? 'active' : '' }}">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $i, 'per_page' => $data['perPage'] ?? 10]) }}">{{ $i }}</a>
+                                                </li>
+                                            @endfor
+
+                                            @if (($data['currentPage'] ?? 1) < ceil(($data['totalCustomersByCategory'] ?? count($data['customersByCategory'])) / ($data['perPage'] ?? 10)))
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) + 1, 'per_page' => $data['perPage'] ?? 10]) }}">Next</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Next</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <!--end::Pagination Controls for Customers by Category-->
                         </div>
                     </div>
                 </div>
@@ -369,7 +410,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($data['customersByTariff'] as $tariff => $count)
+                                        @foreach ($data['customersByTariffPaginated'] ?? $data['customersByTariff'] as $tariff => $count)
                                             <tr>
                                                 <td>{{ $tariff }}</td>
                                                 <td class="text-end">{{ $count }}</td>
@@ -378,6 +419,47 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!--begin::Pagination Controls for Customers by Tariff-->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    Showing {{ count($data['customersByTariffPaginated'] ?? $data['customersByTariff']) > 0 ? (($data['currentPage'] ?? 1) - 1) * ($data['perPage'] ?? 10) + 1 : 0 }} to 
+                                    {{ min($data['currentPage'] * $data['perPage'] ?? 10, $data['totalCustomersByTariff'] ?? count($data['customersByTariff'])) }} of 
+                                    {{ $data['totalCustomersByTariff'] ?? count($data['customersByTariff']) }} entries
+                                </div>
+                                <div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            @if (($data['currentPage'] ?? 1) > 1)
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) - 1, 'per_page' => $data['perPage'] ?? 10]) }}">Previous</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Previous</span>
+                                                </li>
+                                            @endif
+
+                                            @for ($i = max(1, ($data['currentPage'] ?? 1) - 2); $i <= min(ceil(($data['totalCustomersByTariff'] ?? count($data['customersByTariff'])) / ($data['perPage'] ?? 10)), ($data['currentPage'] ?? 1) + 2); $i++)
+                                                <li class="page-item {{ $i == ($data['currentPage'] ?? 1) ? 'active' : '' }}">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $i, 'per_page' => $data['perPage'] ?? 10]) }}">{{ $i }}</a>
+                                                </li>
+                                            @endfor
+
+                                            @if (($data['currentPage'] ?? 1) < ceil(($data['totalCustomersByTariff'] ?? count($data['customersByTariff'])) / ($data['perPage'] ?? 10)))
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) + 1, 'per_page' => $data['perPage'] ?? 10]) }}">Next</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Next</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <!--end::Pagination Controls for Customers by Tariff-->
                         </div>
                     </div>
                 </div>
@@ -403,7 +485,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($data['tariffByCategory'] as $category => $count)
+                                        @foreach ($data['tariffByCategoryPaginated'] ?? $data['tariffByCategory'] as $category => $count)
                                             <tr>
                                                 <td>{{ $category }}</td>
                                                 <td class="text-end">{{ $count }}</td>
@@ -412,6 +494,47 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!--begin::Pagination Controls for Tariffs by Category-->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    Showing {{ count($data['tariffByCategoryPaginated'] ?? $data['tariffByCategory']) > 0 ? (($data['currentPage'] ?? 1) - 1) * ($data['perPage'] ?? 10) + 1 : 0 }} to 
+                                    {{ min($data['currentPage'] * $data['perPage'] ?? 10, $data['totalTariffByCategory'] ?? count($data['tariffByCategory'])) }} of 
+                                    {{ $data['totalTariffByCategory'] ?? count($data['tariffByCategory']) }} entries
+                                </div>
+                                <div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            @if (($data['currentPage'] ?? 1) > 1)
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) - 1, 'per_page' => $data['perPage'] ?? 10]) }}">Previous</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Previous</span>
+                                                </li>
+                                            @endif
+
+                                            @for ($i = max(1, ($data['currentPage'] ?? 1) - 2); $i <= min(ceil(($data['totalTariffByCategory'] ?? count($data['tariffByCategory'])) / ($data['perPage'] ?? 10)), ($data['currentPage'] ?? 1) + 2); $i++)
+                                                <li class="page-item {{ $i == ($data['currentPage'] ?? 1) ? 'active' : '' }}">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $i, 'per_page' => $data['perPage'] ?? 10]) }}">{{ $i }}</a>
+                                                </li>
+                                            @endfor
+
+                                            @if (($data['currentPage'] ?? 1) < ceil(($data['totalTariffByCategory'] ?? count($data['tariffByCategory'])) / ($data['perPage'] ?? 10)))
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) + 1, 'per_page' => $data['perPage'] ?? 10]) }}">Next</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Next</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <!--end::Pagination Controls for Tariffs by Category-->
                         </div>
                     </div>
                 </div>
@@ -433,7 +556,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($data['customersByLga'] as $lga => $count)
+                                        @foreach ($data['customersByLgaPaginated'] ?? $data['customersByLga'] as $lga => $count)
                                             <tr>
                                                 <td>{{ $lga }}</td>
                                                 <td class="text-end">{{ $count }}</td>
@@ -442,6 +565,47 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!--begin::Pagination Controls for Customers by LGA-->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    Showing {{ count($data['customersByLgaPaginated'] ?? $data['customersByLga']) > 0 ? (($data['currentPage'] ?? 1) - 1) * ($data['perPage'] ?? 10) + 1 : 0 }} to 
+                                    {{ min($data['currentPage'] * $data['perPage'] ?? 10, $data['totalCustomersByLga'] ?? count($data['customersByLga'])) }} of 
+                                    {{ $data['totalCustomersByLga'] ?? count($data['customersByLga']) }} entries
+                                </div>
+                                <div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            @if (($data['currentPage'] ?? 1) > 1)
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) - 1, 'per_page' => $data['perPage'] ?? 10]) }}">Previous</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Previous</span>
+                                                </li>
+                                            @endif
+
+                                            @for ($i = max(1, ($data['currentPage'] ?? 1) - 2); $i <= min(ceil(($data['totalCustomersByLga'] ?? count($data['customersByLga'])) / ($data['perPage'] ?? 10)), ($data['currentPage'] ?? 1) + 2); $i++)
+                                                <li class="page-item {{ $i == ($data['currentPage'] ?? 1) ? 'active' : '' }}">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => $i, 'per_page' => $data['perPage'] ?? 10]) }}">{{ $i }}</a>
+                                                </li>
+                                            @endfor
+
+                                            @if (($data['currentPage'] ?? 1) < ceil(($data['totalCustomersByLga'] ?? count($data['customersByLga'])) / ($data['perPage'] ?? 10)))
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ request()->fullUrlWithQuery(['page' => ($data['currentPage'] ?? 1) + 1, 'per_page' => $data['perPage'] ?? 10]) }}">Next</a>
+                                                </li>
+                                            @else
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">Next</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <!--end::Pagination Controls for Customers by LGA-->
                         </div>
                     </div>
                 </div>
