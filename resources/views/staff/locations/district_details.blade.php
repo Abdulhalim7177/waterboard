@@ -113,9 +113,57 @@
     <!--end::Summary Widgets-->
     
     <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
-        <!--begin::Col - Staff-->
+        <!--begin::Col - Wards-->
         <div class="col-12">
             <div class="card">
+                <div class="card-header border-0 pt-6">
+                    <div class="card-title">
+                        <h3 class="card-title">Wards in District: {{ count($wards) }}</h3>
+                    </div>
+                </div>
+                <div class="card-body py-4">
+                    @if($wards->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table align-middle table-row-dashed fs-6 gy-5">
+                                <thead>
+                                    <tr class="text-start text-muted text-uppercase fw-bold fs-7 border-bottom-2 border-gray-200">
+                                        <th class="min-w-125px">Name</th>
+                                        <th class="min-w-125px">Code</th>
+                                        <th class="min-w-125px">LGA</th>
+                                        <th class="min-w-125px">Customers</th>
+                                        <th class="min-w-125px">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="fw-semibold text-gray-600">
+                                    @foreach($wards as $ward)
+                                        <tr>
+                                            <td>{{ $ward->name }}</td>
+                                            <td>{{ $ward->code }}</td>
+                                            <td>{{ $ward->lga->name ?? 'N/A' }}</td>
+                                            <td>{{ $ward->customers->count() }}</td>
+                                            <td>
+                                                <span class="badge @if($ward->status == 'approved') badge-success @elseif($ward->status == 'pending') badge-warning @elseif($ward->status == 'rejected') badge-danger @else badge-secondary @endif">
+                                                    {{ ucfirst(str_replace('_', ' ', $ward->status)) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-10">
+                            <p>No wards assigned to this district</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <!--end::Col - Wards-->
+        
+        <!--begin::Col - Staff-->
+        <div class="col-12">
+            <div class="card mt-6">
                 <div class="card-header border-0 pt-6">
                     <div class="card-title">
                         <h3 class="card-title">Staff in District: {{ count($staffs) }}</h3>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Lga;
 use App\Models\Ward;
 use App\Models\Area;
@@ -324,9 +325,16 @@ class LocationController extends Controller
 
         $zone = $district->zone;
         $staffs = $zone->staffs()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
-        $customers = $zone->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+        
+        // Get customers through the wards that belong to this district
+        $customers = Customer::whereHas('ward', function($query) use ($district) {
+            $query->where('district_id', $district->id);
+        })->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+        
+        // Get the wards that belong to this district
+        $wards = $district->wards()->with(['lga', 'customers'])->get();
 
-        return view('staff.locations.district_details', compact('district', 'staffs', 'customers'));
+        return view('staff.locations.district_details', compact('district', 'staffs', 'customers', 'wards'));
     }
 
     public function paypointDetails(Paypoint $paypoint)
