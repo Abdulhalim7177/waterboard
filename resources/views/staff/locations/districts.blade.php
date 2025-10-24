@@ -207,6 +207,7 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <a href="#" class="btn btn-sm btn-light-info me-2" data-bs-toggle="modal" data-bs-target="#viewDistrictModal{{ $district->id }}">View</a>
                                             <a href="{{ route('staff.districts.details', $district->id) }}" class="btn btn-sm btn-light-info me-2">View Details</a>
                                             <a href="{{ route('staff.districts.manage-wards', $district->id) }}" class="btn btn-sm btn-light-info me-2">Manage Wards</a>
                                             <a href="#" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#editDistrictModal{{ $district->id }}">Edit</a>
@@ -339,4 +340,43 @@
 </div>
 @endforeach
 <!--end::Edit District Modals-->
+
+<!--begin::View District Modal for each district-->
+@foreach($districts as $district)
+<div class="modal fade" id="viewDistrictModal{{ $district->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-650px">
+        <div class="modal-content">
+            <!--begin::Modal header-->
+            <div class="modal-header">
+                <h3 class="modal-title">View District</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </div>
+            </div>
+            <!--end::Modal header-->
+            <!--begin::Modal body-->
+            <div class="modal-body py-lg-10 px-lg-10">
+                <p><strong>Name:</strong> {{ $district->name }}</p>
+                <p><strong>Code:</strong> {{ $district->code }}</p>
+                <p><strong>Zone:</strong> {{ $district->zone ? $district->zone->name : 'N/A' }}</p>
+                <h5>Wards</h5>
+                @if($district->wards->count() > 0)
+                    <ul>
+                        @foreach($district->wards as $ward)
+                            <li>{{ $ward->name }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p>No wards assigned to this district.</p>
+                @endif
+            </div>
+            <!--end::Modal body-->
+        </div>
+    </div>
+</div>
+@endforeach
+<!--end::View District Modals-->
 @endsection

@@ -68,7 +68,7 @@
                                 <div class="me-2">
                                     <h6 class="text-gray-400 fw-semibold mb-1">Total Wards</h6>
                                     <div class="d-flex flex-column">
-                                        <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $wards->total() }}</span>
+                                        <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $wards->count() }}</span>
                                     </div>
                                 </div>
                                 <div class="symbol symbol-60px">
@@ -119,7 +119,7 @@
                                         </div>
                                     </td>
                                     <td class="d-none d-md-table-cell">{{ $ward->code }}</td>
-                                    <td>
+                                    <td data-lga-id="{{ $ward->lga_id }}">
                                         <div class="d-flex flex-column">
                                             <span class="text-gray-800 text-hover-primary mb-1">{{ $ward->lga->name }}</span>
                                             <span class="text-muted fs-7 d-md-none">Code: {{ $ward->code }}</span>
@@ -274,8 +274,21 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Mobile Cards -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <select id="items_per_page" class="form-select form-select-solid me-3">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                            <option value="all">All</option>
+                        </select>
+                        <span id="pagination_description"></span>
+                    </div>
+                    <nav>
+                        <ul class="pagination" id="pagination_links">
+                        </ul>
+                    </nav>
+                </div>
                 <div class="d-md-none">
                     @forelse ($wards as $ward)
                         <div class="card mb-5 mb-xl-8 border border-gray-300">
@@ -324,35 +337,7 @@
                         </div>
                     @endforelse
                 </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        @if ($wards->onFirstPage())
-                            <li class="page-item disabled">
-                                <span class="page-link">Previous</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $wards->previousPageUrl() }}&search_ward={{ request('search_ward') }}&lga_filter={{ request('lga_filter') }}">Previous</a>
-                            </li>
-                        @endif
 
-                        @foreach ($wards->getUrlRange(1, $wards->lastPage()) as $page => $url)
-                            <li class="page-item {{ $page == $wards->currentPage() ? 'active' : '' }}">
-                                <a class="page-link" href="{{ $url }}&search_ward={{ request('search_ward') }}&lga_filter={{ request('lga_filter') }}">{{ $page }}</a>
-                            </li>
-                        @endforeach
-
-                        @if ($wards->hasMorePages())
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $wards->nextPageUrl() }}&search_ward={{ request('search_ward') }}&lga_filter={{ request('lga_filter') }}">Next</a>
-                            </li>
-                        @else
-                            <li class="page-item disabled">
-                                <span class="page-link">Next</span>
-                            </li>
-                        @endif
-                    </ul>
-                </nav>
             </div>
         </div>
 
@@ -405,87 +390,132 @@
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('search_ward');
             const lgaFilter = document.getElementById('lga_filter');
-            let searchTimeout;
+            const itemsPerPageSelect = document.getElementById('items_per_page');
+            const wardTableBody = document.querySelector('#kt_ward_table tbody');
+            const allRows = Array.from(wardTableBody.querySelectorAll('tr'));
+            const paginationLinks = document.getElementById('pagination_links');
+            const paginationDescription = document.getElementById('pagination_description');
 
-            // Update URL for search and filters
-            function updateURL() {
-                const search = searchInput.value;
-                const lga = lgaFilter.value;
-                const url = new URL('{{ route("staff.wards.index") }}');
-                if (search) url.searchParams.set('search_ward', search);
-                if (lga) url.searchParams.set('lga_filter', lga);
-                window.location.href = url.toString();
+            let currentPage = 1;
+            let itemsPerPage = parseInt(itemsPerPageSelect.value);
+            let filteredRows = allRows;
+
+            function renderTable() {
+                wardTableBody.innerHTML = '';
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
+                const paginatedRows = filteredRows.slice(start, end);
+
+                paginatedRows.forEach(row => wardTableBody.appendChild(row));
+
+                const totalFiltered = filteredRows.length;
+                const startEntry = totalFiltered > 0 ? start + 1 : 0;
+                const endEntry = itemsPerPage === -1 ? totalFiltered : Math.min(start + itemsPerPage, totalFiltered);
+
+                paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
             }
 
-            // Debounced search input handler
-            searchInput.addEventListener('input', function () {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(updateURL, 500);
-            });
+            function renderPagination() {
+                paginationLinks.innerHTML = '';
+                if (itemsPerPage === -1) return;
 
-            // Filter change handler
-            lgaFilter.addEventListener('change', updateURL);
+                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
 
-            // Handle checkbox selection
-            const masterCheckbox = document.querySelector('#kt_ward_table .form-check-input[data-kt-check="true"]');
-            const checkboxes = document.querySelectorAll('#kt_ward_table .form-check-input:not([data-kt-check="true"])');
-            const toolbarBase = document.querySelector('[data-kt-ward-table-toolbar="base"]');
-            const toolbarSelected = document.querySelector('[data-kt-ward-table-toolbar="selected"]');
-            const selectedCount = document.querySelector('[data-kt-ward-table-select="selected_count"]');
+                if (totalPages <= 1) return;
 
-            // Master checkbox handler
-            masterCheckbox.addEventListener('change', function () {
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = masterCheckbox.checked;
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                const prevA = document.createElement('a');
+                prevA.className = 'page-link';
+                prevA.href = '#';
+                prevA.textContent = 'Previous';
+                prevA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                        renderPagination();
+                    }
                 });
-                updateSelectedCount();
-            });
+                prevLi.appendChild(prevA);
+                paginationLinks.appendChild(prevLi);
 
-            // Individual checkbox handlers
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateSelectedCount);
-            });
-
-            // Update selected count and toolbar visibility
-            function updateSelectedCount() {
-                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-                selectedCount.textContent = checkedCount;
-                if (checkedCount > 0) {
-                    toolbarBase.classList.add('d-none');
-                    toolbarSelected.classList.remove('d-none');
-                } else {
-                    toolbarBase.classList.remove('d-none');
-                    toolbarSelected.classList.add('d-none');
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    const a = document.createElement('a');
+                    a.className = 'page-link';
+                    a.href = '#';
+                    a.textContent = i;
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = i;
+                        renderTable();
+                        renderPagination();
+                    });
+                    li.appendChild(a);
+                    paginationLinks.appendChild(li);
                 }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                const nextA = document.createElement('a');
+                nextA.className = 'page-link';
+                nextA.href = '#';
+                nextA.textContent = 'Next';
+                nextA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+                nextLi.appendChild(nextA);
+                paginationLinks.appendChild(nextLi);
             }
 
-            // Responsive adjustments
-            function adjustForScreenSize() {
-                const isMobile = window.innerWidth < 768;
-                
-                // Adjust table behavior for mobile
-                if (isMobile) {
-                    // On mobile, we might want to collapse some columns
-                    document.querySelectorAll('.table td.d-md-none').forEach(el => {
-                        el.classList.remove('d-md-none');
-                    });
-                    document.querySelectorAll('.table td.d-none.d-md-table-cell').forEach(el => {
-                        el.classList.add('d-none');
-                    });
-                } else {
-                    // On desktop, show all columns
-                    document.querySelectorAll('.table td.d-md-none').forEach(el => {
-                        el.classList.add('d-md-none');
-                    });
-                    document.querySelectorAll('.table td.d-none.d-md-table-cell').forEach(el => {
-                        el.classList.remove('d-none');
-                    });
-                }
+            function filterAndPaginate() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const lgaId = lgaFilter.value;
+
+                filteredRows = allRows.filter(row => {
+                    const wardName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const wardCode = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const rowLgaId = row.querySelector('td:nth-child(4)').dataset.lgaId;
+
+                    const nameMatch = wardName.includes(searchTerm);
+                    const codeMatch = wardCode.includes(searchTerm);
+                    const lgaMatch = !lgaId || rowLgaId === lgaId;
+
+                    return (nameMatch || codeMatch) && lgaMatch;
+                });
+
+                currentPage = 1;
+                renderTable();
+                renderPagination();
             }
 
-            // Run on load and resize
-            adjustForScreenSize();
-            window.addEventListener('resize', adjustForScreenSize);
+            searchInput.addEventListener('input', filterAndPaginate);
+            lgaFilter.addEventListener('change', filterAndPaginate);
+
+            itemsPerPageSelect.addEventListener('change', function () {
+                const value = this.value;
+                if (value === 'all') {
+                    itemsPerPage = -1;
+                } else {
+                    itemsPerPage = parseInt(value);
+                }
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+
+            // Initial render
+            filterAndPaginate();
         });
     </script>
     <style>

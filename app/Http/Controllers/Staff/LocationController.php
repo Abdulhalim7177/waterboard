@@ -57,9 +57,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('LGA Management');
 
-        $lgas = Lga::withCount(['staffs', 'customers'])->when($request->search_lga, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
-        })->paginate(10);
+        $lgas = Lga::withCount(['staffs', 'customers'])->get();
 
         return view('staff.locations.lgas', compact('lgas'));
     }
@@ -70,11 +68,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('Ward Management');
 
-        $wards = Ward::withCount(['staffs', 'customers'])->when($request->search_ward, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
-        })->when($request->lga_filter, function ($query, $lga_id) {
-            return $query->where('lga_id', $lga_id);
-        })->with('lga')->paginate(10);
+        $wards = Ward::withCount(['staffs', 'customers'])->with('lga')->get();
 
         return view('staff.locations.wards', compact('wards'));
     }
@@ -85,15 +79,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('Area Management');
 
-        $areas = Area::withCount(['staffs', 'customers'])->when($request->search_area, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%");
-        })->when($request->ward_filter, function ($query, $ward_id) {
-            return $query->where('ward_id', $ward_id);
-        })->when($request->lga_filter, function ($query, $lga_id) {
-            return $query->whereHas('ward', function ($q) use ($lga_id) {
-                $q->where('lga_id', $lga_id);
-            });
-        })->with('ward.lga')->paginate(10);
+        $areas = Area::withCount(['staffs', 'customers'])->with('ward.lga')->get();
 
         return view('staff.locations.areas', compact('areas'));
     }
@@ -121,7 +107,7 @@ class LocationController extends Controller
             return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
         })->when($request->zone_filter, function ($query, $zone_id) {
             return $query->where('zone_id', $zone_id);
-        })->with('zone')->paginate(10);
+        })->with(['zone', 'wards'])->paginate(10);
 
         return view('staff.locations.districts', compact('districts'));
     }
@@ -282,7 +268,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('District Management')->add('Manage Wards');
 
-        $wards = Ward::all(); // All available wards
+        $wards = Ward::whereNull('district_id')->get(); // All available wards
         $assignedWards = $district->wards; // Wards assigned to this district
 
         return view('staff.locations.manage_district_wards', compact('district', 'wards', 'assignedWards'));
