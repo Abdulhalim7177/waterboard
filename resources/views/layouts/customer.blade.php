@@ -215,6 +215,19 @@
                                     <span class="menu-title">Payments History</span>
                                 </a>
                             </div>
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link" href="{{ route('customer.tickets.index') }}">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-message-text-2 fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                    </span>
+                                    <span class="menu-title">Support Tickets</span>
+                                </a>
+                            </div>
                             <!--end:Menu item-->
 
                             <!--begin:Menu item-->

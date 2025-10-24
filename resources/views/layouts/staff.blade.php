@@ -266,6 +266,31 @@
                                 </div>
                             </div>
                             @endcan
+                            @can('manage-tickets', 'staff')
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                                <span class="menu-link">
+                                    <span class="menu-icon">
+                                        <i class="ki-duotone ki-message-text-2 fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                    </span>
+                                    <span class="menu-title">Ticket Management</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    <div class="menu-item">
+                                                                                <a class="menu-link" href="{{ route('staff.tickets.index') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">All Tickets</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            @endcan
                             @can('view-customers', 'staff')
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">

@@ -76,12 +76,12 @@
                                         <div class="menu-item px-3">
                                             <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_staff_view_modal{{ $member->id }}">View</a>
                                         </div>
-                                        @can('edit', $member)
+                                        @can('edit-staff')
                                             <div class="menu-item px-3">
                                                 <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_staff_edit_modal{{ $member->id }}">Edit</a>
                                             </div>
                                         @endcan
-                                        @can('delete', $member)
+                                        @can('delete-staff')
                                             <div class="menu-item px-3">
                                                 <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_staff_delete_modal{{ $member->id }}">Delete</a>
                                             </div>

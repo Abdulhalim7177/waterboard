@@ -29,4 +29,9 @@ class Ward extends Model
     {
         return $this->hasMany(Customer::class, 'ward_id');
     }
+
+    public function staffs()
+    {
+        return $this->hasMany(Staff::class);
+    }
 }

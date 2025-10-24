@@ -19,4 +19,9 @@ class Lga extends Model
     {
         return $this->hasMany(Customer::class);
     }
+
+    public function staffs()
+    {
+        return $this->hasMany(Staff::class);
+    }
 }

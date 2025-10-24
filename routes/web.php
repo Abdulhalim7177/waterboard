@@ -219,6 +219,14 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
 
 
+    // Ticket Management
+    Route::get('tickets', [\App\Http\Controllers\Staff\TicketController::class, 'index'])->name('tickets.index');
+    Route::get('tickets/my-tickets', [\App\Http\Controllers\Staff\TicketController::class, 'myTickets'])->name('tickets.my-tickets');
+    Route::get('tickets/{ticket}', [\App\Http\Controllers\Staff\TicketController::class, 'show'])->name('tickets.show');
+    Route::post('tickets/{ticket}/assign', [\App\Http\Controllers\Staff\TicketController::class, 'assign'])->name('tickets.assign');
+    Route::post('tickets/{ticket}/add-followup', [\App\Http\Controllers\Staff\TicketController::class, 'addFollowup'])->name('tickets.add-followup');
+    Route::post('tickets/{ticket}/update-status', [\App\Http\Controllers\Staff\TicketController::class, 'updateStatus'])->name('tickets.update-status');
+
     // Asset Management Routes
     Route::resource('assets', AssetController::class);
 
@@ -227,6 +235,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
+    Route::get('approvals', [\App\Http\Controllers\Staff\ApprovalsController::class, 'index'])->name('approvals.index');
 });
 
 
@@ -257,6 +266,12 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
     Route::get('/payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
     Route::get('/payments', [CustomerController::class, 'payments'])->name('customer.payments');
     Route::get('bills/{bill}/download-pdf', [BillController::class, 'downloadPdf'])->name('customer.bills.download-pdf');
+
+    Route::get('/tickets', [\App\Http\Controllers\TicketController::class, 'index'])->name('customer.tickets.index');
+    Route::get('/tickets/create', [\App\Http\Controllers\TicketController::class, 'create'])->name('customer.tickets.create');
+    Route::post('/tickets', [\App\Http\Controllers\TicketController::class, 'store'])->name('customer.tickets.store');
+    Route::get('/tickets/{ticket}', [\App\Http\Controllers\TicketController::class, 'show'])->name('customer.tickets.show');
+    Route::post('/tickets/{ticket}/refresh', [\App\Http\Controllers\RefreshTicketStatusController::class, 'refresh'])->name('customer.tickets.refresh');
 
     Route::post('/logout', [LoginController::class, 'customerLogout'])->name('customer.logout');
 });

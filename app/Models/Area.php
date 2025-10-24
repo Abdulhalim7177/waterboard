@@ -14,4 +14,14 @@ class Area extends Model
     {
         return $this->belongsTo(Ward::class);
     }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function staffs()
+    {
+        return $this->hasMany(Staff::class);
+    }
 }

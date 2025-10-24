@@ -57,7 +57,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('LGA Management');
 
-        $lgas = Lga::when($request->search_lga, function ($query, $search) {
+        $lgas = Lga::withCount(['staffs', 'customers'])->when($request->search_lga, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
         })->paginate(10);
 
@@ -70,7 +70,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('Ward Management');
 
-        $wards = Ward::when($request->search_ward, function ($query, $search) {
+        $wards = Ward::withCount(['staffs', 'customers'])->when($request->search_ward, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%");
         })->when($request->lga_filter, function ($query, $lga_id) {
             return $query->where('lga_id', $lga_id);
@@ -85,7 +85,7 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('Area Management');
 
-        $areas = Area::when($request->search_area, function ($query, $search) {
+        $areas = Area::withCount(['staffs', 'customers'])->when($request->search_area, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })->when($request->ward_filter, function ($query, $ward_id) {
             return $query->where('ward_id', $ward_id);
@@ -336,8 +336,9 @@ class LocationController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Location Management')->add('District Management')->add($district->name);
 
-        $staffs = $district->staffs()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
-        $customers = $district->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
+        $zone = $district->zone;
+        $staffs = $zone->staffs()->with(['lga', 'ward', 'area', 'zone', 'district', 'paypoint'])->get();
+        $customers = $zone->customers()->with(['lga', 'ward', 'area', 'category', 'tariff'])->get();
 
         return view('staff.locations.district_details', compact('district', 'staffs', 'customers'));
     }

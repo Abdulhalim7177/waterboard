@@ -75,8 +75,8 @@
                     @endphp
                     <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
                         <!--begin::Total Districts Card-->
-                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
-                            <div class="card card-flush h-md-50 mb-xl-10">
+                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
+                            <div class="card card-flush mb-xl-10">
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div class="me-2">
                                         <h6 class="text-gray-400 fw-semibold mb-1">Total Districts</h6>
@@ -98,8 +98,8 @@
                         <!--end::Total Districts Card-->
                         
                         <!--begin::Total Staff Card-->
-                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
-                            <div class="card card-flush h-md-50 mb-xl-10">
+                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
+                            <div class="card card-flush mb-xl-10">
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div class="me-2">
                                         <h6 class="text-gray-400 fw-semibold mb-1">Total Staff</h6>
@@ -122,8 +122,8 @@
                         <!--end::Total Staff Card-->
                         
                         <!--begin::Total Customers Card-->
-                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
-                            <div class="card card-flush h-md-50 mb-xl-10">
+                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
+                            <div class="card card-flush mb-xl-10">
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div class="me-2">
                                         <h6 class="text-gray-400 fw-semibold mb-1">Total Customers</h6>
@@ -145,8 +145,8 @@
                         <!--end::Total Customers Card-->
                         
                         <!--begin::Active Districts Card-->
-                        <div class="col-sm-6 col-xl-3 mb-5 mb-xl-10">
-                            <div class="card card-flush h-md-50 mb-xl-10">
+                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
+                            <div class="card card-flush mb-xl-10">
                                 <div class="card-body d-flex justify-content-between align-items-center">
                                     <div class="me-2">
                                         <h6 class="text-gray-400 fw-semibold mb-1">Active Districts</h6>
