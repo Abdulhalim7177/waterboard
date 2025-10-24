@@ -494,7 +494,12 @@ class VendorPaymentController extends Controller
             $query->where('amount', '<=', $request->max_amount);
         }
         
-        $vendorPayments = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->except('page'));
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $vendorPayments = $query->orderBy('created_at', 'desc')->get();
+        } else {
+            $vendorPayments = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
         
         // Get customers for filter dropdown
         $customers = $vendor->vendorPayments()
@@ -538,7 +543,12 @@ class VendorPaymentController extends Controller
             $query->where('amount', '<=', $request->max_amount);
         }
         
-        $vendorPayments = $query->paginate(10)->appends($request->except('page'));
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $vendorPayments = $query->orderBy('created_at', 'desc')->get();
+        } else {
+            $vendorPayments = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        }
         
         return view('vendor.payments.funding', compact('vendorPayments'));
     }

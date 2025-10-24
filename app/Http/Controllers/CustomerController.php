@@ -53,7 +53,7 @@ class CustomerController extends Controller
         return redirect()->route('customer.profile')->with('success', 'Profile updated');
     }
 
-    public function bills()
+    public function bills(Request $request)
     {
         $customer = Auth::guard('customer')->user();
         $query = $customer->bills()
@@ -69,14 +69,29 @@ class CustomerController extends Controller
             $query->where('billing_date', '<=', request('end_date'));
         }
 
-        $bills = $query->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        if ($perPage == 'all') {
+            $bills = $query->get();
+        } else {
+            $bills = $query->paginate($perPage);
+        }
+
         return view('customer.bills.index', compact('customer', 'bills'));
     }
 
-    public function payments()
+    public function payments(Request $request)
     {
         $customer = Auth::guard('customer')->user();
-        $payments = $customer->payments()->orderBy('payment_date', 'desc')->paginate(10);
+        $perPage = $request->input('per_page', 10);
+
+        $paymentsQuery = $customer->payments()->orderBy('payment_date', 'desc');
+
+        if ($perPage === 'all') {
+            $payments = $paymentsQuery->get();
+        } else {
+            $payments = $paymentsQuery->paginate($perPage);
+        }
+
         return view('customer.payments.index', compact('payments'));
     }
 

@@ -22,7 +22,7 @@
         <div class="card-header border-0 pt-7">
             <h3 class="card-title align-items-start flex-column">
                 <span class="card-label fw-bold text-dark">All Payment Transactions</span>
-                <span class="text-gray-400 mt-1 fw-semibold fs-6">Total {{ $payments->total() }} Payments</span>
+                <span class="text-gray-400 mt-1 fw-semibold fs-6">Total {{ $payments instanceof \Illuminate\Pagination\LengthAwarePaginator ? $payments->total() : $payments->count() }} Payments</span>
             </h3>
             <div class="card-toolbar">
                 <form method="GET" action="{{ route('staff.payments.index') }}" class="d-flex flex-stack flex-wrap gap-4">
@@ -160,6 +160,19 @@
             @if ($payments instanceof \Illuminate\Pagination\LengthAwarePaginator)
                 <div class="mt-3">
                     {{ $payments->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            @elseif ($payments instanceof \Illuminate\Database\Eloquent\Collection)
+                <div class="mt-3">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item disabled" aria-disabled="true">
+                                <span class="page-link">@lang('pagination.previous')</span>
+                            </li>
+                            <li class="page-item disabled" aria-disabled="true">
+                                <span class="page-link">@lang('pagination.next')</span>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             @endif
         </div>

@@ -49,6 +49,18 @@
                    
                     <div class="m-0">
                         <div class="fw-bold fs-3 text-gray-800 mb-8">My Payment Dashboard</div>
+                        <form action="{{ route('customer.bills') }}" method="GET" class="d-flex align-items-center">
+                            <div class="d-flex align-items-center fw-bold">
+                                <div class="text-muted fs-7 me-2">Show</div>
+                                <select name="per_page" class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" onchange="this.form.submit()">
+                                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                    <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                                </select>
+                            </div>
+                        </form>
                         <form method="GET" action="{{ route('customer.bills') }}" id="filter-form">
                             <div class="row g-5">
                                 <div class="col-md-4">
@@ -172,7 +184,20 @@
                             </div>
                         </div>
                         <div class="mt-4">
-                            {{ $bills->links('pagination::bootstrap-5')}} 
+                            @if ($bills instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                {{ $bills->links('pagination::bootstrap-5') }}
+                            @elseif ($bills instanceof \Illuminate\Database\Eloquent\Collection)
+                                <nav>
+                                    <ul class="pagination">
+                                        <li class="page-item disabled" aria-disabled="true">
+                                            <span class="page-link">@lang('pagination.previous')</span>
+                                        </li>
+                                        <li class="page-item disabled" aria-disabled="true">
+                                            <span class="page-link">@lang('pagination.next')</span>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            @endif
                         </div>
                     </div>
                 </div>

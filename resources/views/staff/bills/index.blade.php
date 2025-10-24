@@ -114,7 +114,7 @@
         <div class="card-header border-0 pt-7">
             <h3 class="card-title align-items-start flex-column">
                 <span class="card-label fw-bold text-dark">Manage Bills</span>
-                <span class="text-gray-400 mt-1 fw-semibold fs-6">Total {{ $bills->total() }} Bills</span>
+                <span class="text-gray-400 mt-1 fw-semibold fs-6">Total {{ $bills instanceof \Illuminate\Pagination\LengthAwarePaginator ? $bills->total() : $bills->count() }} Bills</span>
             </h3>
             <div class="card-toolbar">
                 <div class="d-flex flex-stack flex-wrap gap-4">
