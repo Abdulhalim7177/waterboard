@@ -596,21 +596,13 @@ class LocationController extends Controller
             'ward_id' => 'required|exists:wards,id'
         ]);
 
-        $area = Area::create([
+        Area::create([
             'name' => $request->name,
             'ward_id' => $request->ward_id,
             'status' => 'pending'
         ]);
 
-        // Always return JSON for this method since it's used by AJAX calls
-        return response()->json([
-            'area' => [
-                'id' => $area->id,
-                'name' => $area->name,
-                'ward_id' => $area->ward_id,
-            ],
-            'message' => 'Area creation request submitted for approval.'
-        ], 201);
+        return redirect()->route('staff.areas.index')->with('success', 'Area creation request submitted for approval.');
     }
 
     public function updateArea(Request $request, Area $area)

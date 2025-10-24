@@ -126,7 +126,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-ward-id="{{ $area->ward_id }}" data-lga-id="{{ $area->ward ? $area->ward->lga_id : '' }}">
                                         <div class="d-flex flex-column">
                                             <span class="text-gray-800 text-hover-primary mb-1">{{ $area->ward ? $area->ward->name : '—' }}</span>
                                         </div>
@@ -324,9 +324,7 @@
                         <div class="text-center py-10">
                             <div class="text-muted fs-3">No Areas found.</div>
                         </div>
-                    @endforelse
-                </div>
-                <nav aria-label="Page navigation">
+                    @endforelse                <nav aria-label="Page navigation">
                     <ul class="pagination justify-content-center">
                         @if ($areas->onFirstPage())
                             <li class="page-item disabled">
@@ -355,6 +353,7 @@
                         @endif
                     </ul>
                 </nav>
+
             </div>
         </div>
         <!-- Create Modal -->
@@ -403,27 +402,35 @@
             const searchInput = document.getElementById('search_area');
             const lgaFilter = document.getElementById('lga_filter');
             const wardFilter = document.getElementById('ward_filter');
-            let searchTimeout;
+            const areaTableBody = document.querySelector('#kt_area_table tbody');
+            const areaRows = Array.from(areaTableBody.querySelectorAll('tr'));
 
-            // Update URL for search and filters
+            // Client-side search
+            searchInput.addEventListener('input', function () {
+                const searchTerm = searchInput.value.toLowerCase();
+
+                areaRows.forEach(row => {
+                    const areaName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const nameMatch = areaName.includes(searchTerm);
+
+                    if (nameMatch) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Server-side filters for LGA and Ward
             function updateURL() {
-                const search = searchInput.value;
                 const lga = lgaFilter.value;
                 const ward = wardFilter.value;
                 const url = new URL('{{ route("staff.areas.index") }}');
-                if (search) url.searchParams.set('search_area', search);
                 if (lga) url.searchParams.set('lga_filter', lga);
                 if (ward) url.searchParams.set('ward_filter', ward);
                 window.location.href = url.toString();
             }
 
-            // Debounced search input handler
-            searchInput.addEventListener('input', function () {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(updateURL, 500);
-            });
-
-            // Filter change handlers
             lgaFilter.addEventListener('change', updateURL);
             wardFilter.addEventListener('change', updateURL);
 
