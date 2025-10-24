@@ -92,47 +92,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-xl-4 mb-5 mb-xl-10">
-                        <div class="card card-flush h-md-50 mb-xl-10">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div class="me-2">
-                                    <h6 class="text-gray-400 fw-semibold mb-1">Total Staff</h6>
-                                    <div class="d-flex flex-column">
-                                        <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $areas->sum('staffs_count') }}</span>
-                                    </div>
-                                </div>
-                                <div class="symbol symbol-60px">
-                                    <div class="symbol-label bg-light-info">
-                                        <i class="ki-duotone ki-people fs-1 text-info">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                            <span class="path3"></span>
-                                        </i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-xl-4 mb-5 mb-xl-10">
-                        <div class="card card-flush h-md-50 mb-xl-10">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div class="me-2">
-                                    <h6 class="text-gray-400 fw-semibold mb-1">Total Customers</h6>
-                                    <div class="d-flex flex-column">
-                                        <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $areas->sum('customers_count') }}</span>
-                                    </div>
-                                </div>
-                                <div class="symbol symbol-60px">
-                                    <div class="symbol-label bg-light-success">
-                                        <i class="ki-duotone ki-user fs-1 text-success">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                        </i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <!--end::Summary Widgets-->
 
@@ -234,7 +193,8 @@
                                                 Name: {{ $area->name }}<br>
                                                 Ward: {{ $area->ward ? $area->ward->name : '—' }}<br>
                                                 LGA: {{ ($area->ward && $area->ward->lga) ? $area->ward->lga->name : '—' }}<br>
-                                                Status: {{ ucfirst(str_replace('_', ' ', $area->status)) }}
+                                                Status: {{ ucfirst(str_replace('_', ' ', $area->status)) }}<br>
+                                                Customers: {{ $area->customers_count }}
                                             </div>
                                         </div>
                                     </div>
