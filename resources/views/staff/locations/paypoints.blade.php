@@ -36,12 +36,10 @@
                 <div class="card-body py-4">
                     <!--begin::Summary Widgets-->
                     @php
-                        // Calculate total staff and customers for all paypoints
+                        // Calculate total staff for all paypoints
                         $totalStaffCount = 0;
-                        $totalCustomerCount = 0;
                         foreach($paypoints as $paypoint) {
                             $totalStaffCount += $paypoint->staff()->count();
-                            $totalCustomerCount += $paypoint->customers()->count();
                         }
                     @endphp
                     <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
@@ -92,28 +90,7 @@
                         </div>
                         <!--end::Total Staff Card-->
                         
-                        <!--begin::Total Customers Card-->
-                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
-                            <div class="card card-flush mb-xl-10">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="me-2">
-                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Customers</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $totalCustomerCount }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="symbol symbol-60px">
-                                        <div class="symbol-label bg-light-success">
-                                            <i class="ki-duotone ki-user fs-1 text-success">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Total Customers Card-->
+
                         
                         <!--begin::Active Paypoints Card-->
                         <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
