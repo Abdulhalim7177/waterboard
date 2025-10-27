@@ -24,6 +24,11 @@ class Vendor extends Authenticatable
         'password',
         'approved',
         'account_balance',
+        'street_name',
+        'area_id',
+        'ward_id',
+        'lga_id',
+        'vendor_code',
     ];
 
     /**

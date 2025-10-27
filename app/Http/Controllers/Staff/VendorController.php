@@ -33,7 +33,11 @@ class VendorController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Create Vendor');
 
-        return view('staff.vendors.create');
+        $lgas = \App\Models\Lga::all();
+        $wards = \App\Models\Ward::all();
+        $areas = \App\Models\Area::all();
+
+        return view('staff.vendors.create', compact('lgas', 'wards', 'areas'));
     }
 
     /**
@@ -45,6 +49,11 @@ class VendorController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:vendors',
             'password' => 'required|string|min:8|confirmed',
+            'street_name' => 'required|string|max:255',
+            'vendor_code' => 'required|string|max:255|unique:vendors',
+            'lga_id' => 'required|exists:lgas,id',
+            'ward_id' => 'required|exists:wards,id',
+            'area_id' => 'required|exists:areas,id',
         ]);
 
         if ($validator->fails()) {
@@ -55,6 +64,11 @@ class VendorController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'street_name' => $request->street_name,
+            'vendor_code' => $request->vendor_code,
+            'lga_id' => $request->lga_id,
+            'ward_id' => $request->ward_id,
+            'area_id' => $request->area_id,
             'approved' => true, // Auto-approve vendors created by staff
         ]);
 
@@ -82,7 +96,11 @@ class VendorController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Edit Vendor');
 
-        return view('staff.vendors.edit', compact('vendor'));
+        $lgas = \App\Models\Lga::all();
+        $wards = \App\Models\Ward::all();
+        $areas = \App\Models\Area::all();
+
+        return view('staff.vendors.edit', compact('vendor', 'lgas', 'wards', 'areas'));
     }
 
     /**
@@ -93,6 +111,11 @@ class VendorController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:vendors,email,' . $vendor->id,
+            'street_name' => 'required|string|max:255',
+            'vendor_code' => 'required|string|max:255|unique:vendors,vendor_code,' . $vendor->id,
+            'lga_id' => 'required|exists:lgas,id',
+            'ward_id' => 'required|exists:wards,id',
+            'area_id' => 'required|exists:areas,id',
         ]);
 
         if ($validator->fails()) {
@@ -102,6 +125,11 @@ class VendorController extends Controller
         $vendor->update([
             'name' => $request->name,
             'email' => $request->email,
+            'street_name' => $request->street_name,
+            'vendor_code' => $request->vendor_code,
+            'lga_id' => $request->lga_id,
+            'ward_id' => $request->ward_id,
+            'area_id' => $request->area_id,
         ]);
 
         // Update password if provided

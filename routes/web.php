@@ -113,7 +113,9 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::get('/filter-areas', [LocationController::class, 'filterAreas'])->name('filter.areas');
     Route::get('/filter-districts', [LocationController::class, 'filterDistricts'])->name('filter.districts');
 
-
+    // AJAX endpoints for dynamic loading of wards and areas
+    Route::get('/get-wards/{lga}', [LocationController::class, 'getWardsByLga'])->name('get.wards');
+    Route::get('/get-areas/{ward}', [LocationController::class, 'getAreasByWard'])->name('get.areas');
 
     // Category Management
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');

@@ -647,4 +647,16 @@ class LocationController extends Controller
 
         return redirect()->route('staff.areas.index')->with('error', 'Area request rejected.');
     }
+
+    public function getWardsByLga(Lga $lga)
+    {
+        $wards = $lga->wards()->pluck('name', 'id');
+        return response()->json($wards);
+    }
+
+    public function getAreasByWard(Ward $ward)
+    {
+        $areas = $ward->areas()->pluck('name', 'id');
+        return response()->json($areas);
+    }
 }

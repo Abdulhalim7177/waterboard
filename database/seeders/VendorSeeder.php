@@ -6,6 +6,9 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Vendor;
+use App\Models\Lga;
+use App\Models\Ward;
+use App\Models\Area;
 
 class VendorSeeder extends Seeder
 {
@@ -21,6 +24,11 @@ class VendorSeeder extends Seeder
                 'name' => 'Test Vendor',
                 'password' => Hash::make('password'),
                 'approved' => true,
+                'street_name' => '123 Main St',
+                'vendor_code' => 'VC1234567890',
+                'lga_id' => Lga::inRandomOrder()->first()->id,
+                'ward_id' => Ward::inRandomOrder()->first()->id,
+                'area_id' => Area::inRandomOrder()->first()->id,
             ]
         );
 
@@ -31,6 +39,11 @@ class VendorSeeder extends Seeder
                 'name' => 'Demo Vendor',
                 'password' => Hash::make('password'),
                 'approved' => true,
+                'street_name' => '456 Oak Ave',
+                'vendor_code' => 'VC0987654321',
+                'lga_id' => Lga::inRandomOrder()->first()->id,
+                'ward_id' => Ward::inRandomOrder()->first()->id,
+                'area_id' => Area::inRandomOrder()->first()->id,
             ]
         );
     }

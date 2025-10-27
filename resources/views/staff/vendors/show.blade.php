@@ -41,6 +41,26 @@
                             <td>{{ $vendor->email }}</td>
                         </tr>
                         <tr>
+                            <th>Street Name</th>
+                            <td>{{ $vendor->street_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Vendor Code</th>
+                            <td>{{ $vendor->vendor_code }}</td>
+                        </tr>
+                        <tr>
+                            <th>LGA</th>
+                            <td>{{ $vendor->lga->name ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Ward</th>
+                            <td>{{ $vendor->ward->name ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Area</th>
+                            <td>{{ $vendor->area->name ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
                             <th>Status</th>
                             <td>
                                 @if($vendor->approved)

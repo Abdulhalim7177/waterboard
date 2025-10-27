@@ -26,6 +26,10 @@
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Email</th>
+                                        <th>Vendor Code</th>
+                                        <th>LGA</th>
+                                        <th>Ward</th>
+                                        <th>Area</th>
                                         <th>Status</th>
                                         <th>Created At</th>
                                         <th>Actions</th>
@@ -37,6 +41,10 @@
                                             <td>{{ $vendor->id }}</td>
                                             <td>{{ $vendor->name }}</td>
                                             <td>{{ $vendor->email }}</td>
+                                            <td>{{ $vendor->vendor_code }}</td>
+                                            <td>{{ $vendor->lga->name ?? 'N/A' }}</td>
+                                            <td>{{ $vendor->ward->name ?? 'N/A' }}</td>
+                                            <td>{{ $vendor->area->name ?? 'N/A' }}</td>
                                             <td>
                                                 @if($vendor->approved)
                                                     <span class="badge bg-success">Approved</span>
