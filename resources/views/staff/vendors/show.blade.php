@@ -27,7 +27,8 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <div class="table-responsive">
+                    <table class="table table-striped">
                         <tr>
                             <th>ID</th>
                             <td>{{ $vendor->id }}</td>
@@ -79,6 +80,7 @@
                             <td>{{ $vendor->updated_at->format('Y-m-d H:i') }}</td>
                         </tr>
                     </table>
+                </div>
                 </div>
             </div>
             

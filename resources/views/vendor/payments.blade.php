@@ -16,7 +16,7 @@
     <div class="card-body py-3">
         @if (isset($payments) && $payments->count() > 0)
             <div class="table-responsive">
-                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 table-auto table-striped">
                     <thead>
                         <tr class="fw-bold text-muted">
                             <th class="min-w-150px">Date</th>
