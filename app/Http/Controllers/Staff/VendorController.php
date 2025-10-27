@@ -34,8 +34,8 @@ class VendorController extends Controller
         $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Create Vendor');
 
         $lgas = \App\Models\Lga::all();
-        $wards = \App\Models\Ward::all();
-        $areas = \App\Models\Area::all();
+        $wards = \App\Models\Ward::where('status', 'approved')->get();
+        $areas = \App\Models\Area::where('status', 'approved')->get();
 
         return view('staff.vendors.create', compact('lgas', 'wards', 'areas'));
     }
@@ -97,8 +97,9 @@ class VendorController extends Controller
         $breadcrumb->addHome()->add('Vendor Management', route('staff.vendors.index'))->add('Edit Vendor');
 
         $lgas = \App\Models\Lga::all();
-        $wards = \App\Models\Ward::all();
-        $areas = \App\Models\Area::all();
+        $wards = $vendor->lga->wards;
+        $areas = $vendor->ward->areas;
+
 
         return view('staff.vendors.edit', compact('vendor', 'lgas', 'wards', 'areas'));
     }

@@ -97,79 +97,86 @@
 
 @section('scripts')
 <script>
-    // Define URLs using Laravel route helper
-    var getWardsUrl = '{{ route("staff.get.wards", ["lga" => ":id"]) }}';
-    var getAreasUrl = '{{ route("staff.get.areas", ["ward" => ":id"]) }}';
-    
-    $(document).ready(function() {
-        function loadWards(lgaId, selectedWardId) {
-            if (lgaId) {
-                $.ajax({
-                    url: getWardsUrl.replace(':id', lgaId),
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        $('#ward_id').empty();
-                        $('#ward_id').append('<option value="">Select Ward</option>');
-                        $.each(data, function(key, value) {
-                            $('#ward_id').append('<option value="' + key + '"' + (key == selectedWardId ? ' selected' : '') + '>' + value + '</option>');
-                        });
-                        $('#ward_id').trigger('change'); // Trigger change to load areas
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error loading wards:', error);
-                        alert('Error loading wards. Please try again.');
+    // Store all ward and area data for client-side filtering
+    const allWards = @json($wards->toArray());
+    const allAreas = @json($areas->toArray());
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const lgaSelect = document.getElementById('lga_id');
+        const wardSelect = document.getElementById('ward_id');
+        const areaSelect = document.getElementById('area_id');
+
+        function filterWards() {
+            const selectedLgaId = lgaSelect.value;
+            const currentWardId = '{{ old('ward_id', $vendor->ward_id) }}';
+            wardSelect.innerHTML = '<option value="">Select Ward</option>';
+
+            if (selectedLgaId) {
+                allWards.forEach(ward => {
+                    if (ward.lga_id == selectedLgaId) {
+                        const option = document.createElement('option');
+                        option.value = ward.id;
+                        option.textContent = ward.name;
+                        wardSelect.appendChild(option);
                     }
                 });
-            } else {
-                $('#ward_id').empty();
-                $('#ward_id').append('<option value="">Select Ward</option>');
-                $('#area_id').empty();
-                $('#area_id').append('<option value="">Select Area</option>');
+
+                // Set selected value if it's in old input or the vendor's existing ward
+                if (currentWardId && allWards.some(w => w.id == currentWardId && w.lga_id == selectedLgaId)) {
+                    wardSelect.value = currentWardId;
+                }
+            }
+
+            // Clear areas when LGA changes
+            areaSelect.innerHTML = '<option value="">Select Area</option>';
+        }
+
+        function filterAreas() {
+            const selectedWardId = wardSelect.value;
+            const currentAreaId = '{{ old('area_id', $vendor->area_id) }}';
+            areaSelect.innerHTML = '<option value="">Select Area</option>';
+
+            if (selectedWardId) {
+                allAreas.forEach(area => {
+                    if (area.ward_id == selectedWardId) {
+                        const option = document.createElement('option');
+                        option.value = area.id;
+                        option.textContent = area.name;
+                        areaSelect.appendChild(option);
+                    }
+                });
+
+                // Set selected value if it's in old input or the vendor's existing area
+                if (currentAreaId && allAreas.some(a => a.id == currentAreaId && a.ward_id == selectedWardId)) {
+                    areaSelect.value = currentAreaId;
+                }
             }
         }
 
-        function loadAreas(wardId, selectedAreaId) {
-            if (wardId) {
-                $.ajax({
-                    url: getAreasUrl.replace(':id', wardId),
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        $('#area_id').empty();
-                        $('#area_id').append('<option value="">Select Area</option>');
-                        $.each(data, function(key, value) {
-                            $('#area_id').append('<option value="' + key + '"' + (key == selectedAreaId ? ' selected' : '') + '>' + value + '</option>');
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error loading areas:', error);
-                        alert('Error loading areas. Please try again.');
-                    }
-                });
-            } else {
-                $('#area_id').empty();
-                $('#area_id').append('<option value="">Select Area</option>');
+        lgaSelect.addEventListener('change', function() {
+            wardSelect.value = '';
+            areaSelect.value = '';
+            filterWards();
+        });
+
+        wardSelect.addEventListener('change', function() {
+            areaSelect.value = '';
+            filterAreas();
+        });
+
+        // Get initial values
+        const initialWardId = '{{ old('ward_id', $vendor->ward_id) }}';
+        const initialAreaId = '{{ old('area_id', $vendor->area_id) }}';
+
+        // Initialize filtering on page load
+        filterWards();
+        if (initialWardId) {
+            wardSelect.value = initialWardId;
+            filterAreas();
+            if (initialAreaId) {
+                areaSelect.value = initialAreaId;
             }
         }
-
-        // Initial load for wards and areas if LGA and Ward are already selected
-        var initialLgaId = $('#lga_id').val();
-        var initialWardId = '{{ old('ward_id', $vendor->ward_id) }}';
-        var initialAreaId = '{{ old('area_id', $vendor->area_id) }}';
-
-        if (initialLgaId) {
-            loadWards(initialLgaId, initialWardId);
-        }
-
-        // Event listeners
-        $('#lga_id').change(function() {
-            loadWards($(this).val(), null);
-        });
-
-        $('#ward_id').change(function() {
-            loadAreas($(this).val(), null);
-        });
     });
 </script>
 @endsection

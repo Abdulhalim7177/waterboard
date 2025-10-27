@@ -150,7 +150,7 @@ class LocationController extends Controller
                 ];
             });
 
-        return response()->json(['wards' => $wards]);
+        return response()->json($wards);
     }
 
     public function filterAreas(Request $request)
@@ -177,7 +177,7 @@ class LocationController extends Controller
                 ];
             });
 
-        return response()->json(['areas' => $areas]);
+        return response()->json($areas);
     }
 
     public function storeZone(Request $request)
