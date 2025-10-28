@@ -43,7 +43,18 @@ class Asset
             return $value !== null;
         });
 
-        return $dolibarrService->createAsset($assetData);
+        $response = $dolibarrService->createAsset($assetData);
+
+        if ($response && isset($response['id'])) {
+            $categoryName = 'reservoir'; // Hardcoded for now
+            $category = $dolibarrService->getCategoryByName($categoryName);
+            
+            if ($category && isset($category['id'])) {
+                $dolibarrService->linkProductToCategory($response['id'], $category['id']);
+            }
+        }
+
+        return $response;
     }
 
     /**

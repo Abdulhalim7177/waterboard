@@ -18,6 +18,7 @@ use App\Http\Controllers\Staff\LocationController;
 use App\Http\Controllers\Staff\AnalyticsController;
 
 use App\Http\Controllers\Staff\CustomerCreationController;
+use App\Http\Controllers\Web\Staff\ReservoirController;
 use App\Http\Controllers\Staff\VendorController as StaffVendorController;
 
 Route::get('/', function () {
@@ -219,8 +220,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
     });
 
-
-
     // Ticket Management
     Route::get('tickets', [\App\Http\Controllers\Staff\TicketController::class, 'index'])->name('tickets.index');
     Route::get('tickets/my-tickets', [\App\Http\Controllers\Staff\TicketController::class, 'myTickets'])->name('tickets.my-tickets');
@@ -234,6 +233,9 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     // Warehouse Management Routes
     Route::resource('warehouses', \App\Http\Controllers\Staff\WarehouseController::class);
+
+    // Reservoir Management Routes
+    Route::resource('reservoirs', ReservoirController::class);
 
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');

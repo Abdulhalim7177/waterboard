@@ -234,4 +234,24 @@ class DolibarrService
     {
         return $this->makeRequest('DELETE', "/warehouses/{$id}");
     }
+
+    public function getCategoryByName($name)
+    {
+        $params = [
+            'sqlfilters' => "(t.label:like:'%{$name}%')"
+        ];
+        
+        $categories = $this->makeRequest('GET', '/categories', $params);
+        
+        if ($categories && count($categories) > 0) {
+            return $categories[0]; // Assuming the first result is the correct one
+        }
+        
+        return null;
+    }
+
+    public function linkProductToCategory($productId, $categoryId)
+    {
+        return $this->makeRequest('POST', "/categories/{$categoryId}/products/{$productId}");
+    }
 }

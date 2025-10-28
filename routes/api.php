@@ -49,6 +49,8 @@ Route::prefix('v1/vendor')->name('api.vendor.')->group(function () {
     });
 });
 
+use App\Http\Controllers\Api\ReservoirController;
+
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::prefix('customers')->name('api.customers.')->group(function () {
         Route::get('/', [CustomerController::class, 'index'])->name('index');
@@ -65,4 +67,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('/pending/{update}/approve', [CustomerController::class, 'approvePending'])->name('pending.approve')->middleware('admin');
         Route::post('/pending/{update}/reject', [CustomerController::class, 'rejectPending'])->name('pending.reject')->middleware('admin');
     });
+
+    Route::apiResource('reservoirs', ReservoirController::class);
 });
