@@ -21,14 +21,20 @@ class AssetController extends Controller
     public function index(Request $request)
     {
         $allAssets = Asset::getAllFromDolibarr($this->dolibarrService);
+
+        // Filter out reservoirs
+        $assets = array_filter($allAssets, function ($asset) {
+            return !isset($asset['array_options']['options_tanks']) && !isset($asset['array_options']['options_capacity']);
+        });
+
         $perPage = 15;
         $currentPage = $request->input('page', 1);
         $offset = ($currentPage - 1) * $perPage;
-        $slicedAssets = array_slice($allAssets, $offset, $perPage);
+        $slicedAssets = array_slice($assets, $offset, $perPage);
 
         $assets = new \Illuminate\Pagination\LengthAwarePaginator(
             $slicedAssets,
-            count($allAssets),
+            count($assets),
             $perPage,
             $currentPage,
             ['path' => $request->url(), 'query' => $request->query()]
@@ -123,6 +129,9 @@ class AssetController extends Controller
     public function show($id)
     {
         $asset = Asset::getFromDolibarr($id, $this->dolibarrService);
+        if ($asset === false) {
+            return redirect()->route('staff.assets.index')->with('error', 'Failed to fetch asset from Dolibarr. Please check the logs.');
+        }
         return view('staff.assets.show', compact('asset'));
     }
 

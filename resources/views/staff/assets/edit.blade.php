@@ -1,171 +1,80 @@
-@extends('layouts.staff')
+
+@extends('layouts.app')
 
 @section('content')
-    <!--begin::Container-->
-    <div class="container-xxl">
-        <!--begin::Card-->
-        <div class="card">
-            <!--begin::Card header-->
-            <div class="card-header border-0">
-                <!--begin::Card title-->
-                <div class="card-title">
-                    <h2 class="mb-0">Edit Asset</h2>
-                </div>
-                <!--end::Card title-->
-                <!--begin::Card toolbar-->
-                <div class="card-toolbar">
-                    <a href="{{ route('staff.assets.index') }}" class="btn btn-light-primary">Back to Assets</a>
-                </div>
-                <!--end::Card toolbar-->
+    <div class="container">
+        <h1>Edit Asset</h1>
+        <form action="{{ route('staff.assets.update', $asset['id']) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="name" class="form-control" value="{{ $asset['label'] }}" required>
             </div>
-            <!--end::Card header-->
-            <!--begin::Card body-->
-            <div class="card-body pt-0">
-                <form action="{{ route('staff.assets.update', $asset['id']) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    
-                    <!--begin::Input group-->
-                    <div class="row">
-                        <div class="col-md-6 mb-6">
-                            <label for="name" class="form-label required">Asset Name</label>
-                            <input type="text" class="form-control form-control-solid @error('name') is-invalid @enderror" 
-                                   id="name" name="name" value="{{ old('name', $asset['label'] ?? $asset['name'] ?? '') }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-6">
-                            <label for="category" class="form-label">Category</label>
-                            <input type="text" class="form-control form-control-solid @error('category') is-invalid @enderror" 
-                                   id="category" name="category" value="{{ old('category', $asset['category'] ?? '') }}">
-                            @error('category')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Input group-->
-                    <div class="row">
-                        <div class="col-md-6 mb-6">
-                            <label for="type" class="form-label">Type</label>
-                            <select class="form-select form-select-solid @error('type') is-invalid @enderror" 
-                                    id="type" name="type">
-                                <option value="">Select Asset Type</option>
-                                <option value="product" {{ old('type', $asset['type'] ?? '') == 'product' ? 'selected' : '' }}>Product</option>
-                                <option value="service" {{ old('type', $asset['type'] ?? '') == 'service' ? 'selected' : '' }}>Service</option>
-                                <option value="equipment" {{ old('type', $asset['type'] ?? '') == 'equipment' ? 'selected' : '' }}>Equipment</option>
-                                <option value="infrastructure" {{ old('type', $asset['type'] ?? '') == 'infrastructure' ? 'selected' : '' }}>Infrastructure</option>
-                                <option value="vehicle" {{ old('type', $asset['type'] ?? '') == 'vehicle' ? 'selected' : '' }}>Vehicle</option>
-                                <option value="tool" {{ old('type', $asset['type'] ?? '') == 'tool' ? 'selected' : '' }}>Tool</option>
-                                <option value="other" {{ old('type', $asset['type'] ?? '') == 'other' ? 'selected' : '' }}>Other</option>
-                            </select>
-                            @error('type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-6">
-                            <label for="serial_number" class="form-label">Serial Number</label>
-                            <input type="text" class="form-control form-control-solid @error('serial_number') is-invalid @enderror" 
-                                   id="serial_number" name="serial_number" value="{{ old('serial_number', $asset['ref'] ?? $asset['serial_number'] ?? '') }}">
-                            @error('serial_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Input group-->
-                    <div class="row">
-                        <div class="col-md-6 mb-6">
-                            <label for="model" class="form-label">Model</label>
-                            <input type="text" class="form-control form-control-solid @error('model') is-invalid @enderror" 
-                                   id="model" name="model" value="{{ old('model', $asset['model'] ?? '') }}">
-                            @error('model')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-6">
-                            <label for="brand" class="form-label">Brand</label>
-                            <input type="text" class="form-control form-control-solid @error('brand') is-invalid @enderror" 
-                                   id="brand" name="brand" value="{{ old('brand', $asset['brand'] ?? '') }}">
-                            @error('brand')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Input group-->
-                    <div class="row">
-                        <div class="col-md-6 mb-6">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control form-control-solid @error('location') is-invalid @enderror" 
-                                   id="location" name="location" value="{{ old('location', $asset['location'] ?? '') }}">
-                            @error('location')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-6">
-                            <label for="warehouse_id" class="form-label">Warehouse</label>
-                            <select class="form-select form-select-solid @error('warehouse_id') is-invalid @enderror" 
-                                    id="warehouse_id" name="warehouse_id" required>
-                                <option value="">Select Warehouse</option>
-                                @foreach($warehouses as $warehouse)
-                                    <option value="{{ $warehouse['id'] }}" {{ old('warehouse_id', $asset['warehouse_id'] ?? '') == $warehouse['id'] ? 'selected' : '' }}>{{ $warehouse['label'] }}</option>
-                                @endforeach
-                            </select>
-                            @error('warehouse_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Input group-->
-                    <div class="row">
-                        <div class="col-md-6 mb-6">
-                            <label for="purchase_date" class="form-label">Purchase Date</label>
-                            <input type="date" class="form-control form-control-solid @error('purchase_date') is-invalid @enderror" 
-                                   id="purchase_date" name="purchase_date" value="{{ old('purchase_date', $asset['purchase_date'] ? date('Y-m-d', strtotime($asset['purchase_date'])) : '') }}">
-                            @error('purchase_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-6">
-                            <label for="purchase_price" class="form-label">Purchase Price (₦)</label>
-                            <input type="number" step="0.01" class="form-control form-control-solid @error('purchase_price') is-invalid @enderror" 
-                                   id="purchase_price" name="purchase_price" value="{{ old('purchase_price', $asset['price'] ?? '') }}">
-                            @error('purchase_price')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Input group-->
-                    <div class="mb-6">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control form-control-solid @error('description') is-invalid @enderror" 
-                                  id="description" name="description" rows="4">{{ old('description', $asset['description'] ?? '') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <!--end::Input group-->
-                    
-                    <!--begin::Actions-->
-                    <div class="d-flex justify-content-end">
-                        <a href="{{ route('staff.assets.index') }}" class="btn btn-light me-3">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Update Asset</button>
-                    </div>
-                    <!--end::Actions-->
-                </form>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" class="form-control">{{ $asset['description'] }}</textarea>
             </div>
-            <!--end::Card body-->
-        </div>
-        <!--end::Card-->
+            <div class="form-group">
+                <label for="serial_number">Serial Number</label>
+                <input type="text" name="serial_number" class="form-control" value="{{ $asset['ref'] }}">
+            </div>
+            <div class="form-group">
+                <label for="purchase_price">Purchase Price</label>
+                <input type="number" name="purchase_price" class="form-control" value="{{ $asset['price'] }}">
+            </div>
+            <div class="form-group">
+                <label for="purchase_date">Purchase Date</label>
+                <input type="date" name="purchase_date" class="form-control" value="{{ isset($asset['date_purchase']) ? date('Y-m-d', $asset['date_purchase']) : '' }}">
+            </div>
+            <div class="form-group">
+                <label for="warehouse_id">Warehouse</label>
+                <select name="warehouse_id" class="form-control" required>
+                    @foreach ($warehouses as $warehouse)
+                        <option value="{{ $warehouse['id'] }}" {{ $asset['warehouse_id'] == $warehouse['id'] ? 'selected' : '' }}>
+                            {{ $warehouse['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input type="text" name="category" class="form-control" value="{{ $asset['array_options']['options_category'] ?? '' }}">
+            </div>
+            <div class="form-group">
+                <label for="type">Type</label>
+                <select name="type" class="form-control">
+                    <option value="product" {{ ($asset['array_options']['options_type'] ?? '') == 'product' ? 'selected' : '' }}>Product</option>
+                    <option value="service" {{ ($asset['array_options']['options_type'] ?? '') == 'service' ? 'selected' : '' }}>Service</option>
+                    <option value="equipment" {{ ($asset['array_options']['options_type'] ?? '') == 'equipment' ? 'selected' : '' }}>Equipment</option>
+                    <option value="infrastructure" {{ ($asset['array_options']['options_type'] ?? '') == 'infrastructure' ? 'selected' : '' }}>Infrastructure</option>
+                    <option value="vehicle" {{ ($asset['array_options']['options_type'] ?? '') == 'vehicle' ? 'selected' : '' }}>Vehicle</option>
+                    <option value="tool" {{ ($asset['array_options']['options_type'] ?? '') == 'tool' ? 'selected' : '' }}>Tool</option>
+                    <option value="other" {{ ($asset['array_options']['options_type'] ?? '') == 'other' ? 'selected' : '' }}>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="model">Model</label>
+                <input type="text" name="model" class="form-control" value="{{ $asset['array_options']['options_model'] ?? '' }}">
+            </div>
+            <div class="form-group">
+                <label for="brand">Brand</label>
+                <input type="text" name="brand" class="form-control" value="{{ $asset['array_options']['options_brand'] ?? '' }}">
+            </div>
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ $asset['array_options']['options_location'] ?? '' }}">
+            </div>
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select name="status" class="form-control">
+                    <option value="active" {{ ($asset['array_options']['options_status'] ?? '') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="maintenance" {{ ($asset['array_options']['options_status'] ?? '') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                    <option value="retired" {{ ($asset['array_options']['options_status'] ?? '') == 'retired' ? 'selected' : '' }}>Retired</option>
+                    <option value="damaged" {{ ($asset['array_options']['options_status'] ?? '') == 'damaged' ? 'selected' : '' }}>Damaged</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
     </div>
-    <!--end::Container-->
 @endsection

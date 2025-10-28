@@ -21,6 +21,15 @@ class Asset
             'damaged' => 0,
         ];
 
+        $extrafields = [
+            'options_model' => $data['model'] ?? null,
+            'options_brand' => $data['brand'] ?? null,
+            'options_location' => $data['location'] ?? null,
+            'options_category' => $data['category'] ?? null,
+            'options_type' => $data['type'] ?? null,
+            'options_status' => $data['status'] ?? null,
+        ];
+
         $assetData = [
             'ref' => $data['serial_number'] ?? 'ASSET-' . time(),
             'label' => $data['name'],
@@ -29,13 +38,8 @@ class Asset
             'price' => $data['purchase_price'] ?? 0,
             'price_ttc' => $data['purchase_price'] ?? 0,
             'date_purchase' => isset($data['purchase_date']) ? strtotime($data['purchase_date']) : null,
-            'statut' => isset($data['status']) ? $statusMapping[$data['status']] : 1,
+            'status' => isset($data['status']) ? $statusMapping[$data['status']] : 1,
             'warehouse_id' => $data['warehouse_id'],
-            'array_options' => [
-                'options_model' => $data['model'] ?? null,
-                'options_brand' => $data['brand'] ?? null,
-                'options_location' => $data['location'] ?? null,
-            ],
         ];
 
         // Remove null values
@@ -43,10 +47,14 @@ class Asset
             return $value !== null;
         });
 
-        $response = $dolibarrService->createAsset($assetData);
+        $extrafields = array_filter($extrafields, function($value) {
+            return $value !== null;
+        });
+
+        $response = $dolibarrService->createAsset($assetData, $extrafields);
 
         if ($response && isset($response['id'])) {
-            $categoryName = 'reservoir'; // Hardcoded for now
+            $categoryName = $data['category'] ?? 'default'; // Use category from form or a default
             $category = $dolibarrService->getCategoryByName($categoryName);
             
             if ($category && isset($category['id'])) {
@@ -85,6 +93,15 @@ class Asset
             'damaged' => 0,
         ];
 
+        $extrafields = [
+            'options_model' => $data['model'] ?? null,
+            'options_brand' => $data['brand'] ?? null,
+            'options_location' => $data['location'] ?? null,
+            'options_category' => $data['category'] ?? null,
+            'options_type' => $data['type'] ?? null,
+            'options_status' => $data['status'] ?? null,
+        ];
+
         $assetData = [
             'label' => $data['name'],
             'description' => $data['description'] ?? null,
@@ -92,13 +109,8 @@ class Asset
             'price' => $data['purchase_price'] ?? null,
             'price_ttc' => $data['purchase_price'] ?? null,
             'date_purchase' => isset($data['purchase_date']) ? strtotime($data['purchase_date']) : null,
-            'statut' => isset($data['status']) ? $statusMapping[$data['status']] : null,
+            'status' => isset($data['status']) ? $statusMapping[$data['status']] : null,
             'warehouse_id' => $data['warehouse_id'] ?? null,
-            'array_options' => [
-                'options_model' => $data['model'] ?? null,
-                'options_brand' => $data['brand'] ?? null,
-                'options_location' => $data['location'] ?? null,
-            ],
         ];
 
         // Remove null values
@@ -106,7 +118,11 @@ class Asset
             return $value !== null;
         });
 
-        return $dolibarrService->updateAsset($id, $assetData);
+        $extrafields = array_filter($extrafields, function($value) {
+            return $value !== null;
+        });
+
+        return $dolibarrService->updateAsset($id, $assetData, $extrafields);
     }
 
     /**

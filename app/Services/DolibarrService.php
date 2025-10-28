@@ -133,16 +133,24 @@ class DolibarrService
     /**
      * Create a new asset (product in Dolibarr)
      */
-    public function createAsset($assetData)
+    public function createAsset($assetData, $extrafields = [])
     {
+        if (!empty($extrafields)) {
+            $assetData['array_options'] = array_merge($assetData['array_options'] ?? [], $extrafields);
+        }
+
         return $this->makeRequest('POST', '/products', $assetData);
     }
 
     /**
      * Update an existing asset
      */
-    public function updateAsset($id, $assetData)
+    public function updateAsset($id, $assetData, $extrafields = [])
     {
+        if (!empty($extrafields)) {
+            $assetData['array_options'] = array_merge($assetData['array_options'] ?? [], $extrafields);
+        }
+
         return $this->makeRequest('PUT', "/products/{$id}", $assetData);
     }
 

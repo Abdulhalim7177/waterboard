@@ -1,53 +1,56 @@
-@extends('layouts.staff')
+@extends('layouts.app')
 
 @section('content')
-    <div class="container-xxl">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">View Reservoir</h3>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Name</label>
-                    <input type="text" class="form-control form-control-solid" value="{{ $reservoir['label'] ?? '' }}" readonly>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control form-control-solid" rows="3" readonly>{{ $reservoir['description'] ?? '' }}</textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Serial Number</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ $reservoir['ref'] ?? '' }}" readonly>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Purchase Price</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ $reservoir['price'] ?? '' }}" readonly>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Location</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ $reservoir['location'] ?? '' }}" readonly>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Status</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ $reservoir['status'] ?? '' }}" readonly>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Purchase Date</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ ($reservoir['purchase_date'] ?? null) ? date('Y-m-d', strtotime($reservoir['purchase_date'])) : '' }}" readonly>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Warehouse</label>
-                        <input type="text" class="form-control form-control-solid" value="{{ $reservoir['warehouse_label'] ?? '' }}" readonly>
-                    </div>
-                </div>
-
-                <a href="{{ route('staff.reservoirs.index') }}" class="btn btn-secondary">Back</a>
-            </div>
-        </div>
+    <div class="container">
+        <h1>Reservoir Details</h1>
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>ID</th>
+                    <td>{{ $reservoir['id'] }}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{{ $reservoir['label'] }}</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ $reservoir['description'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Serial Number</th>
+                    <td>{{ $reservoir['ref'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Purchase Price</th>
+                    <td>{{ $reservoir['price'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Purchase Date</th>
+                    <td>{{ isset($reservoir['date_purchase']) ? date('Y-m-d', $reservoir['date_purchase']) : 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Warehouse</th>
+                    <td>{{ $reservoir['warehouse_id'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Tanks</th>
+                    <td>{{ $reservoir['array_options']['options_tanks'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Capacity</th>
+                    <td>{{ $reservoir['array_options']['options_capacity'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>{{ $reservoir['array_options']['options_location'] ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>{{ $reservoir['array_options']['options_status'] ?? 'N/A' }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="{{ route('staff.reservoirs.index') }}" class="btn btn-secondary">Back to List</a>
     </div>
 @endsection

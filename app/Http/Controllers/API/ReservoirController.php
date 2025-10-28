@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\DolibarrService;
+use App\Models\Asset;
 use Illuminate\Http\Request;
 
 class ReservoirController extends Controller
@@ -20,13 +21,14 @@ class ReservoirController extends Controller
      */
     public function index()
     {
-        $reservoirs = $this->dolibarrService->getAssets();
+        $allAssets = Asset::getAllFromDolibarr($this->dolibarrService);
 
-        if ($reservoirs === false) {
-            return response()->json(['error' => 'Failed to fetch reservoirs from Dolibarr'], 500);
-        }
+        // Filter for reservoirs
+        $reservoirs = array_filter($allAssets, function ($asset) {
+            return isset($asset['array_options']['options_tanks']) || isset($asset['array_options']['options_capacity']);
+        });
 
-        return response()->json($reservoirs);
+        return response()->json(array_values($reservoirs));
     }
 
     /**
@@ -34,16 +36,22 @@ class ReservoirController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            // Add any other fields required by Dolibarr for creating a product
+            'serial_number' => 'nullable|string',
+            'purchase_price' => 'nullable|numeric',
+            'warehouse_id' => 'required|integer',
+            'purchase_date' => 'nullable|date',
+            'status' => 'nullable|in:active,maintenance,retired,damaged',
+            'tanks' => 'required|integer|min:1',
+            'capacity' => 'required|numeric|min:0',
+            'location' => 'required|string|max:255',
         ]);
 
-        $reservoir = $this->dolibarrService->createAsset($data);
+        $reservoir = Asset::createInDolibarr($validatedData, $this->dolibarrService);
 
-        if ($reservoir === false) {
+        if (!$reservoir) {
             return response()->json(['error' => 'Failed to create reservoir in Dolibarr'], 500);
         }
 
@@ -55,9 +63,9 @@ class ReservoirController extends Controller
      */
     public function show(string $id)
     {
-        $reservoir = $this->dolibarrService->getAsset($id);
+        $reservoir = Asset::getFromDolibarr($id, $this->dolibarrService);
 
-        if ($reservoir === false) {
+        if (!$reservoir || !(isset($reservoir['array_options']['options_tanks']) || isset($reservoir['array_options']['options_capacity']))) {
             return response()->json(['error' => 'Reservoir not found in Dolibarr'], 404);
         }
 
@@ -69,16 +77,22 @@ class ReservoirController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $data = $request->validate([
-            'name' => 'sometimes|required|string',
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'sometimes|required|numeric',
-            // Add any other fields that can be updated
+            'serial_number' => 'nullable|string',
+            'purchase_price' => 'nullable|numeric',
+            'warehouse_id' => 'sometimes|required|integer',
+            'purchase_date' => 'nullable|date',
+            'status' => 'nullable|in:active,maintenance,retired,damaged',
+            'tanks' => 'sometimes|required|integer|min:1',
+            'capacity' => 'sometimes|required|numeric|min:0',
+            'location' => 'sometimes|required|string|max:255',
         ]);
 
-        $reservoir = $this->dolibarrService->updateAsset($id, $data);
+        $reservoir = Asset::updateInDolibarr($id, $validatedData, $this->dolibarrService);
 
-        if ($reservoir === false) {
+        if (!$reservoir) {
             return response()->json(['error' => 'Failed to update reservoir in Dolibarr'], 500);
         }
 
@@ -90,12 +104,12 @@ class ReservoirController extends Controller
      */
     public function destroy(string $id)
     {
-        $result = $this->dolibarrService->deleteAsset($id);
+        $result = Asset::deleteFromDolibarr($id, $this->dolibarrService);
 
         if ($result === false) {
             return response()->json(['error' => 'Failed to delete reservoir from Dolibarr'], 500);
         }
 
-        return response()->json(['message' => 'Reservoir deleted successfully from Dolibarr']);
+        return response()->json(['message' => 'Reservoir deleted successfully.']);
     }
 }
