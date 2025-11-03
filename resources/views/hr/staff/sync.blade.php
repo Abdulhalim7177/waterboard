@@ -21,6 +21,10 @@
             <!--end::Card header-->
             <!--begin::Card body-->
             <div class="card-body pt-0">
+                <div class="alert alert-success">
+                    <p>Synchronization complete!</p>
+                    <p>Total records processed: {{ count($affectedStaff) }}</p>
+                </div>
                 <!--begin::Table-->
                 <div class="table-responsive">
                     <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_staff_table">

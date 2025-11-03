@@ -1,110 +1,68 @@
 @extends('layouts.staff')
 
 @section('content')
-    <div id="kt_content_container" class="container-xxl">
-        <!-- Alerts -->
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="container-xxl">
+    <!--begin::Card-->
+    <div class="card card-flush">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6">
+            <!--begin::Card title-->
+            <div class="card-title">
+                <h2 class="fw-bold text-dark">Edit Staff</h2>
             </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <!--end::Card title-->
+            <!--begin::Card toolbar-->
+            <div class="card-toolbar">
+                <a href="{{ route('staff.hr.staff.index') }}" class="btn btn-light-primary">Back to Staff</a>
             </div>
-        @endif
+            <!--end::Card toolbar-->
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body pt-0">
+            <form action="{{ route('staff.hr.staff.update', $staff) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_1">Personal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_2">Employment</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_3">Location</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_4">Financial</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_5">Next of Kin</a>
+                    </li>
+                </ul>
 
-        <div class="card mb-5 mb-xl-10">
-            <div class="card-header border-0">
-                <div class="card-title m-0">
-                    <h3 class="fw-bolder m-0">Edit Staff</h3>
-                </div>
-            </div>
-            <div class="card-body p-9">
-                <!--begin::Form-->
-                <form action="{{ url('mngr-secure-9374/hr/staff/' . $staff->id) }}" method="POST" enctype="multipart/form-data" id="staff_form">
-                    @csrf
-                    @method('PUT')
-                </form>
-                
-                <!-- Section Selection -->
-                <div class="row mb-6">
-                    <div class="col-md-6 fv-row">
-                        <label for="part" class="form-label required">Select Section to Edit</label>
-                        <select class="form-select form-select-solid" id="part" name="part" required>
-                            <option value="">Select Section</option>
-                            <option value="personal">Personal Information</option>
-                            <option value="employment">Employment Information</option>
-                            <option value="location">Location Information</option>
-                        </select>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="kt_tab_pane_1" role="tabpanel">
+                        @include('hr.staff.partials.form.personal', ['staff' => $staff])
+                    </div>
+                    <div class="tab-pane fade" id="kt_tab_pane_2" role="tabpanel">
+                        @include('hr.staff.partials.form.employment', ['staff' => $staff])
+                    </div>
+                    <div class="tab-pane fade" id="kt_tab_pane_3" role="tabpanel">
+                        @include('hr.staff.partials.form.location', ['staff' => $staff])
+                    </div>
+                    <div class="tab-pane fade" id="kt_tab_pane_4" role="tabpanel">
+                        @include('hr.staff.partials.form.financial', ['staff' => $staff])
+                    </div>
+                    <div class="tab-pane fade" id="kt_tab_pane_5" role="tabpanel">
+                        @include('hr.staff.partials.form.next_of_kin', ['staff' => $staff])
                     </div>
                 </div>
-                
-                <!-- Form Container -->
-                <div id="section-form" class="mt-6"></div>
-                <!--end::Form-->
-            </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
         </div>
+        <!--end::Card body-->
     </div>
-@endsection
-
-@section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const partSelect = document.getElementById('part');
-            const sectionForm = document.getElementById('section-form');
-            const staffId = "{{ $staff->id }}";
-            const csrfToken = "{{ csrf_token() }}";
-
-            // Function to load section form
-            function loadSection(part) {
-                fetch("{{ url('mngr-secure-9374/hr/staff/edit') }}/" + staffId + "/section", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ part: part }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(data => {
-                            throw new Error(data.error || `HTTP error! Status: ${response.status}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        // Show error in a simple alert for now
-                        alert('Error: ' + data.error);
-                        sectionForm.innerHTML = '';
-                    } else {
-                        sectionForm.innerHTML = data.html;
-                        // Reinitialize any JavaScript components
-                        if (typeof initializeComponents === 'function') {
-                            initializeComponents();
-                        }
-                    }
-                })
-                .catch(error => {
-                    alert('Failed to load section: ' + error.message);
-                    console.error('Error:', error);
-                });
-            }
-
-            // Load section when dropdown changes
-            partSelect.addEventListener('change', function() {
-                const part = this.value;
-                if (part) {
-                    loadSection(part);
-                } else {
-                    sectionForm.innerHTML = '';
-                }
-            });
-        });
-    </script>
+    <!--end::Card-->
+</div>
 @endsection

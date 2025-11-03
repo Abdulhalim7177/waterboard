@@ -16,11 +16,11 @@ class Staff extends Authenticatable
 
     protected $fillable = [
         'staff_id', 'first_name', 'surname', 'middle_name', 'gender', 'date_of_birth',
-        'state_of_origin', 'lga_id', 'ward_id', 'area_id', 'zone_id', 'district_id', 'paypoint_id', 
+        'lga_id', 'ward_id', 'area_id', 'zone_id', 'district_id', 'paypoint_id', 
         'nationality', 'nin', 'mobile_no', 'phone_number', 'email', 'address', 'password', 
-        'date_of_first_appointment', 'rank', 'staff_no', 'department', 'expected_next_promotion', 
+        'date_of_first_appointment', 'contract_start_date', 'contract_end_date', 'rank_id', 'staff_no', 'department_id', 'cadre_id', 'grade_level_id', 'step_id', 'expected_next_promotion', 
         'expected_retirement_date', 'status', 'employment_status', 'highest_qualifications', 
-        'grade_level_limit', 'appointment_type', 'photo_path', 'years_of_service'
+        'appointment_type_id', 'photo_path', 'years_of_service'
     ];
 
     protected $hidden = [
@@ -30,6 +30,8 @@ class Staff extends Authenticatable
     protected $casts = [
         'date_of_birth' => 'date',
         'date_of_first_appointment' => 'date',
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
         'expected_next_promotion' => 'date',
         'expected_retirement_date' => 'date',
     ];
@@ -38,6 +40,57 @@ class Staff extends Authenticatable
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . ($this->middle_name ? $this->middle_name . ' ' : '') . $this->surname;
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function rank()
+    {
+        return $this->belongsTo(Rank::class);
+    }
+
+    public function cadre()
+    {
+        return $this->belongsTo(Cadre::class);
+    }
+
+    public function gradeLevel()
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
+
+    public function step()
+    {
+        return $this->belongsTo(Step::class);
+    }
+
+    public function appointmentType()
+    {
+        return $this->belongsTo(AppointmentType::class);
+    }
+
+
+    public function bank()
+    {
+        return $this->hasOne(StaffBank::class);
+    }
+
+    public function nextOfKin()
+    {
+        return $this->hasOne(NextOfKin::class);
+    }
+
+    public function pension()
+    {
+        return $this->hasOne(Pension::class);
+    }
+
+    public function biometricData()
+    {
+        return $this->hasOne(BiometricData::class);
     }
 
     public function pendingUpdates()

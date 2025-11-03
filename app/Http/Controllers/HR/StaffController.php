@@ -4,17 +4,25 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
+use App\Models\StaffBank;
+use App\Models\NextOfKin;
 use App\Exports\StaffExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use App\Services\HrmService;
 use Spatie\LaravelPdf\Facades\Pdf;
 use App\Services\BreadcrumbService;
 
 class StaffController extends Controller
 {
-    public function __construct()
+    protected $hrmService;
+
+    public function __construct(HrmService $hrmService)
     {
+        $this->hrmService = $hrmService;
         $this->middleware(['auth:staff', 'permission:manage-staff'])->only(['index', 'show', 'destroy']);
         $this->middleware(['auth:staff', 'permission:approve-staff'])->only(['approve', 'reject']);
     }
@@ -71,6 +79,76 @@ class StaffController extends Controller
     {
         $staff = Staff::findOrFail($staff);
         return view('hr.staff.show', compact('staff'));
+    }
+
+    public function create()
+    {
+        $staff = new Staff();
+        return view('hr.staff.create', compact('staff'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff',
+        ]);
+
+        $data = $request->all();
+
+        $response = $this->hrmService->createEmployee($data);
+
+        if ($response) {
+            // Optionally, you can sync the local database after creating the employee in the HRM system
+            Artisan::call('app:sync-staff-data');
+            return redirect()->route('staff.hr.staff.index')->with('success', 'Employee creation request submitted for approval.');
+        } else {
+            return redirect()->back()->with('error', 'Failed to create employee in HRM system.');
+        }
+    }
+
+    public function edit(Staff $staff)
+    {
+        return view('hr.staff.edit', compact('staff'));
+    }
+
+    public function update(Request $request, Staff $staff)
+    {
+        $request->validate([
+            'staff_id' => 'required|unique:staff,staff_id,' . $staff->id,
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff,email,' . $staff->id,
+        ]);
+
+        $data = $request->all();
+
+        if ($request->password) {
+            $data['password'] = Hash::make($request->password);
+        } else {
+            unset($data['password']);
+        }
+
+        $staff->update($data);
+
+        $staff->bank()->updateOrCreate([], [
+            'bank_name' => $request->bank_name,
+            'bank_code' => $request->bank_code,
+            'account_name' => $request->account_name,
+            'account_no' => $request->account_no,
+        ]);
+
+        $staff->nextOfKin()->updateOrCreate([], [
+            'name' => $request->next_of_kin_name,
+            'relationship' => $request->next_of_kin_relationship,
+            'mobile_no' => $request->next_of_kin_mobile_no,
+            'address' => $request->next_of_kin_address,
+            'occupation' => $request->next_of_kin_occupation,
+            'place_of_work' => $request->next_of_kin_place_of_work,
+        ]);
+
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully.');
     }
 
     /**

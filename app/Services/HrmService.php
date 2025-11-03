@@ -49,4 +49,30 @@ class HrmService
         // Handle errors appropriately
         return null;
     }
+
+    public function createEmployee(array $data)
+    {
+        $response = Http::withoutVerifying()->withToken($this->token)
+            ->post($this->baseUrl . '/api/employees', $data);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        Log::error('Failed to create employee in HRM API', ['response' => $response->body()]);
+        return null;
+    }
+
+    public function updateEmployee($id, array $data)
+    {
+        $response = Http::withoutVerifying()->withToken($this->token)
+            ->put($this->baseUrl . '/api/employees/' . $id, $data);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        Log::error('Failed to update employee in HRM API', ['response' => $response->body()]);
+        return null;
+    }
 }

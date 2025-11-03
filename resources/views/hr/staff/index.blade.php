@@ -91,6 +91,10 @@
                         <!--begin::Sync-->
                         <a href="{{ route('staff.hr.staff.sync') }}" class="btn btn-light-primary w-100 w-md-auto">Sync Staff Data</a>
                         <!--end::Sync-->
+
+                        <!--begin::Add staff-->
+                        <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary w-100 w-md-auto">Add Staff</a>
+                        <!--end::Add staff-->
                         
                         <!--begin::Export Dropdown-->
                         <div class="dropdown w-100 w-md-auto">
@@ -143,6 +147,8 @@
                             <th class="min-w-125px">Email</th>
                             <th class="min-w-125px">Department</th>
                             <th class="min-w-125px">Rank</th>
+                            <th class="min-w-125px">Cadre</th>
+                            <th class="min-w-125px">Grade Level</th>
                             <th class="min-w-125px">Employment Status</th>
                             <th class="text-end min-w-100px">Actions</th>
                         </tr>
@@ -164,8 +170,10 @@
                                 <td>
                                     <a href="#" class="text-gray-600 text-hover-primary mb-1">{{ $staff->email }}</a>
                                 </td>
-                                <td>{{ $staff->department ?? 'N/A' }}</td>
-                                <td>{{ $staff->rank ?? 'N/A' }}</td>
+                                <td>{{ $staff->department->name ?? 'N/A' }}</td>
+                                <td>{{ $staff->rank->name ?? 'N/A' }}</td>
+                                <td>{{ $staff->cadre->name ?? 'N/A' }}</td>
+                                <td>{{ $staff->gradeLevel->name ?? 'N/A' }}</td>
                                 <td>
                                     <div class="badge badge-light-{{ $staff->employment_status == 'active' ? 'success' : ($staff->employment_status == 'on_leave' ? 'warning' : 'danger') }}">
                                         {{ ucfirst(str_replace('_', ' ', $staff->employment_status)) }}
@@ -181,6 +189,11 @@
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-3">
                                             <a href="{{ route('staff.hr.staff.show', $staff) }}" class="menu-link px-3">View</a>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-3">
+                                            <a href="{{ route('staff.hr.staff.edit', $staff) }}" class="menu-link px-3">Edit</a>
                                         </div>
                                         <!--end::Menu item-->
 
