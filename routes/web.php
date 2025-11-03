@@ -211,6 +211,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::put('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'update'])->name('update');
         Route::get('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'show'])->name('show');
         Route::delete('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'destroy'])->name('destroy');
+        Route::delete('/{staff}/remove', [\App\Http\Controllers\HR\StaffController::class, 'remove'])->name('remove');
         Route::put('/{staff}/approve', [\App\Http\Controllers\HR\StaffController::class, 'approve'])->name('approve');
         Route::put('/{staff}/reject', [\App\Http\Controllers\HR\StaffController::class, 'reject'])->name('reject');
         Route::post('/import', [\App\Http\Controllers\HR\StaffController::class, 'import'])->name('import');

@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use App\Services\HrmService;
 use Spatie\LaravelPdf\Facades\Pdf;
 use App\Services\BreadcrumbService;
@@ -23,7 +24,7 @@ class StaffController extends Controller
     public function __construct(HrmService $hrmService)
     {
         $this->hrmService = $hrmService;
-        $this->middleware(['auth:staff', 'permission:manage-staff'])->only(['index', 'show', 'destroy']);
+        $this->middleware(['auth:staff', 'permission:manage-staff'])->only(['index', 'show', 'destroy', 'sync']);
         $this->middleware(['auth:staff', 'permission:approve-staff'])->only(['approve', 'reject']);
     }
 
@@ -100,9 +101,9 @@ class StaffController extends Controller
         $response = $this->hrmService->createEmployee($data);
 
         if ($response) {
-            // Optionally, you can sync the local database after creating the employee in the HRM system
-            Artisan::call('app:sync-staff-data');
-            return redirect()->route('staff.hr.staff.index')->with('success', 'Employee creation request submitted for approval.');
+            // Perform a complete refresh to ensure data consistency
+            Artisan::call('app:sync-staff-data', ['--refresh' => true]);
+            return redirect()->route('staff.hr.staff.index')->with('success', 'Employee created successfully and data refreshed from HRM system.');
         } else {
             return redirect()->back()->with('error', 'Failed to create employee in HRM system.');
         }
@@ -148,11 +149,14 @@ class StaffController extends Controller
             'place_of_work' => $request->next_of_kin_place_of_work,
         ]);
 
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully.');
+        // Perform a complete refresh to ensure data consistency after update
+        Artisan::call('app:sync-staff-data', ['--refresh' => true]);
+
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully and data refreshed from HRM system.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (Local only).
      */
     public function destroy($staff)
     {
@@ -164,8 +168,30 @@ class StaffController extends Controller
         }
         
         $staff->delete();
+        
+        // Perform a complete refresh to ensure data consistency after deletion
+        Artisan::call('app:sync-staff-data', ['--refresh' => true]);
 
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member deleted successfully.');
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member deleted successfully and data refreshed from HRM system.');
+    }
+    
+    /**
+     * Remove staff member from HRM system and trigger sync.
+     */
+    public function remove($staff)
+    {
+        $staff = Staff::findOrFail($staff);
+        
+        // Remove the staff from the HRM system first
+        $response = $this->hrmService->deleteEmployee($staff->staff_id);
+
+        if ($response) {
+            // Perform a complete refresh to ensure data consistency after removal
+            Artisan::call('app:sync-staff-data', ['--refresh' => true]);
+            return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member removed from HRM system and data refreshed successfully.');
+        } else {
+            return redirect()->route('staff.hr.staff.index')->with('error', 'Failed to remove staff member from HRM system.');
+        }
     }
 
     /**
@@ -229,15 +255,30 @@ class StaffController extends Controller
         return Excel::download(new \App\Exports\StaffTemplateExport, 'staff-template.xlsx');
     }
 
-    public function sync()
+    public function sync(Request $request)
     {
         try {
+            $fullRefresh = $request->get('full_refresh', false);
+            
             $startTime = now();
-            Artisan::call('app:sync-staff-data');
-            $affectedStaff = Staff::where('updated_at', '>=', $startTime)->get();
-
-            return view('hr.staff.sync', compact('affectedStaff'));
+            $commandResult = Artisan::call('app:sync-staff-data', [
+                '--refresh' => $fullRefresh
+            ]);
+            
+            $output = Artisan::output();
+            
+            if ($commandResult === 0) {
+                $this->info('Staff data synchronized successfully.');
+                $affectedStaff = Staff::where('updated_at', '>=', $startTime)->get();
+                
+                return view('hr.staff.sync', compact('affectedStaff', 'output', 'fullRefresh'));
+            } else {
+                \Log::error('Sync command failed: ' . $output);
+                return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data. Check logs for details.');
+            }
         } catch (\Exception $e) {
+            \Log::error('Error in staff sync: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data: ' . $e->getMessage());
         }
     }

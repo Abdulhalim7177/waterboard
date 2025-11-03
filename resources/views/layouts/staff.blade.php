@@ -651,6 +651,7 @@
     <script src="{{ asset('assets/js/custom/widgets.js') }}"></script>
     <script src="{{ asset('assets/js/custom/apps/chat/chat.js') }}"></script>
     <script src="{{ asset('assets/js/custom/utilities/modals/users-search.js') }}"></script>
+    <script src="{{ asset('js/hrm-sync.js') }}"></script>
     <style>
         /* Enhanced responsive styles */
         @media (max-width: 991.98px) {
@@ -727,6 +728,16 @@
         
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb:hover {
             background: rgba(0,0,0,0.3);
+        }
+        
+        /* HRM Sync Notification Styles */
+        .hrm-sync-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 400px;
+            max-width: 90%;
         }
     </style>
 </body>

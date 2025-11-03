@@ -88,9 +88,21 @@
                         </button>
                         <!--end::Import-->
 
-                        <!--begin::Sync-->
-                        <a href="{{ route('staff.hr.staff.sync') }}" class="btn btn-light-primary w-100 w-md-auto">Sync Staff Data</a>
-                        <!--end::Sync-->
+                        <!--begin::Sync Dropdown-->
+                        <div class="dropdown w-100 w-md-auto">
+                            <button class="btn btn-light-primary dropdown-toggle w-100" type="button" id="syncDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ki-duotone ki-sync fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Sync Data
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="syncDropdown">
+                                <li><a class="dropdown-item" href="{{ route('staff.hr.staff.sync') }}">Incremental Sync</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#fullSyncModal">Complete Refresh</a></li>
+                            </ul>
+                        </div>
+                        <!--end::Sync Dropdown-->
 
                         <!--begin::Add staff-->
                         <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary w-100 w-md-auto">Add Staff</a>
@@ -196,7 +208,11 @@
                                             <a href="{{ route('staff.hr.staff.edit', $staff) }}" class="menu-link px-3">Edit</a>
                                         </div>
                                         <!--end::Menu item-->
-
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-3">
+                                            <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#removeModal{{ $staff->id }}">Remove</a>
+                                        </div>
+                                        <!--end::Menu item-->
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-3">
                                             <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $staff->id }}">Delete</a>
@@ -234,6 +250,45 @@
                                 </div>
                             </div>
                             <!--end::Delete Modal-->
+                            
+                            <!--begin::Remove Modal-->
+                            <div class="modal fade" id="removeModal{{ $staff->id }}" tabindex="-1" aria-labelledby="removeModalLabel{{ $staff->id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="removeModalLabel{{ $staff->id }}">Confirm Removal from HRM</h5>
+                                            <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                <i class="ki-duotone ki-cross fs-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-warning">
+                                                <i class="ki-duotone ki-information-5 fs-1 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <strong>Warning:</strong> This will remove the staff member from the HRM system and trigger a full sync.
+                                            </p>
+                                            <p>
+                                                Are you sure you want to remove {{ $staff ? trim($staff->first_name . ' ' . ($staff->middle_name ?? '') . ' ' . ($staff->surname ?? '')) : 'this staff member' }} ({{ $staff->staff_id ?? 'N/A' }}) from the HRM system? This action will trigger a full data refresh.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ route('staff.hr.staff.remove', $staff) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger">Remove from HRM</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::Remove Modal-->
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center">No staff found.</td>
@@ -294,6 +349,44 @@
             </div>
         </div>
         <!--end::Import Modal-->
+        
+        <!--begin::Full Sync Modal-->
+        <div class="modal fade" id="fullSyncModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Confirm Complete Refresh</h3>
+                        <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                            <i class="ki-duotone ki-cross fs-1">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                        </div>
+                    </div>
+                    <div class="modal-body py-lg-10 px-lg-10">
+                        <div class="text-center mb-5">
+                            <i class="ki-duotone ki-information-5 fs-5x text-warning mb-5">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            <h4 class="text-dark mb-3">Warning: Complete Data Refresh</h4>
+                            <p class="text-gray-600">
+                                This action will completely replace all staff data with information from the HRM system.
+                                Local changes that are not synced with the HRM system will be lost.
+                            </p>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>
+                            <a href="{{ route('staff.hr.staff.sync') }}?full_refresh=1" class="btn btn-danger" id="confirmFullSyncBtn">
+                                Confirm Refresh
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Full Sync Modal-->
     </div>
     <!--end::Container-->
 @endsection

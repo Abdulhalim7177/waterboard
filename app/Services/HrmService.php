@@ -75,4 +75,17 @@ class HrmService
         Log::error('Failed to update employee in HRM API', ['response' => $response->body()]);
         return null;
     }
+    
+    public function deleteEmployee($id)
+    {
+        $response = Http::withoutVerifying()->withToken($this->token)
+            ->delete($this->baseUrl . '/api/employees/' . $id);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        Log::error('Failed to delete employee in HRM API', ['response' => $response->body()]);
+        return null;
+    }
 }
