@@ -23,8 +23,8 @@
                     <tr>
                         <td>{{ $ticket->title }}</td>
                         <td>{{ $ticket->customer->first_name ?? '' }} {{ $ticket->customer->surname ?? 'N/A' }}</td>
-                        <td><span class="badge badge-light-{{ $ticket->status == 'open' ? 'success' : 'danger' }}">{{ ucfirst($ticket->status) }}</span></td>
-                        <td>{{ $ticket->staff->name ?? 'Unassigned' }}</td>
+                        <td><span class="badge badge-light-{{ $ticket->status_color }}">{{ $ticket->status_name }}</span></td>
+                        <td>{{ $ticket->staff->full_name ?? 'Unassigned' }}</td>
                         <td>{{ $ticket->paypoint->name ?? 'Unassigned' }}</td>
                         <td>{{ $ticket->updated_at->diffForHumans() }}</td>
                         <td>

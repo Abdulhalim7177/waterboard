@@ -227,6 +227,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::post('tickets/{ticket}/assign', [\App\Http\Controllers\Staff\TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('tickets/{ticket}/add-followup', [\App\Http\Controllers\Staff\TicketController::class, 'addFollowup'])->name('tickets.add-followup');
     Route::post('tickets/{ticket}/update-status', [\App\Http\Controllers\Staff\TicketController::class, 'updateStatus'])->name('tickets.update-status');
+    Route::post('tickets/{ticket}/obtain', [\App\Http\Controllers\Staff\TicketController::class, 'obtainTicket'])->name('tickets.obtain');
 
     // Asset Management Routes
     Route::resource('assets', AssetController::class);

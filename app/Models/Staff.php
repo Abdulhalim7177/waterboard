@@ -80,23 +80,27 @@ class Staff extends Authenticatable
      */
     public function getAccessibleWardIds()
     {
-        if (!$this->paypoint) {
-            return [];
+        $accessibleWards = [];
+        if ($this->paypoint) {
+            $paypoint = $this->paypoint;
+            
+            if ($paypoint->type === 'zone' && $paypoint->zone_id) {
+                $accessibleWards = array_merge($accessibleWards, Ward::whereHas('district', function($query) use ($paypoint) {
+                    $query->where('zone_id', $paypoint->zone_id);
+                })->pluck('id')->toArray());
+            } elseif ($paypoint->type === 'district' && $paypoint->district_id) {
+                $accessibleWards = array_merge($accessibleWards, Ward::where('district_id', $paypoint->district_id)->pluck('id')->toArray());
+            }
         }
 
-        $paypoint = $this->paypoint;
-        
-        if ($paypoint->type === 'zone' && $paypoint->zone_id) {
-            // Get all districts under this zone, then all wards under those districts
-            return Ward::whereHas('district', function($query) use ($paypoint) {
-                $query->where('zone_id', $paypoint->zone_id);
-            })->pluck('id')->toArray();
-        } elseif ($paypoint->type === 'district' && $paypoint->district_id) {
-            // Get all wards under this specific district
-            return Ward::where('district_id', $paypoint->district_id)->pluck('id')->toArray();
+        if ($this->area && $this->area->ward_id) {
+            $accessibleWards[] = $this->area->ward_id;
         }
-        
-        return [];
+        if ($this->ward_id) {
+            $accessibleWards[] = $this->ward_id;
+        }
+
+        return array_unique($accessibleWards);
     }
 
     /**

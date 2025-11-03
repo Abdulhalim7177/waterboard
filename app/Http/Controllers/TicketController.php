@@ -44,6 +44,17 @@ class TicketController extends Controller
         $glpiTicket = $this->glpiService->createTicket($request->title, $request->description, $options);
 
         if (isset($glpiTicket['id'])) {
+            $customer = auth()->user()->load('ward.district');
+            $paypointId = null;
+
+            if ($customer && $customer->ward && $customer->ward->district) {
+                $districtId = $customer->ward->district->id;
+                $paypoint = \App\Models\Paypoint::where('district_id', $districtId)->first();
+                if ($paypoint) {
+                    $paypointId = $paypoint->id;
+                }
+            }
+
             Ticket::create([
                 'glpi_ticket_id' => $glpiTicket['id'],
                 'customer_id' => auth()->id(),
@@ -52,6 +63,7 @@ class TicketController extends Controller
                 'status' => 'open', // You might want to get the status from GLPI
                 'priority' => $request->priority,
                 'urgency' => $request->urgency,
+                'paypoint_id' => $paypointId,
             ]);
 
             return redirect()->route('customer.tickets.index')->with('success', 'Ticket created successfully.');
@@ -62,6 +74,13 @@ class TicketController extends Controller
 
     public function show(Ticket $ticket)
     {
-        return view('customer.tickets.show', compact('ticket'));
+        // Ensure the customer can only view their own tickets
+        if ($ticket->customer_id != auth()->id()) {
+            abort(403, 'Unauthorized to view this ticket');
+        }
+        
+        $followups = $this->glpiService->getFollowups($ticket->glpi_ticket_id);
+        
+        return view('customer.tickets.show', compact('ticket', 'followups'));
     }
 }

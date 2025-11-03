@@ -41,6 +41,23 @@
             <span class="fw-bold me-2">Last Updated:</span>
             <span>{{ $ticket->updated_at->format('d M Y, h:i A') }}</span>
         </div>
+
+        <div class="separator separator-dashed my-7"></div>
+
+        <h4>Follow-ups</h4>
+        <div class="list-group">
+            @forelse ($followups as $followup)
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Follow-up</h5>
+                        <small>{{ \Carbon\Carbon::parse($followup['date_creation'])->format('d M Y, h:i A') }}</small>
+                    </div>
+                    <p class="mb-1">{{ $followup['content'] }}</p>
+                </div>
+            @empty
+                <p>No follow-ups for this ticket yet.</p>
+            @endforelse
+        </div>
     </div>
     <div class="card-footer d-flex justify-content-between">
         <a href="{{ route('customer.tickets.index') }}" class="btn btn-secondary">Back to Tickets</a>

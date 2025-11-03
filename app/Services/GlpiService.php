@@ -256,4 +256,34 @@ class GlpiService
 
         return null;
     }
+
+    public function getFollowups(int $ticketId): array
+    {
+        if (!$this->sessionToken) {
+            $this->initSession();
+        }
+
+        if (empty($this->sessionToken)) {
+            return [];
+        }
+
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->get("Ticket/{$ticketId}/ITILFollowup");
+
+            if ($response->successful()) {
+                return $response->json();
+            } else {
+                logger()->error('Failed to get followups from GLPI', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            logger()->error("Failed to get followups for ticket {$ticketId} from GLPI: " . $e->getMessage());
+        }
+
+        return [];
+    }
 }

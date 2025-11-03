@@ -93,7 +93,7 @@
                                     <span class="menu-heading fw-bold text-uppercase fs-7">System Management</span>
                                 </div>
                             </div>
-                            @can('view-locations', 'staff')
+                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -106,7 +106,6 @@
                                     <span class="menu-arrow"></span>
                                 </span>
                                 <div class="menu-sub menu-sub-accordion">
-                                    @can('view-locations', 'staff')
                                     <div class="menu-item">
                                         <a class="menu-link" href="{{ route('staff.lgas.index') }}">
                                             <span class="menu-bullet">
@@ -155,11 +154,8 @@
                                             <span class="menu-title">Paypoint Management</span>
                                         </a>
                                     </div>
-                                    @endcan
                                 </div>
                                 </div>
-                            @endcan
-                            @can('manage-users', 'staff')
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -191,8 +187,6 @@
                                     </div>
                                 </div>
                                 </div>
-                            @endcan
-                            @can('manage-users', 'staff')
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -232,8 +226,6 @@
                                     </div>
                                 </div>
                                 </div>
-                            @endcan
-                            @can('manage-staff', 'staff')
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -265,8 +257,7 @@
                                     </div>
                                 </div>
                             </div>
-                            @endcan
-                            @can('manage-tickets', 'staff')
+                            @endif
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -290,8 +281,7 @@
                                     </div>
                                 </div>
                             </div>
-                            @endcan
-                            @can('view-customers', 'staff')
+                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -336,8 +326,8 @@
                                     @endcan
                                 </div>
                                 </div>
-                            @endcan
-                            @can('view-payment', 'staff')
+                            @endif
+                            @if(auth()->user()->hasRole('super-admin'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.payments.index') }}">
                                     <span class="menu-icon">
@@ -350,8 +340,6 @@
                                     <span class="menu-title">Payment History</span>
                                 </a>
                                 </div>
-                            @endcan
-                            @can('view-bill', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.bills.index') }}">
                                     <span class="menu-icon">
@@ -363,8 +351,6 @@
                                     <span class="menu-title">Customer Billing</span>
                                 </a>
                                 </div>
-                            @endcan
-                            @can('view-bill', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.gis') }}">
                                     <span class="menu-icon">
@@ -375,10 +361,7 @@
                                         </i>
                                     </span>
                                     <span class="menu-title">Customer GIS Overview</span>
-                                </a>
-                                </div>
-                            @endcan
-                            @can('view-analytics', 'staff')
+                                a>n                                </div>
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.analytics.index') }}">
                                     <span class="menu-icon">
@@ -391,8 +374,8 @@
                                     <span class="menu-title">Analytics</span>
                                 </a>
                                 </div>
-                            @endcan
-                            @can('approve-actions', 'staff')
+                            @endif
+                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.approvals.index') }}">
                                     <span class="menu-icon">
@@ -404,7 +387,7 @@
                                     <span class="menu-title">Approvals</span>
                                 </a>
                                 </div>
-                            @endcan
+                            @endif
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -435,7 +418,7 @@
                                     </div>
                                 </div>
                                 </div>
-                            @can('view-audit-trail', 'staff')
+                            @if(auth()->user()->hasRole('super-admin'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.audits.index') }}">
                                     <span class="menu-icon">
@@ -447,8 +430,9 @@
                                     <span class="menu-title">Audit Trail</span>
                                 </a>
                             </div>
-                            @endcan
+                            @endif
 
+                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -509,6 +493,7 @@
                                     <span class="menu-title">Vendor Management</span>
                                 </a>
                             </div>
+                            @endif
                         </div>
                         </div>
                     </div>
