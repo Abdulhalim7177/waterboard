@@ -35,6 +35,13 @@ return [
         'api_key' => env('DOLIBARR_API_KEY'),
     ],
 
+    'hrm' => [
+        'base_url' => env('HRM_BASE_URL'),
+        'username' => env('HRM_USERNAME'),
+        'password' => env('HRM_PASSWORD'),
+        'token' => env('HRM_TOKEN'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

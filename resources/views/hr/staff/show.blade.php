@@ -13,7 +13,7 @@
             <!--end::Card title-->
             <!--begin::Card toolbar-->
             <div class="card-toolbar">
-                <a href="{{ route('staff.hr.staff.edit', $staff->id) }}" class="btn btn-primary me-3">Edit Staff</a>
+
                 <a href="{{ route('staff.hr.staff.index') }}" class="btn btn-light-primary">Back to Staff</a>
             </div>
             <!--end::Card toolbar-->

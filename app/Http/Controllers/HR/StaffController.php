@@ -4,28 +4,18 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
-use App\Models\Lga;
-use App\Models\Ward;
-use App\Models\Area;
-use App\Models\Zone;
-use App\Models\District;
-use App\Models\Paypoint;
-use App\Imports\StaffImport;
 use App\Exports\StaffExport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\LaravelPdf\Facades\Pdf;
-use Illuminate\Support\Str;
 use App\Services\BreadcrumbService;
 
 class StaffController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:staff', 'permission:manage-staff'])->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+        $this->middleware(['auth:staff', 'permission:manage-staff'])->only(['index', 'show', 'destroy']);
         $this->middleware(['auth:staff', 'permission:approve-staff'])->only(['approve', 'reject']);
     }
 
@@ -75,211 +65,12 @@ class StaffController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // Set breadcrumbs
-        $breadcrumb = app(BreadcrumbService::class);
-        $breadcrumb->addHome()->add('HR Management', route('staff.hr.staff.index'))->add('Add New Staff');
-
-        $lgas = Lga::all();
-        $wards = Ward::all();
-        $areas = Area::all();
-        $zones = Zone::all();
-        $districts = District::all();
-        $paypoints = Paypoint::all();
-        
-        return view('hr.staff.create', compact('lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'staff_id' => 'required|unique:staff',
-            'first_name' => 'required|string|max:255',
-            'surname' => 'required|string|max:255',
-            'email' => 'required|email|unique:staff',
-            'mobile_no' => 'required|string|max:20',
-            'date_of_birth' => 'required|date',
-            'date_of_first_appointment' => 'required|date',
-            'nin' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'zone_id' => 'nullable|exists:zones,id',
-            'district_id' => 'nullable|exists:districts,id',
-            'paypoint_id' => 'nullable|exists:paypoints,id',
-            'zone_id' => 'nullable|exists:zones,id',
-            'district_id' => 'nullable|exists:districts,id',
-            'lga_id' => 'nullable|exists:lgas,id',
-            'ward_id' => 'nullable|exists:wards,id',
-            'area_id' => 'nullable|exists:areas,id',
-            'employment_status' => 'required|in:active,inactive,on_leave,suspended,terminated',
-        ]);
-
-        $data = $request->except('photo');
-        
-        // Handle photo upload
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('staff_photos', 'public');
-            $data['photo_path'] = $photoPath;
-        }
-
-        // Set employment status and system status
-        $data['employment_status'] = $request->employment_status;
-        $data['status'] = 'approved'; // System status for access control
-        
-        // Set default password if not provided
-        $data['password'] = Hash::make($request->password ?? 'password'); // Default password, should be changed by user
-
-        $staff = Staff::create($data);
-
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member created successfully.');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show($staff)
     {
         $staff = Staff::findOrFail($staff);
         return view('hr.staff.show', compact('staff'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Staff $staff)
-    {
-        // Set breadcrumbs
-        $breadcrumb = app(BreadcrumbService::class);
-        $breadcrumb->addHome()->add('HR Management', route('staff.hr.staff.index'))->add('Edit Staff');
-
-        $lgas = Lga::all();
-        $wards = Ward::all();
-        $areas = Area::all();
-        $zones = Zone::all();
-        $districts = District::all();
-        $paypoints = Paypoint::all();
-        
-        return view('hr.staff.edit', compact('staff', 'lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
-    }
-
-    /**
-     * Get a specific section of the edit form.
-     */
-    public function getEditSection(Request $request, $staff)
-    {
-        $staff = Staff::findOrFail($staff);
-        
-        $request->validate([
-            'part' => 'required|in:personal,employment,location',
-        ]);
-
-        $part = $request->input('part');
-        $data = compact('staff');
-
-        if ($part === 'location') {
-            // Load all data upfront for client-side filtering
-            $lgas = Lga::all();
-            $wards = Ward::all();
-            $areas = Area::all();
-            $zones = Zone::all();
-            $districts = District::all();
-            $paypoints = Paypoint::all();
-            $data = array_merge($data, compact('lgas', 'wards', 'areas', 'zones', 'districts', 'paypoints'));
-        }
-
-        return response()->json([
-            'html' => view("hr.staff.partials.edit_{$part}", $data)->render(),
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $staff)
-    {
-        $staff = Staff::findOrFail($staff);
-        
-        // Determine validation rules based on the section
-        $request->validate([
-            'part' => 'required|in:personal,employment,location',
-        ]);
-        
-        $part = $request->input('part');
-        $data = [];
-        
-        if ($part === 'personal') {
-            $request->validate([
-                'staff_id' => 'required|unique:staff,staff_id,' . $staff->id,
-                'first_name' => 'required|string|max:255',
-                'surname' => 'required|string|max:255',
-                'email' => 'required|email|unique:staff,email,' . $staff->id,
-                'mobile_no' => 'required|string|max:20',
-                'date_of_birth' => 'required|date',
-                'gender' => 'required|in:male,female,other',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'middle_name' => 'nullable|string|max:255',
-                'nationality' => 'nullable|string|max:255',
-                'state_of_origin' => 'nullable|string|max:255',
-                'nin' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-            ]);
-            
-            $data = $request->only([
-                'staff_id', 'first_name', 'surname', 'middle_name', 'email', 'mobile_no', 
-                'date_of_birth', 'gender', 'nationality', 'state_of_origin', 'nin', 'address'
-            ]);
-            
-            // Handle photo upload
-            if ($request->hasFile('photo')) {
-                // Delete old photo if exists
-                if ($staff->photo_path) {
-                    Storage::disk('public')->delete($staff->photo_path);
-                }
-                
-                $photoPath = $request->file('photo')->store('staff_photos', 'public');
-                $data['photo_path'] = $photoPath;
-            }
-        } elseif ($part === 'employment') {
-            $request->validate([
-                'date_of_first_appointment' => 'required|date',
-                'employment_status' => 'required|in:active,inactive,on_leave,suspended,terminated',
-                'rank' => 'nullable|string|max:255',
-                'staff_no' => 'nullable|string|max:255',
-                'department' => 'nullable|string|max:255',
-                'years_of_service' => 'nullable|integer|min:0',
-                'expected_next_promotion' => 'nullable|date',
-                'expected_retirement_date' => 'nullable|date',
-                'appointment_type' => 'nullable|string|max:255',
-                'highest_qualifications' => 'nullable|string|max:255',
-                'grade_level_limit' => 'nullable|string|max:255',
-            ]);
-            
-            $data = $request->only([
-                'date_of_first_appointment', 'employment_status', 'rank', 'staff_no', 'department',
-                'years_of_service', 'expected_next_promotion', 'expected_retirement_date', 
-                'appointment_type', 'highest_qualifications', 'grade_level_limit'
-            ]);
-        } elseif ($part === 'location') {
-            $request->validate([
-                'paypoint_id' => 'nullable|exists:paypoints,id',
-                'zone_id' => 'nullable|exists:zones,id',
-                'district_id' => 'nullable|exists:districts,id',
-                'lga_id' => 'nullable|exists:lgas,id',
-                'ward_id' => 'nullable|exists:wards,id',
-                'area_id' => 'nullable|exists:areas,id',
-            ]);
-            
-            $data = $request->only(['paypoint_id', 'zone_id', 'district_id', 'lga_id', 'ward_id', 'area_id']);
-        }
-        
-        $staff->update($data);
-
-        return response()->json(['message' => 'Staff member updated successfully.', 'status' => 'success'], 200);
     }
 
     /**
@@ -329,24 +120,6 @@ class StaffController extends Controller
     }
 
     /**
-     * Import staff data from Excel file.
-     */
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
-        ]);
-
-        try {
-            Excel::import(new StaffImport, $request->file('file'));
-            
-            return redirect()->route('staff.hr.staff.index')->with('success', 'Staff data imported successfully.');
-        } catch (\Exception $e) {
-            return redirect()->route('staff.hr.staff.index')->with('error', 'Error importing staff data: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Export staff data to Excel.
      */
     public function exportExcel()
@@ -376,5 +149,18 @@ class StaffController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new \App\Exports\StaffTemplateExport, 'staff-template.xlsx');
+    }
+
+    public function sync()
+    {
+        try {
+            $startTime = now();
+            Artisan::call('app:sync-staff-data');
+            $affectedStaff = Staff::where('updated_at', '>=', $startTime)->get();
+
+            return view('hr.staff.sync', compact('affectedStaff'));
+        } catch (\Exception $e) {
+            return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data: ' . $e->getMessage());
+        }
     }
 }

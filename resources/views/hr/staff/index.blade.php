@@ -87,6 +87,10 @@
                             Import Staff
                         </button>
                         <!--end::Import-->
+
+                        <!--begin::Sync-->
+                        <a href="{{ route('staff.hr.staff.sync') }}" class="btn btn-light-primary w-100 w-md-auto">Sync Staff Data</a>
+                        <!--end::Sync-->
                         
                         <!--begin::Export Dropdown-->
                         <div class="dropdown w-100 w-md-auto">
@@ -104,9 +108,7 @@
                         </div>
                         <!--end::Export Dropdown-->
                         
-                        <!--begin::Add staff-->
-                        <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary w-100 w-md-auto">Add Staff</a>
-                        <!--end::Add staff-->
+
                     </div>
                     <!--end::Toolbar-->
                 </div>
@@ -181,11 +183,7 @@
                                             <a href="{{ route('staff.hr.staff.show', $staff) }}" class="menu-link px-3">View</a>
                                         </div>
                                         <!--end::Menu item-->
-                                        <!--begin::Menu item-->
-                                        <div class="menu-item px-3">
-                                            <a href="{{ route('staff.hr.staff.edit', $staff) }}" class="menu-link px-3">Edit</a>
-                                        </div>
-                                        <!--end::Menu item-->
+
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-3">
                                             <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $staff->id }}">Delete</a>

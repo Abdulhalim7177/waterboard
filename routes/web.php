@@ -205,12 +205,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     // HR Staff Management Routes (Data Management)
     Route::prefix('hr/staff')->name('hr.staff.')->group(function () {
         Route::get('/', [\App\Http\Controllers\HR\StaffController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\HR\StaffController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\HR\StaffController::class, 'store'])->name('store');
         Route::get('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'show'])->name('show');
-        Route::get('/edit/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'edit'])->name('edit');
-        Route::post('/edit/{staff}/section', [\App\Http\Controllers\HR\StaffController::class, 'getEditSection'])->name('edit.section');
-        Route::put('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'update'])->name('update');
         Route::delete('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'destroy'])->name('destroy');
         Route::put('/{staff}/approve', [\App\Http\Controllers\HR\StaffController::class, 'approve'])->name('approve');
         Route::put('/{staff}/reject', [\App\Http\Controllers\HR\StaffController::class, 'reject'])->name('reject');
@@ -218,6 +213,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/export/excel', [\App\Http\Controllers\HR\StaffController::class, 'exportExcel'])->name('export.excel');
         Route::get('/export/pdf', [\App\Http\Controllers\HR\StaffController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
+        Route::get('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
     });
 
     // Ticket Management
