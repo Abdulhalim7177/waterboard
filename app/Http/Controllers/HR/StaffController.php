@@ -532,4 +532,40 @@ class StaffController extends Controller
             }
         }
     }
+
+    public function createSync()
+    {
+        $lgas = \App\Models\Lga::all();
+        $wards = \App\Models\Ward::all();
+        $areas = \App\Models\Area::all();
+        
+        return view('hr.staff.create-sync', compact('lgas', 'wards', 'areas'));
+    }
+
+    public function storeSync(Request $request)
+    {
+        $request->validate([
+            'staff_no' => 'required|unique:staff',
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff',
+            'mobile_no' => 'required|string|max:20',
+            'date_of_birth' => 'required|date',
+            'date_of_first_appointment' => 'required|date',
+            'nin' => 'nullable|string|max:20',
+        ]);
+
+        $data = $request->all();
+        $data['password'] = Hash::make($data['password'] ?? 'password');
+
+        $staff = Staff::create($data);
+
+        $hrmData = $this->hrmService->createEmployee($data);
+
+        if ($hrmData) {
+            return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member created and synced successfully.');
+        } else {
+            return redirect()->route('staff.hr.staff.index')->with('warning', 'Staff member created locally, but failed to sync with HRM system.');
+        }
+    }
 }

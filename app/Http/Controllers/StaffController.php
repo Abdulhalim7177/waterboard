@@ -13,9 +13,17 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\LaravelPdf\Facades\Pdf;
+use App\Services\HrmService;
 
 class StaffController extends Controller
 {
+    protected $hrmService;
+
+    public function __construct(HrmService $hrmService)
+    {
+        $this->hrmService = $hrmService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -220,5 +228,41 @@ class StaffController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new \App\Exports\StaffTemplateExport, 'staff-template.xlsx');
+    }
+
+    public function createSync()
+    {
+        $lgas = Lga::all();
+        $wards = Ward::all();
+        $areas = Area::all();
+        
+        return view('hr.staff.create-sync', compact('lgas', 'wards', 'areas'));
+    }
+
+    public function storeSync(Request $request)
+    {
+        $request->validate([
+            'staff_no' => 'required|unique:staff',
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff',
+            'mobile_no' => 'required|string|max:20',
+            'date_of_birth' => 'required|date',
+            'date_of_first_appointment' => 'required|date',
+            'nin' => 'nullable|string|max:20',
+        ]);
+
+        $data = $request->all();
+        $data['password'] = Hash::make($data['password'] ?? 'password');
+
+        $staff = Staff::create($data);
+
+        $hrmData = $this->hrmService->createEmployee($data);
+
+        if ($hrmData) {
+            return redirect()->route('hr.staff.index')->with('success', 'Staff member created and synced successfully.');
+        } else {
+            return redirect()->route('hr.staff.index')->with('warning', 'Staff member created locally, but failed to sync with HRM system.');
+        }
     }
 }

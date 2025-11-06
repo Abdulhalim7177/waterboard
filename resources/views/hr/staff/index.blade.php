@@ -182,10 +182,15 @@
                                 <li><a class="dropdown-item" href="{{ route('staff.hr.staff.export.pdf') }}">Export PDF</a></li>
                             </ul>
                         </div>
-                        <!--end::Export Dropdown-->
+                                                <!--end::Export Dropdown-->
                         
-
-                    </div>
+                                                <!--begin::Add user-->
+                                                <a href="{{ route('staff.hr.staff.create-sync') }}" class="btn btn-primary w-100 w-md-auto">
+                                                    <i class="ki-duotone ki-plus fs-2"></i>
+                                                    Create and Sync Staff
+                                                </a>
+                                                <!--end::Add user-->
+                                            </div>
                     <!--end::Toolbar-->
                 </div>
                 <!--end::Card title-->

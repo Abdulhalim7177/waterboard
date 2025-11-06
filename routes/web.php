@@ -225,6 +225,8 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
         Route::post('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
         Route::get('/fetch-data', [\App\Http\Controllers\HR\StaffController::class, 'fetchStaffData'])->name('fetch.data');
+        Route::get('/create-sync', [\App\Http\Controllers\HR\StaffController::class, 'createSync'])->name('create-sync');
+        Route::post('/store-sync', [\App\Http\Controllers\HR\StaffController::class, 'storeSync'])->name('store-sync');
     });
 
     // Ticket Management
