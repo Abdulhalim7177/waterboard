@@ -88,28 +88,17 @@
                         </button>
                         <!--end::Import-->
 
-                        <!--begin::Sync Dropdown-->
-                        <div class="dropdown w-100 w-md-auto">
-                            <button class="btn btn-light-primary dropdown-toggle w-100" type="button" id="syncDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ki-duotone ki-sync fs-2">
-                                    <span class="path1"></span>
-                                    <span class="path2"></span>
-                                </i>
-                                Sync Data
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="syncDropdown">
-                                <li><a class="dropdown-item" href="{{ route('staff.hr.staff.sync') }}">Incremental Sync</a></li>
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#fullSyncModal">Complete Refresh</a></li>
-                            </ul>
-                        </div>
-                        <!--end::Sync Dropdown-->
-
-                        <!--begin::Add staff-->
-                        <a href="{{ route('staff.hr.staff.create') }}" class="btn btn-primary w-100 w-md-auto">Add Staff</a>
-                        <!--end::Add staff-->
-                        
-                        <!--begin::Export Dropdown-->
-                        <div class="dropdown w-100 w-md-auto">
+                        <!--begin::Refresh Button-->
+                        <a href="{{ route('staff.hr.staff.index', ['insight' => 'true']) }}" class="btn btn-light-primary w-100 w-md-auto" id="refreshStaffBtn">
+                            <i class="ki-duotone ki-refresh fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Refresh
+                        </a>
+                        <!--end::Refresh Button-->
+                                                
+                                                                        <!--begin::Export Dropdown-->                        <div class="dropdown w-100 w-md-auto">
                             <button class="btn btn-light-primary dropdown-toggle w-100" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ki-duotone ki-exit-up fs-2">
                                     <span class="path1"></span>
@@ -350,50 +339,14 @@
         </div>
         <!--end::Import Modal-->
         
-        <!--begin::Full Sync Modal-->
-        <div class="modal fade" id="fullSyncModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Confirm Complete Refresh</h3>
-                        <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
-                            <i class="ki-duotone ki-cross fs-1">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                        </div>
-                    </div>
-                    <div class="modal-body py-lg-10 px-lg-10">
-                        <div class="text-center mb-5">
-                            <i class="ki-duotone ki-information-5 fs-5x text-warning mb-5">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                                <span class="path3"></span>
-                            </i>
-                            <h4 class="text-dark mb-3">Warning: Complete Data Refresh</h4>
-                            <p class="text-gray-600">
-                                This action will completely replace all staff data with information from the HRM system.
-                                Local changes that are not synced with the HRM system will be lost.
-                            </p>
-                        </div>
-                        <div class="d-flex justify-content-center">
-                            <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>
-                            <a href="{{ route('staff.hr.staff.sync') }}?full_refresh=1" class="btn btn-danger" id="confirmFullSyncBtn">
-                                Confirm Refresh
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!--end::Full Sync Modal-->
+
     </div>
     <!--end::Container-->
 @endsection
 
 @section('scripts')
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Initialize Select2 for searchable dropdowns
             $('select[data-control="select2"]').select2({
                 minimumResultsForSearch: 10,
@@ -403,70 +356,123 @@
             });
 
             // Submit form on dropdown change
-            $('#status, #department').on('change', function() {
-                $('#staff_filter_form').submit();
+            document.getElementById('status').addEventListener('change', function() {
+                document.getElementById('staff_filter_form').submit();
+            });
+            document.getElementById('department').addEventListener('change', function() {
+                document.getElementById('staff_filter_form').submit();
             });
 
             // Submit form on search input (with debounce)
             let searchTimeout;
-            $('#search').on('keyup', function() {
+            document.getElementById('search').addEventListener('keyup', function() {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(function() {
-                    $('#staff_filter_form').submit();
+                    document.getElementById('staff_filter_form').submit();
                 }, 500);
             });
 
             // Handle import form submission
-            $('#import_staff_form').on('submit', function(e) {
+            document.getElementById('import_staff_form').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const $form = $(this);
-                const $button = $form.find('.import-btn');
-                const originalText = $button.find('.indicator-label').html();
+                const form = this;
+                const button = form.querySelector('.import-btn');
+                const indicatorLabel = button.querySelector('.indicator-label');
+                const indicatorProgress = button.querySelector('.indicator-progress');
 
                 // Set loading state
-                $button.prop('disabled', true).find('.indicator-label').hide();
-                $button.find('.indicator-progress').show();
+                button.disabled = true;
+                indicatorLabel.style.display = 'none';
+                indicatorProgress.style.display = 'inline-block';
 
-                // Submit form via AJAX
-                $.ajax({
-                    url: $form.attr('action'),
+                // Submit form via fetch
+                fetch(form.action, {
                     method: 'POST',
-                    data: new FormData($form[0]),
-                    contentType: false,
-                    processData: false,
-                    success: function(response) {
-                        $button.prop('disabled', false).find('.indicator-label').show();
-                        $button.find('.indicator-progress').hide();
-                        $('#importModal').modal('hide');
-                        const alert = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                            response.message +
-                            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
-                        $('#kt_content_container').prepend(alert);
-                    },
-                    error: function(xhr) {
-                        $button.prop('disabled', false).find('.indicator-label').show();
-                        $button.find('.indicator-progress').hide();
-                        let errorMessage = 'An error occurred while importing staff.';
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMessage = xhr.responseJSON.error;
-                        }
-                        const alert = $('<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                            errorMessage +
-                            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
-                        $('#kt_content_container').prepend(alert);
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    button.disabled = false;
+                    indicatorLabel.style.display = 'inline-block';
+                    indicatorProgress.style.display = 'none';
+                    const importModal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+                    importModal.hide();
+                    showAlert(data.message, 'success');
+                })
+                .catch(error => {
+                    button.disabled = false;
+                    indicatorLabel.style.display = 'inline-block';
+                    indicatorProgress.style.display = 'none';
+                    let errorMessage = 'An error occurred while importing staff.';
+                    if (error.responseJSON && error.responseJSON.error) {
+                        errorMessage = error.responseJSON.error;
+                    }
+                    showAlert(errorMessage, 'danger');
                 });
             });
 
             // Handle export dropdown forms
-            $('.export-btn').on('click', function(e) {
-                e.preventDefault();
-                const $form = $(this).closest('form');
-                const format = $(this).data('format');
-                
-                // Submit form
-                $form.submit();
+            document.querySelectorAll('.export-btn').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+                    form.submit();
+                });
             });
+            
+
+            
+            // Function to show alert
+            function showAlert(message, type) {
+                // Remove existing alerts
+                const existingAlerts = document.querySelectorAll('.alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Create alert element based on type
+                let alertClass = 'alert-';
+                switch(type) {
+                    case 'success':
+                        alertClass += 'success';
+                        break;
+                    case 'error':
+                        alertClass += 'danger';
+                        break;
+                    default:
+                        alertClass += 'info';
+                }
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x`;
+                alertDiv.style.cssText = 'z-index: 1050; margin-top: 60px; max-width: 500px;';
+                alertDiv.innerHTML = `
+                    <i class="ki-duotone ki-check-circle me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Add alert to page
+                document.body.appendChild(alertDiv);
+                
+                // Add close functionality
+                const closeBtn = alertDiv.querySelector('.btn-close');
+                closeBtn.addEventListener('click', function() {
+                    alertDiv.remove();
+                });
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(function() {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
         });
     </script>
 @endsection

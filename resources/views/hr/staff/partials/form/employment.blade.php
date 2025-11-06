@@ -14,7 +14,8 @@
         </div>
         <div class="mb-3">
             <label for="department_id" class="form-label">Department</label>
-            <select class="form-select" id="department_id" name="department_id">
+            <select class="form-select" id="department_id" name="department_id" required>
+                <option value="">Select Department</option>
                 @foreach (\App\Models\Department::all() as $department)
                     <option value="{{ $department->id }}" {{ old('department_id', $staff->department_id ?? '') == $department->id ? 'selected' : '' }}>{{ $department->name }}</option>
                 @endforeach
@@ -22,7 +23,8 @@
         </div>
         <div class="mb-3">
             <label for="rank_id" class="form-label">Rank</label>
-            <select class="form-select" id="rank_id" name="rank_id">
+            <select class="form-select" id="rank_id" name="rank_id" required>
+                <option value="">Select Rank</option>
                 @foreach (\App\Models\Rank::all() as $rank)
                     <option value="{{ $rank->id }}" {{ old('rank_id', $staff->rank_id ?? '') == $rank->id ? 'selected' : '' }}>{{ $rank->name }}</option>
                 @endforeach
@@ -30,7 +32,8 @@
         </div>
         <div class="mb-3">
             <label for="cadre_id" class="form-label">Cadre</label>
-            <select class="form-select" id="cadre_id" name="cadre_id">
+            <select class="form-select" id="cadre_id" name="cadre_id" required>
+                <option value="">Select Cadre</option>
                 @foreach (\App\Models\Cadre::all() as $cadre)
                     <option value="{{ $cadre->id }}" {{ old('cadre_id', $staff->cadre_id ?? '') == $cadre->id ? 'selected' : '' }}>{{ $cadre->name }}</option>
                 @endforeach
@@ -38,7 +41,8 @@
         </div>
         <div class="mb-3">
             <label for="grade_level_id" class="form-label">Grade Level</label>
-            <select class="form-select" id="grade_level_id" name="grade_level_id">
+            <select class="form-select" id="grade_level_id" name="grade_level_id" required>
+                <option value="">Select Grade Level</option>
                 @foreach (\App\Models\GradeLevel::all() as $gradeLevel)
                     <option value="{{ $gradeLevel->id }}" {{ old('grade_level_id', $staff->grade_level_id ?? '') == $gradeLevel->id ? 'selected' : '' }}>{{ $gradeLevel->name }}</option>
                 @endforeach
@@ -46,7 +50,8 @@
         </div>
         <div class="mb-3">
             <label for="step_id" class="form-label">Step</label>
-            <select class="form-select" id="step_id" name="step_id">
+            <select class="form-select" id="step_id" name="step_id" required>
+                <option value="">Select Step</option>
                 @foreach (\App\Models\Step::all() as $step)
                     <option value="{{ $step->id }}" {{ old('step_id', $staff->step_id ?? '') == $step->id ? 'selected' : '' }}>{{ $step->name }}</option>
                 @endforeach
@@ -54,7 +59,8 @@
         </div>
         <div class="mb-3">
             <label for="appointment_type_id" class="form-label">Appointment Type</label>
-            <select class="form-select" id="appointment_type_id" name="appointment_type_id">
+            <select class="form-select" id="appointment_type_id" name="appointment_type_id" required>
+                <option value="">Select Appointment Type</option>
                 @foreach (\App\Models\AppointmentType::all() as $appointmentType)
                     <option value="{{ $appointmentType->id }}" {{ old('appointment_type_id', $staff->appointment_type_id ?? '') == $appointmentType->id ? 'selected' : '' }}>{{ $appointmentType->name }}</option>
                 @endforeach

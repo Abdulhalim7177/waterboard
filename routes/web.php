@@ -205,8 +205,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     // HR Staff Management Routes (Data Management)
     Route::prefix('hr/staff')->name('hr.staff.')->group(function () {
         Route::get('/', [\App\Http\Controllers\HR\StaffController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\HR\StaffController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\HR\StaffController::class, 'store'])->name('store');
         Route::get('/{staff}/edit', [\App\Http\Controllers\HR\StaffController::class, 'edit'])->name('edit');
         Route::put('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'update'])->name('update');
         Route::get('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'show'])->name('show');
@@ -219,6 +217,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/export/pdf', [\App\Http\Controllers\HR\StaffController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
         Route::get('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
+        Route::get('/fetch-data', [\App\Http\Controllers\HR\StaffController::class, 'fetchStaffData'])->name('fetch.data');
     });
 
     // Ticket Management

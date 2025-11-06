@@ -9,7 +9,6 @@ use App\Models\NextOfKin;
 use App\Exports\StaffExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +35,38 @@ class StaffController extends Controller
         // Set breadcrumbs
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('HR Management')->add('Staff Directory');
+
+        if ($request->has('insight')) {
+            try {
+                // Fetch all employees from the HRM service
+                $hrmStaff = $this->hrmService->getEmployees();
+
+                if (!$hrmStaff || !isset($hrmStaff['data'])) {
+                    return back()->with('error', 'Could not fetch staff data from HRM system.');
+                }
+
+                $hrmStaffIds = collect($hrmStaff['data'])->pluck('staff_id')->all();
+
+                // Get all local staff IDs
+                $localStaffIds = Staff::pluck('staff_id')->all();
+
+                // Find staff who are in HRM but not in the local database
+                $newStaffIds = array_diff($hrmStaffIds, $localStaffIds);
+                $newStaffCount = count($newStaffIds);
+
+                // Find staff who are in both HRM and the local database
+                $existingStaffIds = array_intersect($hrmStaffIds, $localStaffIds);
+                $existingStaffCount = count($existingStaffIds);
+
+                $message = "Insight: {$newStaffCount} new staff and {$existingStaffCount} existing staff found in HRM.";
+
+                return redirect()->route('staff.hr.staff.index')->with('info', $message);
+
+            } catch (\Exception $e) {
+                \Log::error('Error in staff insight: ' . $e->getMessage());
+                return back()->with('error', 'Error generating staff insight: ' . $e->getMessage());
+            }
+        }
 
         $query = Staff::query();
 
@@ -82,32 +113,7 @@ class StaffController extends Controller
         return view('hr.staff.show', compact('staff'));
     }
 
-    public function create()
-    {
-        $staff = new Staff();
-        return view('hr.staff.create', compact('staff'));
-    }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'surname' => 'required|string|max:255',
-            'email' => 'required|email|unique:staff',
-        ]);
-
-        $data = $request->all();
-
-        $response = $this->hrmService->createEmployee($data);
-
-        if ($response) {
-            // Perform a complete refresh to ensure data consistency
-            Artisan::call('app:sync-staff-data', ['--refresh' => true]);
-            return redirect()->route('staff.hr.staff.index')->with('success', 'Employee created successfully and data refreshed from HRM system.');
-        } else {
-            return redirect()->back()->with('error', 'Failed to create employee in HRM system.');
-        }
-    }
 
     public function edit(Staff $staff)
     {
@@ -149,10 +155,7 @@ class StaffController extends Controller
             'place_of_work' => $request->next_of_kin_place_of_work,
         ]);
 
-        // Perform a complete refresh to ensure data consistency after update
-        Artisan::call('app:sync-staff-data', ['--refresh' => true]);
-
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully and data refreshed from HRM system.');
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully.');
     }
 
     /**
@@ -168,11 +171,8 @@ class StaffController extends Controller
         }
         
         $staff->delete();
-        
-        // Perform a complete refresh to ensure data consistency after deletion
-        Artisan::call('app:sync-staff-data', ['--refresh' => true]);
 
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member deleted successfully and data refreshed from HRM system.');
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member deleted successfully.');
     }
     
     /**
@@ -186,9 +186,7 @@ class StaffController extends Controller
         $response = $this->hrmService->deleteEmployee($staff->staff_id);
 
         if ($response) {
-            // Perform a complete refresh to ensure data consistency after removal
-            Artisan::call('app:sync-staff-data', ['--refresh' => true]);
-            return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member removed from HRM system and data refreshed successfully.');
+            return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member removed from HRM system successfully.');
         } else {
             return redirect()->route('staff.hr.staff.index')->with('error', 'Failed to remove staff member from HRM system.');
         }
@@ -271,15 +269,108 @@ class StaffController extends Controller
                 $this->info('Staff data synchronized successfully.');
                 $affectedStaff = Staff::where('updated_at', '>=', $startTime)->get();
                 
-                return view('hr.staff.sync', compact('affectedStaff', 'output', 'fullRefresh'));
+                // If AJAX request, return JSON response with affected data
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Staff data synchronized successfully',
+                        'total_affected' => $affectedStaff->count(),
+                        'new_records' => $affectedStaff->where('wasRecentlyCreated', true)->count(),
+                        'updated_records' => $affectedStaff->where('wasRecentlyCreated', false)->count(),
+                        'full_refresh' => $fullRefresh
+                    ]);
+                }
+                
+                // For regular requests, return to the index with a success message
+                return redirect()->route('staff.hr.staff.index')->with('success', 
+                    'Staff data synchronized successfully. ' . 
+                    $affectedStaff->count() . ' records affected (' . 
+                    $affectedStaff->where('wasRecentlyCreated', true)->count() . ' new, ' . 
+                    $affectedStaff->where('wasRecentlyCreated', false)->count() . ' updated).'
+                );
             } else {
                 \Log::error('Sync command failed: ' . $output);
+                
+                // If AJAX request, return JSON error response
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error synchronizing staff data. Check logs for details.'
+                    ], 500);
+                }
+                
                 return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data. Check logs for details.');
             }
         } catch (\Exception $e) {
             \Log::error('Error in staff sync: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            // If AJAX request, return JSON error response
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error synchronizing staff data: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Fetch staff data from HRM API without saving to database
+     */
+    public function fetchStaffData(Request $request)
+    {
+        try {
+            // Use the external API token in the request to the HRM service
+            $filters = $request->only(['department', 'status', 'search']);
+            
+            // If you have a specific token to use, you can pass it to the service
+            // For now, I'll assume the HrmService handles authentication internally
+            $hrmData = $this->hrmService->getEmployees($filters);
+
+            if ($hrmData) {
+                $data = $hrmData['data'] ?? [];
+                
+                // If it's an AJAX request, return JSON as before
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'data' => $data,
+                        'message' => 'Staff data fetched successfully'
+                    ]);
+                }
+                
+                // For non-AJAX requests, return a view with the data formatted in Bootstrap alerts
+                return view('hr.staff.fetched-data', compact('data'));
+            } else {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to fetch staff data from HRM system'
+                    ], 500);
+                } else {
+                    return view('hr.staff.fetched-data', [
+                        'data' => [],
+                        'error' => 'Failed to fetch staff data from HRM system'
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error fetching staff data: ' . $e->getMessage());
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error fetching staff data: ' . $e->getMessage()
+                ], 500);
+            } else {
+                return view('hr.staff.fetched-data', [
+                    'data' => [],
+                    'error' => 'Error fetching staff data: ' . $e->getMessage()
+                ]);
+            }
         }
     }
 }

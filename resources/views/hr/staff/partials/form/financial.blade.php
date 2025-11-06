@@ -2,19 +2,19 @@
     <div class="col-md-6">
         <div class="mb-3">
             <label for="bank_name" class="form-label">Bank Name</label>
-            <input type="text" class="form-control" id="bank_name" name="bank_name" value="{{ old('bank_name', $staff->bank->bank_name ?? '') }}">
+            <input type="text" class="form-control" id="bank_name" name="bank_name" value="{{ old('bank_name', $staff->bank->bank_name ?? '') }}" required>
         </div>
         <div class="mb-3">
             <label for="bank_code" class="form-label">Bank Code</label>
-            <input type="text" class="form-control" id="bank_code" name="bank_code" value="{{ old('bank_code', $staff->bank->bank_code ?? '') }}">
+            <input type="text" class="form-control" id="bank_code" name="bank_code" value="{{ old('bank_code', $staff->bank->bank_code ?? '') }}" required>
         </div>
         <div class="mb-3">
             <label for="account_name" class="form-label">Account Name</label>
-            <input type="text" class="form-control" id="account_name" name="account_name" value="{{ old('account_name', $staff->bank->account_name ?? '') }}">
+            <input type="text" class="form-control" id="account_name" name="account_name" value="{{ old('account_name', $staff->bank->account_name ?? '') }}" required>
         </div>
         <div class="mb-3">
             <label for="account_no" class="form-label">Account Number</label>
-            <input type="text" class="form-control" id="account_no" name="account_no" value="{{ old('account_no', $staff->bank->account_no ?? '') }}">
+            <input type="text" class="form-control" id="account_no" name="account_no" value="{{ old('account_no', $staff->bank->account_no ?? '') }}" required>
         </div>
     </div>
     <div class="col-md-6">

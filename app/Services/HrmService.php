@@ -18,12 +18,16 @@ class HrmService
 
     protected function getToken()
     {
-        return '1|pTrilD8VjIjp0kKo9eNx8ISemuX1oeaPGPUltQEG28de0003';
+        return config('services.hrm.token');
     }
 
     public function getEmployees(array $filters = [])
     {
-        Log::info('Fetching employees from HRM API', ['filters' => $filters]);
+        Log::info('Fetching employees from HRM API', [
+            'filters' => $filters,
+            'base_url' => $this->baseUrl,
+            'token' => $this->token ? 'Token Present' : 'Token Missing'
+        ]);
 
         $response = Http::withoutVerifying()->withToken($this->token)
             ->get($this->baseUrl . '/api/employees', $filters);
@@ -33,7 +37,11 @@ class HrmService
             return $response->json();
         }
 
-        Log::error('Failed to fetch employees from HRM API', ['response' => $response->body()]);
+        Log::error('Failed to fetch employees from HRM API', [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'response' => $response->body()
+        ]);
         return null;
     }
 

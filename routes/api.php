@@ -50,6 +50,7 @@ Route::prefix('v1/vendor')->name('api.vendor.')->group(function () {
 });
 
 use App\Http\Controllers\Api\ReservoirController;
+use App\Http\Controllers\Api\EmployeeController;
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::prefix('customers')->name('api.customers.')->group(function () {
@@ -68,5 +69,15 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('/pending/{update}/reject', [CustomerController::class, 'rejectPending'])->name('pending.reject')->middleware('admin');
     });
 
+    // Employee Management Routes
+    Route::prefix('employees')->name('api.employees.')->group(function () {
+        // ... existing routes would go here, but we'll add a custom fetch route
+    });
+    
     Route::apiResource('reservoirs', ReservoirController::class);
+});
+
+// HRM Integration Routes
+Route::prefix('v1/hrm')->name('api.hrm.')->middleware('auth:sanctum')->group(function () {
+    Route::get('/employees/fetch', [EmployeeController::class, 'fetchFromHrm'])->name('employees.fetch');
 });

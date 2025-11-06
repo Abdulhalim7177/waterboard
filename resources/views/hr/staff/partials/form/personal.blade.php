@@ -22,22 +22,23 @@
         </div>
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password">
+            <input type="password" class="form-control" id="password" name="password" required>
         </div>
         <div class="mb-3">
             <label for="gender" class="form-label">Gender</label>
-            <select class="form-select" id="gender" name="gender">
+            <select class="form-select" id="gender" name="gender" required>
+                <option value="">Select Gender</option>
                 <option value="male" {{ old('gender', $staff->gender ?? '') == 'male' ? 'selected' : '' }}>Male</option>
                 <option value="female" {{ old('gender', $staff->gender ?? '') == 'female' ? 'selected' : '' }}>Female</option>
             </select>
         </div>
         <div class="mb-3">
             <label for="date_of_birth" class="form-label">Date of Birth</label>
-            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth', $staff->date_of_birth ? $staff->date_of_birth->format('Y-m-d') : '') }}">
+            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth', $staff->date_of_birth ? $staff->date_of_birth->format('Y-m-d') : '') }}" required>
         </div>
         <div class="mb-3">
             <label for="nationality" class="form-label">Nationality</label>
-            <input type="text" class="form-control" id="nationality" name="nationality" value="{{ old('nationality', $staff->nationality ?? '') }}">
+            <input type="text" class="form-control" id="nationality" name="nationality" value="{{ old('nationality', $staff->nationality ?? '') }}" required>
         </div>
         <div class="mb-3">
             <label for="nin" class="form-label">NIN</label>
@@ -45,7 +46,7 @@
         </div>
         <div class="mb-3">
             <label for="mobile_no" class="form-label">Mobile No</label>
-            <input type="text" class="form-control" id="mobile_no" name="mobile_no" value="{{ old('mobile_no', $staff->mobile_no ?? '') }}">
+            <input type="text" class="form-control" id="mobile_no" name="mobile_no" value="{{ old('mobile_no', $staff->mobile_no ?? '') }}" required>
         </div>
         <div class="mb-3">
             <label for="phone_number" class="form-label">Phone Number</label>
@@ -53,7 +54,7 @@
         </div>
         <div class="mb-3">
             <label for="address" class="form-label">Address</label>
-            <textarea class="form-control" id="address" name="address">{{ old('address', $staff->address ?? '') }}</textarea>
+            <textarea class="form-control" id="address" name="address" required>{{ old('address', $staff->address ?? '') }}</textarea>
         </div>
     </div>
 </div>

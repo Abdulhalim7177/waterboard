@@ -230,14 +230,6 @@
                                             <span class="menu-title">Staff Directory</span>
                                         </a>
                                     </div>
-                                    <div class="menu-item">
-                                        <a class="menu-link" href="{{ route('staff.hr.staff.create') }}">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot"></span>
-                                            </span>
-                                            <span class="menu-title">Add New Staff</span>
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                             @endcan

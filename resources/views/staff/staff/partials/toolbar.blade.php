@@ -10,13 +10,6 @@
     </button>
     <!--end::Filter-->
     
-    <!--begin::Add staff-->
-    @can('create-staff', App\Models\Staff::class)
-        <a href="{{ route('staff.staff.create') }}" class="btn btn-primary">
-            <i class="ki-duotone ki-plus fs-2"></i>
-            Add Staff
-        </a>
-    @endcan
-    <!--end::Add staff-->
+
 </div>
 <!--end::Toolbar-->

@@ -189,7 +189,7 @@
                     </div>
                     <div class="d-flex justify-content-center">
                         <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>
-                        <a href="{{ route('staff.hr.staff.sync') }}?full_refresh=1" class="btn btn-danger" id="confirmFullSyncBtn">
+                        <a href="{{ route('staff.hr.staff.sync', ['full_refresh' => 1]) }}" class="btn btn-danger" id="confirmFullSyncBtn">
                             Confirm Refresh
                         </a>
                     </div>

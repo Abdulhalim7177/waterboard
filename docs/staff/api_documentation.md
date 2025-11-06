@@ -18,7 +18,7 @@
     "user": {
       "user_id": "integer",
       "employee_id": "string",
-      "username": "string",
+      "usx2rname": "string",
       "email": "string",
       "roles": ["string"],
       "permissions": ["string"]

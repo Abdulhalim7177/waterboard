@@ -29,9 +29,6 @@
                     </div>
                 </div>
                 <div class="card-toolbar">
-                    @if (auth('staff')->user()->hasAnyRole(['super-admin', 'manager']))
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_staff_create_modal">Add Staff</button>
-                    @endif
                 </div>
             </div>
             <div class="card-body pt-0">
@@ -659,82 +656,7 @@
                 </div>
             </div>
 
-        <!-- Create Modals -->
-        <div class="modal fade" id="kt_staff_create_modal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered mw-650px">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 class="fw-bold">Add Staff</h2>
-                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                            <i class="ki-duotone ki-cross fs-1">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                        </div>
-                    </div>
-                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
-                        <form action="{{ route('staff.staff.store') }}" method="POST">
-                            @csrf
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Name</label>
-                                <input type="text" name="name" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Email</label>
-                                <input type="email" name="email" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Password</label>
-                                <input type="password" name="password" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Confirm Password</label>
-                                <input type="password" name="password_confirmation" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">District</label>
-                                <input type="text" name="district" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Zone</label>
-                                <input type="text" name="zone" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Subzone</label>
-                                <input type="text" name="subzone" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">Road</label>
-                                <input type="text" name="road" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">SUCC</label>
-                                <input type="text" name="succ" class="form-control form-control-solid" required />
-                            </div>
-                            @if (auth('staff')->user()->hasAnyRole(['super-admin', 'manager']))
-                                <div class="fv-row mb-10">
-                                    <label class="fs-5 fw-semibold form-label mb-5">Roles</label>
-                                    <select name="roles[]" class="form-control form-control-solid" data-control="select2" multiple>
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->name }}">{{ $role->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @if (auth('staff')->user()->hasRole('manager'))
-                                    <div class="alert alert-info">
-                                        This action requires Super Admin approval.
-                                    </div>
-                                @endif
-                            @endif
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Submit</button>
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <div class="modal fade" id="kt_role_create_modal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered mw-650px">
                 <div class="modal-content">
