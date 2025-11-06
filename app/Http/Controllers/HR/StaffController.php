@@ -45,22 +45,24 @@ class StaffController extends Controller
                     return back()->with('error', 'Could not fetch staff data from HRM system.');
                 }
 
-                $hrmStaffIds = collect($hrmStaff['data'])->pluck('staff_id')->all();
+                $hrmStaffIds = collect($hrmStaff['data'])->pluck('employee_id')->all();
 
                 // Get all local staff IDs
                 $localStaffIds = Staff::pluck('staff_id')->all();
 
                 // Find staff who are in HRM but not in the local database
                 $newStaffIds = array_diff($hrmStaffIds, $localStaffIds);
-                $newStaffCount = count($newStaffIds);
+                $newStaff = collect($hrmStaff['data'])->whereIn('employee_id', $newStaffIds)->all();
 
                 // Find staff who are in both HRM and the local database
                 $existingStaffIds = array_intersect($hrmStaffIds, $localStaffIds);
-                $existingStaffCount = count($existingStaffIds);
+                $existingStaff = collect($hrmStaff['data'])->whereIn('employee_id', $existingStaffIds)->all();
 
-                $message = "Insight: {$newStaffCount} new staff and {$existingStaffCount} existing staff found in HRM.";
+                $message = "Insight: " . count($newStaff) . " new staff and " . count($existingStaff) . " existing staff found in HRM.";
 
-                return redirect()->route('staff.hr.staff.index')->with('info', $message);
+                return redirect()->route('staff.hr.staff.index')->with('info', $message)
+                    ->with('newStaff', $newStaff)
+                    ->with('existingStaff', $existingStaff);
 
             } catch (\Exception $e) {
                 \Log::error('Error in staff insight: ' . $e->getMessage());

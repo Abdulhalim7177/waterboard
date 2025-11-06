@@ -26,6 +26,71 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
+
+        @if (session('newStaff') || session('existingStaff'))
+            <div class="alert alert-custom alert-light-primary fade show mb-5" role="alert">
+                <div class="alert-icon">
+                    <i class="flaticon-information"></i>
+                </div>
+                <div class="alert-text">
+                    <h4 class="alert-heading">Staff Insight</h4>
+                    <p>{{ session('info') }}</p>
+                    <hr>
+                    <h5>New Staff</h5>
+                    @if (count(session('newStaff')) > 0)
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (session('newStaff') as $staff)
+                                    <tr>
+                                        <td>{{ $staff['employee_id'] }}</td>
+                                        <td>{{ $staff['first_name'] }} {{ $staff['surname'] }}</td>
+                                        <td>{{ $staff['email'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p>No new staff found.</p>
+                    @endif
+
+                    <h5 class="mt-4">Existing Staff</h5>
+                    @if (count(session('existingStaff')) > 0)
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (session('existingStaff') as $staff)
+                                    <tr>
+                                        <td>{{ $staff['employee_id'] }}</td>
+                                        <td>{{ $staff['first_name'] }} {{ $staff['surname'] }}</td>
+                                        <td>{{ $staff['email'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p>No existing staff found.</p>
+                    @endif
+                </div>
+                <div class="alert-close">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true"><i class="ki ki-close"></i></span>
+                    </button>
+                </div>
+            </div>
+        @endif
         <!--end::Alerts-->
 
         <!--begin::Stats Widget-->
