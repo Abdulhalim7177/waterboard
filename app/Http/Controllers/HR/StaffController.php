@@ -107,6 +107,16 @@ class StaffController extends Controller
     }
 
     /**
+     * Show the form for creating a new staff member.
+     */
+    public function create()
+    {
+        $wards = \App\Models\Ward::all();
+        $areas = \App\Models\Area::all();
+        return view('hr.staff.create', compact('wards', 'areas'));
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show($staff)
@@ -115,7 +125,66 @@ class StaffController extends Controller
         return view('hr.staff.show', compact('staff'));
     }
 
+    /**
+     * Store a newly created staff member in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'staff_id' => 'required|string|max:50|unique:staff,staff_id',
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:staff,email',
+            'mobile_no' => 'required|string|max:20',
+            'date_of_birth' => 'required|date',
+            'date_of_first_appointment' => 'nullable|date',
+            'password' => 'required|string|min:6',
+            'gender' => 'required|string|in:male,female',
+            'nationality' => 'required|string|max:100',
+            'address' => 'required|string'
+        ]);
 
+        $data = $request->except(['password', 'bank_name', 'bank_code', 'account_name', 'account_no', 'pension_administrator', 'rsa_pin', 'next_of_kin_name', 'next_of_kin_relationship', 'next_of_kin_mobile_no', 'next_of_kin_address', 'next_of_kin_occupation', 'next_of_kin_place_of_work']);
+
+        $data['password'] = Hash::make($request->password);
+
+        $staff = Staff::create($data);
+
+        // Handle financial information
+        if ($request->bank_name || $request->bank_code || $request->account_name || $request->account_no) {
+            $staff->bank()->create([
+                'bank_name' => $request->bank_name,
+                'bank_code' => $request->bank_code,
+                'account_name' => $request->account_name,
+                'account_no' => $request->account_no,
+            ]);
+        }
+
+        // Handle pension information
+        if ($request->pension_administrator || $request->rsa_pin) {
+            $staff->pension()->create([
+                'pension_administrator' => $request->pension_administrator,
+                'rsa_pin' => $request->rsa_pin,
+            ]);
+        }
+
+        // Handle next of kin information
+        if ($request->next_of_kin_name || $request->next_of_kin_relationship || $request->next_of_kin_mobile_no) {
+            $staff->nextOfKin()->create([
+                'name' => $request->next_of_kin_name,
+                'relationship' => $request->next_of_kin_relationship,
+                'mobile_no' => $request->next_of_kin_mobile_no,
+                'address' => $request->next_of_kin_address,
+                'occupation' => $request->next_of_kin_occupation,
+                'place_of_work' => $request->next_of_kin_place_of_work,
+            ]);
+        }
+
+        // Assign default role
+        $staff->assignRole('staff');
+
+        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member created successfully.');
+    }
 
     public function edit(Staff $staff)
     {
