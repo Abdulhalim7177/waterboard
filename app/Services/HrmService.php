@@ -60,14 +60,36 @@ class HrmService
 
     public function createEmployee(array $data)
     {
+        Log::info('Attempting to create employee in HRM API', [
+            'base_url' => $this->baseUrl,
+            'token' => $this->token ? 'Token Present' : 'Token Missing',
+            'request_data' => $data,
+            'api_endpoint' => $this->baseUrl . '/api/employees'
+        ]);
+
         $response = Http::withoutVerifying()->withToken($this->token)
             ->post($this->baseUrl . '/api/employees', $data);
 
+        Log::info('HRM API create employee response', [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'response_body' => $response->body()
+        ]);
+
         if ($response->successful()) {
+            Log::info('Successfully created employee in HRM API', [
+                'response' => $response->json()
+            ]);
             return $response->json();
         }
 
-        Log::error('Failed to create employee in HRM API', ['response' => $response->body()]);
+        Log::error('Failed to create employee in HRM API', [
+            'status' => $response->status(),
+            'request_data' => $data,
+            'response_body' => $response->body(),
+            'headers' => $response->headers()
+        ]);
+        
         return null;
     }
 

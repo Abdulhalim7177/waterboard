@@ -132,7 +132,26 @@
 
 <div class="container page-center">
     <div class="card card-flush card-centered">
-        <div class="alert-container"></div>
+        <div class="alert-container">
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if (session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            {{ session('warning') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+</div>
         <!--begin::Card header-->
         <div class="card-header border-0 pt-6">
             <!--begin::Card title-->
@@ -213,7 +232,8 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <label for="mobile_no" class="form-label w-150px">Mobile No</label>
-                                    <input type="text" class="form-control" id="mobile_no" name="mobile_no" value="{{ old('mobile_no') }}" required>
+                                    <input type="text" class="form-control" id="mobile_no" name="mobile_no" value="{{ old('mobile_no') }}" required maxlength="15" placeholder="+2348012345678">
+                                    <div class="form-text text-muted small">Max 15 characters</div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <label for="phone_number" class="form-label w-150px">Phone Number</label>
@@ -307,7 +327,13 @@
                                 <div class="d-flex align-items-center">
                                     <label for="status" class="form-label w-150px">Status</label>
                                     <select class="form-select" id="status" name="status">
-                                        <option value="pending" {{ old('status', 'pending') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="">Select Status</option>
+                                        <option value="Active" {{ old('status', 'Active') == 'Active' ? 'selected' : '' }}>Active</option>
+                                        <option value="Inactive" {{ old('status') == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                        <option value="On Leave" {{ old('status') == 'On Leave' ? 'selected' : '' }}>On Leave</option>
+                                        <option value="Suspended" {{ old('status') == 'Suspended' ? 'selected' : '' }}>Suspended</option>
+                                        <option value="Terminated" {{ old('status') == 'Terminated' ? 'selected' : '' }}>Terminated</option>
+                                        <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                         <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
                                         <option value="rejected" {{ old('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                     </select>
@@ -433,7 +459,8 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <label for="next_of_kin_mobile_no" class="form-label w-150px">Mobile No</label>
-                                    <input type="text" class="form-control" id="next_of_kin_mobile_no" name="next_of_kin_mobile_no" value="{{ old('next_of_kin_mobile_no') }}">
+                                    <input type="text" class="form-control" id="next_of_kin_mobile_no" name="next_of_kin_mobile_no" value="{{ old('next_of_kin_mobile_no') }}" maxlength="15" placeholder="+2348012345678">
+                                    <div class="form-text text-muted small">Max 15 characters</div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <label for="next_of_kin_address" class="form-label w-150px">Address</label>
@@ -680,12 +707,17 @@
             return emailRegex.test(email);
         }
         
-        // Mobile number validation helper
+        // Mobile number validation helper for API constraint (max 15 chars)
         function isValidMobileNumber(mobileNumber) {
             // Allow numbers with optional country code, spaces, hyphens, brackets
             // Common formats: 08012345678, +2348012345678, 2348012345678
-            const mobileRegex = /^(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
-            return mobileRegex.test(mobileNumber.replace(/[^0-9+]/g, ''));
+            // Also ensure length doesn't exceed 15 characters when cleaned
+            const cleanNumber = mobileNumber.replace(/[^0-9+]/g, '');
+            if (cleanNumber.length > 15) {
+                return false;
+            }
+            const mobileRegex = /^(\+?\d{1,3})?\d{7,15}$/;
+            return mobileRegex.test(cleanNumber);
         }
         
         // Date validation helper
@@ -699,6 +731,12 @@
             // Should be 10 digits
             const accountRegex = /^\d{10}$/;
             return accountRegex.test(accountNumber);
+        }
+        
+        // Status validation helper
+        function isValidStatus(status) {
+            const validStatuses = ['Active', 'Inactive', 'On Leave', 'Suspended', 'Terminated', 'pending', 'approved', 'rejected'];
+            return validStatuses.includes(status);
         }
         
         // Function to show validation error
@@ -758,9 +796,15 @@
                 isValid = false;
                 errorMsg = 'Please enter a valid date';
             }
-            else if ((field.id === 'mobile_no' || field.id === 'next_of_kin_mobile_no') && field.value && !isValidMobileNumber(field.value)) {
-                isValid = false;
-                errorMsg = 'Please enter a valid mobile number';
+            else if ((field.id === 'mobile_no' || field.id === 'next_of_kin_mobile_no') && field.value) {
+                const cleanNumber = field.value.replace(/[^0-9+]/g, '');
+                if (cleanNumber.length > 15) {
+                    isValid = false;
+                    errorMsg = 'Mobile number must not exceed 15 characters';
+                } else if (!isValidMobileNumber(field.value)) {
+                    isValid = false;
+                    errorMsg = 'Please enter a valid mobile number';
+                }
             }
             else if (field.id === 'password' && field.value && field.value.length < 6) {
                 isValid = false;
@@ -769,6 +813,10 @@
             else if (field.id === 'account_no' && field.value && !isValidAccountNumber(field.value)) {
                 isValid = false;
                 errorMsg = 'Account number must be 10 digits';
+            }
+            else if (field.id === 'status' && field.value && !isValidStatus(field.value)) {
+                isValid = false;
+                errorMsg = 'Please select a valid status (Active, Inactive, On Leave, Suspended, Terminated)';
             }
             
             // Add/remove error styling and message

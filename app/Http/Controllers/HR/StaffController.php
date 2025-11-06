@@ -183,7 +183,168 @@ class StaffController extends Controller
         // Assign default role
         $staff->assignRole('staff');
 
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member created successfully.');
+        // Sync with external HRM API
+        try {
+            $hrmData = $this->prepareHrmData($staff, $request);
+            \Log::info("Attempting to sync staff with HRM API", [
+                'staff_id' => $staff->id,
+                'staff_email' => $staff->email,
+                'hrm_data' => $hrmData,
+                'hrm_base_url' => config('services.hrm.base_url'),
+                'hrm_token_configured' => !empty(config('services.hrm.token'))
+            ]);
+            
+            $hrmResponse = $this->hrmService->createEmployee($hrmData);
+
+            if ($hrmResponse && isset($hrmResponse['success']) && $hrmResponse['success']) {
+                \Log::info("Staff member synced with HRM successfully", [
+                    'staff_id' => $staff->id,
+                    'hrm_response' => $hrmResponse
+                ]);
+                
+                // Update staff with any data returned from HRM if needed
+                if (isset($hrmResponse['data']['reg_no']) || isset($hrmResponse['reg_no'])) {
+                    $newRegNo = $hrmResponse['data']['reg_no'] ?? $hrmResponse['reg_no'];
+                    $staff->update(['staff_id' => $newRegNo]);
+                }
+                
+                $request->session()->flash('success', 'Staff member created successfully and synced with HRM system.');
+                return redirect()->route('staff.hr.staff.index');
+            } else {
+                \Log::warning("Staff member created locally but failed to sync with HRM", [
+                    'staff_id' => $staff->id,
+                    'hrm_response' => $hrmResponse,
+                    'hrm_base_url' => config('services.hrm.base_url')
+                ]);
+                $request->session()->flash('warning', 'Staff member created successfully locally, but sync with HRM system failed. Check logs for details.');
+                return redirect()->route('staff.hr.staff.index');
+            }
+        } catch (\Exception $e) {
+            \Log::error("Error syncing staff with HRM API", [
+                'error' => $e->getMessage(),
+                'staff_id' => $staff->id,
+                'staff_email' => $staff->email,
+                'hrm_base_url' => config('services.hrm.base_url'),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            $request->session()->flash('warning', 'Staff member created successfully locally, but sync with HRM system failed due to an API error. Check logs for details.');
+            return redirect()->route('staff.hr.staff.index');
+        }
+    }
+
+    /**
+     * Prepare data for HRM API
+     */
+    private function prepareHrmData($staff, $request)
+    {
+        // Format mobile number to comply with API requirements (max 15 characters)
+        $mobileNo = $this->formatMobileNumber($staff->mobile_no);
+        $kinMobileNo = $this->formatMobileNumber($staff->nextOfKin->mobile_no ?? '');
+        
+        return [
+            'first_name' => $staff->first_name,
+            'surname' => $staff->surname,
+            'middle_name' => $staff->middle_name ?? '',
+            'staff_no' => $staff->staff_id,
+            'gender' => ucfirst($staff->gender),
+            'date_of_birth' => $staff->date_of_birth ? $staff->date_of_birth->format('Y-m-d') : null,
+            'state_id' => 1, // Default state - you might want to get this from a field
+            'lga_id' => $staff->lga_id ?? null,
+            'ward_id' => $staff->ward_id ?? null,
+            'nationality' => $staff->nationality,
+            'nin' => $staff->nin ?? '',
+            'reg_no' => $staff->staff_id,
+            'mobile_no' => $mobileNo,
+            'email' => $staff->email,
+            'pay_point' => $staff->paypoint->name ?? '',
+            'address' => $staff->address,
+            'date_of_first_appointment' => $staff->date_of_first_appointment ? $staff->date_of_first_appointment->format('Y-m-d') : null,
+            'appointment_type_id' => $staff->appointment_type_id ?? null,
+            'cadre_id' => $staff->cadre_id ?? null,
+            'salary_scale_id' => $staff->grade_level_id ?? null, // Assuming grade level maps to salary scale
+            'grade_level_id' => $staff->grade_level_id ?? null,
+            'step_id' => $staff->step_id ?? null,
+            'step_level' => $staff->step_id ? 'Step ' . $staff->step_id : null,
+            'expected_retirement_date' => $staff->expected_retirement_date ? $staff->expected_retirement_date->format('Y-m-d') : null,
+            'rank_id' => $staff->rank_id ?? null,
+            'status' => $this->validateStatus($staff->employment_status ?? 'Active'),
+            'highest_certificate' => $staff->highest_qualifications ?? '',
+            'kin_name' => $staff->nextOfKin->name ?? '',
+            'kin_relationship' => $staff->nextOfKin->relationship ?? '',
+            'kin_mobile_no' => $kinMobileNo,
+            'kin_address' => $staff->nextOfKin->address ?? '',
+            'kin_occupation' => $staff->nextOfKin->occupation ?? '',
+            'kin_place_of_work' => $staff->nextOfKin->place_of_work ?? '',
+            'bank_name' => $staff->bank->bank_name ?? '',
+            'bank_code' => $staff->bank->bank_code ?? '',
+            'account_name' => $staff->bank->account_name ?? '',
+            'account_no' => $staff->bank->account_no ?? '',
+            'department_id' => $staff->department_id ?? null,
+            'password' => $request->password
+        ];
+    }
+    
+    /**
+     * Format mobile number to comply with API requirements
+     */
+    private function formatMobileNumber($mobileNumber)
+    {
+        if (empty($mobileNumber)) {
+            return '';
+        }
+        
+        // Remove any non-digit characters except leading +
+        $cleanNumber = preg_replace('/[^\d+]/', '', $mobileNumber);
+        
+        // If it starts with + and is too long, truncate to keep only last 10 digits after country code
+        if (strlen($cleanNumber) > 15) {
+            // If it starts with +, keep + and last 10 digits (e.g., +2347012345678)
+            if (substr($cleanNumber, 0, 1) === '+') {
+                $numberWithoutPlus = substr($cleanNumber, 1);
+                $last10Digits = substr($numberWithoutPlus, -10);
+                $cleanNumber = '+' . $last10Digits;
+            } else {
+                // Otherwise just take the last 10-15 digits
+                $cleanNumber = substr($cleanNumber, -10);
+            }
+        }
+        
+        return $cleanNumber;
+    }
+    
+    /**
+     * Validate status value for HRM API
+     */
+    private function validateStatus($status)
+    {
+        // Map status values to valid HRM API values
+        $validStatuses = ['Active', 'Inactive', 'On Leave', 'Suspended', 'Terminated'];
+        $status = trim($status);
+        
+        // If the status is one of the valid values, return as is
+        if (in_array(ucfirst($status), $validStatuses)) {
+            return ucfirst($status);
+        }
+        
+        // If status contains certain keywords, map to appropriate value
+        $statusLower = strtolower($status);
+        if (strpos($statusLower, 'active') !== false) {
+            return 'Active';
+        } elseif (strpos($statusLower, 'inact') !== false) {
+            return 'Inactive';
+        } elseif (strpos($statusLower, 'leave') !== false) {
+            return 'On Leave';
+        } elseif (strpos($statusLower, 'suspend') !== false) {
+            return 'Suspended';
+        } elseif (strpos($statusLower, 'term') !== false) {
+            return 'Terminated';
+        } elseif (strpos($statusLower, 'pend') !== false) {
+            return 'Inactive'; // Default to Inactive for pending
+        }
+        
+        // Default to Active if status is not recognized
+        return 'Active';
     }
 
     public function edit(Staff $staff)
