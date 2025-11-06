@@ -560,6 +560,24 @@ class StaffController extends Controller
 
                 $status = $statusMap[$employee['status']] ?? 'pending';
 
+                // Check if email already exists for a different staff member
+                $existingStaffWithEmail = Staff::where('email', $employee['email'])
+                    ->where('staff_id', '!=', $employee['employee_id'])
+                    ->first();
+                
+                if ($existingStaffWithEmail) {
+                    // If email exists for another staff member, we need to handle conflict
+                    // Option 1: Skip this record
+                    \Log::warning("Email conflict during sync. Staff member with email {$employee['email']} already exists.", [
+                        'existing_staff_id' => $existingStaffWithEmail->staff_id,
+                        'new_employee_id' => $employee['employee_id']
+                    ]);
+                    continue; // Skip this employee to avoid duplicate email error
+                    
+                    // Option 2: Update the existing staff with the email to use a different email first
+                    // This would require more complex logic to handle
+                }
+                
                 $staff = Staff::updateOrCreate(
                     ['staff_id' => $employee['employee_id']],
                     [
