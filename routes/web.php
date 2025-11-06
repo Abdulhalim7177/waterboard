@@ -207,6 +207,13 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/', [\App\Http\Controllers\HR\StaffController::class, 'index'])->name('index');
         Route::get('/{staff}/edit', [\App\Http\Controllers\HR\StaffController::class, 'edit'])->name('edit');
         Route::put('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'update'])->name('update');
+        Route::put('/{staff}/personal', [\App\Http\Controllers\HR\StaffController::class, 'updatePersonal'])->name('update.personal');
+        Route::put('/{staff}/employment', [\App\Http\Controllers\HR\StaffController::class, 'updateEmployment'])->name('update.employment');
+        Route::put('/{staff}/location', [\App\Http\Controllers\HR\StaffController::class, 'updateLocation'])->name('update.location');
+        Route::put('/{staff}/financial', [\App\Http\Controllers\HR\StaffController::class, 'updateFinancial'])->name('update.financial');
+        Route::put('/{staff}/next-of-kin', [\App\Http\Controllers\HR\StaffController::class, 'updateNextOfKin'])->name('update.next-of-kin');
+        Route::get('/get-wards/{lga}', [\App\Http\Controllers\HR\StaffController::class, 'getWards'])->name('get-wards');
+        Route::get('/get-areas/{ward}', [\App\Http\Controllers\HR\StaffController::class, 'getAreas'])->name('get-areas');
         Route::get('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'show'])->name('show');
         Route::delete('/{staff}', [\App\Http\Controllers\HR\StaffController::class, 'destroy'])->name('destroy');
         Route::delete('/{staff}/remove', [\App\Http\Controllers\HR\StaffController::class, 'remove'])->name('remove');
@@ -216,7 +223,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/export/excel', [\App\Http\Controllers\HR\StaffController::class, 'exportExcel'])->name('export.excel');
         Route::get('/export/pdf', [\App\Http\Controllers\HR\StaffController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
-        Route::get('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
+        Route::post('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
         Route::get('/fetch-data', [\App\Http\Controllers\HR\StaffController::class, 'fetchStaffData'])->name('fetch.data');
     });
 

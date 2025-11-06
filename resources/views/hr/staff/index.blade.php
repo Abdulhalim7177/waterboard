@@ -35,6 +35,12 @@
                 <div class="alert-text">
                     <h4 class="alert-heading">Staff Insight</h4>
                     <p>{{ session('info') }}</p>
+                    <div class="d-flex justify-content-end">
+                        <form action="{{ route('staff.hr.staff.sync') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">Sync</button>
+                        </form>
+                    </div>
                     <hr>
                     <h5>New Staff</h5>
                     @if (count(session('newStaff')) > 0)

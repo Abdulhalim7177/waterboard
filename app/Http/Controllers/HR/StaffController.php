@@ -119,7 +119,9 @@ class StaffController extends Controller
 
     public function edit(Staff $staff)
     {
-        return view('hr.staff.edit', compact('staff'));
+        $wards = \App\Models\Ward::all();
+        $areas = \App\Models\Area::all();
+        return view('hr.staff.edit', compact('staff', 'wards', 'areas'));
     }
 
     public function update(Request $request, Staff $staff)
@@ -131,7 +133,7 @@ class StaffController extends Controller
             'email' => 'required|email|unique:staff,email,' . $staff->id,
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['staff_id', 'first_name', 'surname', 'middle_name', 'gender', 'date_of_birth', 'nationality', 'nin', 'mobile_no', 'email', 'address']);
 
         if ($request->password) {
             $data['password'] = Hash::make($request->password);
@@ -141,23 +143,73 @@ class StaffController extends Controller
 
         $staff->update($data);
 
-        $staff->bank()->updateOrCreate([], [
-            'bank_name' => $request->bank_name,
-            'bank_code' => $request->bank_code,
-            'account_name' => $request->account_name,
-            'account_no' => $request->account_no,
+        return response()->json(['message' => 'Staff member updated successfully.']);
+    }
+
+    public function updatePersonal(Request $request, Staff $staff)
+    {
+        $request->validate([
+            'staff_id' => 'required|unique:staff,staff_id,' . $staff->id,
+            'first_name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff,email,' . $staff->id,
         ]);
 
-        $staff->nextOfKin()->updateOrCreate([], [
-            'name' => $request->next_of_kin_name,
-            'relationship' => $request->next_of_kin_relationship,
-            'mobile_no' => $request->next_of_kin_mobile_no,
-            'address' => $request->next_of_kin_address,
-            'occupation' => $request->next_of_kin_occupation,
-            'place_of_work' => $request->next_of_kin_place_of_work,
-        ]);
+        $data = $request->only(['staff_id', 'first_name', 'surname', 'middle_name', 'gender', 'date_of_birth', 'nationality', 'nin', 'mobile_no', 'email', 'address']);
 
-        return redirect()->route('staff.hr.staff.index')->with('success', 'Staff member updated successfully.');
+        $staff->update($data);
+
+        return response()->json(['message' => 'Personal information updated successfully.']);
+    }
+
+    public function updateEmployment(Request $request, Staff $staff)
+    {
+        $data = $request->only(['date_of_first_appointment', 'contract_start_date', 'contract_end_date', 'rank_id', 'staff_no', 'department_id', 'cadre_id', 'grade_level_id', 'step_id', 'expected_next_promotion', 'expected_retirement_date', 'status', 'employment_status', 'highest_qualifications', 'appointment_type_id', 'years_of_service']);
+
+        $staff->update($data);
+
+        return response()->json(['message' => 'Employment information updated successfully.']);
+    }
+
+    public function updateLocation(Request $request, Staff $staff)
+    {
+        $data = $request->only(['lga_id', 'ward_id', 'area_id', 'zone_id', 'district_id', 'paypoint_id']);
+
+        $staff->update($data);
+
+        return response()->json(['message' => 'Location information updated successfully.']);
+    }
+
+    public function updateFinancial(Request $request, Staff $staff)
+    {
+        $staff->bank()->updateOrCreate(
+            ['staff_id' => $staff->id],
+            [
+                'bank_name' => $request->bank_name,
+                'bank_code' => $request->bank_code,
+                'account_name' => $request->account_name,
+                'account_no' => $request->account_no,
+            ]
+        );
+
+        return response()->json(['message' => 'Financial information updated successfully.']);
+    }
+
+    public function updateNextOfKin(Request $request, Staff $staff)
+    {
+        $staff->nextOfKin()->updateOrCreate(
+            ['staff_id' => $staff->id],
+            [
+                'name' => $request->next_of_kin_name,
+                'relationship' => $request->next_of_kin_relationship,
+                'mobile_no' => $request->next_of_kin_mobile_no,
+                'address' => $request->next_of_kin_address,
+                'occupation' => $request->next_of_kin_occupation,
+                'place_of_work' => $request->next_of_kin_place_of_work,
+            ]
+        );
+
+        return response()->json(['message' => 'Next of kin information updated successfully.']);
     }
 
     /**
@@ -258,65 +310,170 @@ class StaffController extends Controller
     public function sync(Request $request)
     {
         try {
-            $fullRefresh = $request->get('full_refresh', false);
-            
-            $startTime = now();
-            $commandResult = Artisan::call('app:sync-staff-data', [
-                '--refresh' => $fullRefresh
-            ]);
-            
-            $output = Artisan::output();
-            
-            if ($commandResult === 0) {
-                $this->info('Staff data synchronized successfully.');
-                $affectedStaff = Staff::where('updated_at', '>=', $startTime)->get();
-                
-                // If AJAX request, return JSON response with affected data
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Staff data synchronized successfully',
-                        'total_affected' => $affectedStaff->count(),
-                        'new_records' => $affectedStaff->where('wasRecentlyCreated', true)->count(),
-                        'updated_records' => $affectedStaff->where('wasRecentlyCreated', false)->count(),
-                        'full_refresh' => $fullRefresh
-                    ]);
-                }
-                
-                // For regular requests, return to the index with a success message
-                return redirect()->route('staff.hr.staff.index')->with('success', 
-                    'Staff data synchronized successfully. ' . 
-                    $affectedStaff->count() . ' records affected (' . 
-                    $affectedStaff->where('wasRecentlyCreated', true)->count() . ' new, ' . 
-                    $affectedStaff->where('wasRecentlyCreated', false)->count() . ' updated).'
-                );
-            } else {
-                \Log::error('Sync command failed: ' . $output);
-                
-                // If AJAX request, return JSON error response
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error synchronizing staff data. Check logs for details.'
-                    ], 500);
-                }
-                
-                return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data. Check logs for details.');
+            // Sync HRM data before syncing staff
+            $staffData = $this->syncHrmData();
+
+            if (!$staffData) {
+                return back()->with('error', 'Could not fetch staff data from HRM system.');
             }
+
+            $syncedCount = 0;
+
+            foreach ($staffData as $employee) {
+                $statusMap = [
+                    'Active' => 'approved',
+                    'Inactive' => 'rejected',
+                    'On Leave' => 'pending',
+                    'Suspended' => 'pending',
+                    'Terminated' => 'rejected',
+                ];
+
+                $status = $statusMap[$employee['status']] ?? 'pending';
+
+                $staff = Staff::updateOrCreate(
+                    ['staff_id' => $employee['employee_id']],
+                    [
+                        'first_name' => $employee['first_name'],
+                        'surname' => $employee['surname'],
+                        'middle_name' => $employee['middle_name'],
+                        'gender' => $employee['gender'],
+                        'date_of_birth' => $employee['date_of_birth'],
+                        'lga_id' => $employee['lga_id'],
+                        'ward_id' => $employee['ward_id'],
+                        'nationality' => $employee['nationality'],
+                        'nin' => $employee['nin'],
+                        'mobile_no' => $employee['mobile_no'],
+                        'email' => $employee['email'],
+                        'address' => $employee['address'],
+                        'password' => Hash::make('password'), // Set a default password
+                        'date_of_first_appointment' => $employee['date_of_first_appointment'],
+                        'contract_start_date' => $employee['contract_start_date'],
+                        'contract_end_date' => $employee['contract_end_date'],
+                        'rank_id' => $employee['rank_id'],
+                        'staff_no' => $employee['staff_no'],
+                        'department_id' => $employee['department_id'],
+                        'cadre_id' => $employee['cadre_id'],
+                        'grade_level_id' => $employee['grade_level_id'],
+                        'step_id' => $employee['step_id'],
+                        'expected_next_promotion' => $employee['expected_next_promotion'],
+                        'expected_retirement_date' => $employee['expected_retirement_date'],
+                        'status' => $status,
+                        'employment_status' => $employee['status'],
+                        'highest_qualifications' => $employee['highest_certificate'],
+                        'appointment_type_id' => $employee['appointment_type_id'],
+                        'photo_path' => $employee['photo_path'],
+                        'years_of_service' => $employee['years_of_service'],
+                    ]
+                );
+
+                if ($staff->wasRecentlyCreated) {
+                    $staff->assignRole('staff');
+                }
+
+                // Sync bank details
+                if (isset($employee['bank'])) {
+                    $staff->bank()->updateOrCreate(
+                        ['staff_id' => $staff->id],
+                        [
+                            'bank_name' => $employee['bank']['bank_name'],
+                            'bank_code' => $employee['bank']['bank_code'],
+                            'account_name' => $employee['bank']['account_name'],
+                            'account_no' => $employee['bank']['account_no'],
+                        ]
+                    );
+                }
+
+                // Sync next of kin details
+                if (isset($employee['next_of_kin'])) {
+                    $staff->nextOfKin()->updateOrCreate(
+                        ['staff_id' => $staff->id],
+                        [
+                            'name' => $employee['next_of_kin']['name'],
+                            'relationship' => $employee['next_of_kin']['relationship'],
+                            'mobile_no' => $employee['next_of_kin']['mobile_no'],
+                            'address' => $employee['next_of_kin']['address'],
+                            'occupation' => $employee['next_of_kin']['occupation'],
+                            'place_of_work' => $employee['next_of_kin']['place_of_work'],
+                        ]
+                    );
+                }
+
+                $syncedCount++;
+            }
+
+            return redirect()->route('staff.hr.staff.index')->with('success', "Successfully synced {$syncedCount} staff records.");
+
         } catch (\Exception $e) {
             \Log::error('Error in staff sync: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            // If AJAX request, return JSON error response
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error synchronizing staff data: ' . $e->getMessage()
-                ], 500);
-            }
-            
-            return redirect()->route('staff.hr.staff.index')->with('error', 'Error synchronizing staff data: ' . $e->getMessage());
+            return back()->with('error', 'Error syncing staff data: ' . $e->getMessage());
         }
+    }
+
+    private function syncHrmData()
+    {
+        // Fetch all data from HRM
+        $hrmData = $this->hrmService->getEmployees();
+
+        if (!$hrmData || !isset($hrmData['data'])) {
+            return null;
+        }
+
+        $employees = $hrmData['data'];
+
+        foreach ($employees as &$employee) {
+            // Sync LGAs
+            if (isset($employee['lga'])) {
+                $lga = \App\Models\Lga::updateOrCreate(['code' => $employee['lga']['name']], ['name' => $employee['lga']['name']]);
+                $employee['lga_id'] = $lga->id;
+            }
+
+            // Sync Departments
+            if (isset($employee['department'])) {
+                \App\Models\Department::updateOrCreate(['id' => $employee['department']['department_id']], ['name' => $employee['department']['department_name']]);
+            }
+
+            // Sync Cadres
+            if (isset($employee['cadre'])) {
+                \App\Models\Cadre::updateOrCreate(['id' => $employee['cadre']['cadre_id']], ['name' => $employee['cadre']['name']]);
+            }
+
+            // Sync Grade Levels
+            if (isset($employee['grade_level'])) {
+                $gradeLevel = \App\Models\GradeLevel::updateOrCreate(['id' => $employee['grade_level']['id']], ['name' => $employee['grade_level']['name']]);
+                $employee['grade_level_id'] = $gradeLevel->id;
+            }
+
+            // Sync Ranks
+            if (isset($employee['rank'])) {
+                \App\Models\Rank::updateOrCreate(['id' => $employee['rank']['id']], ['name' => $employee['rank']['name']]);
+            }
+        }
+
+        foreach ($employees as &$employee) {
+            // Sync Wards
+            if (isset($employee['ward'])) {
+                $ward = \App\Models\Ward::updateOrCreate(['code' => $employee['ward']['ward_name']], ['name' => $employee['ward']['ward_name'], 'lga_id' => $employee['lga_id']]);
+                $employee['ward_id'] = $ward->id;
+            }
+
+            // Sync Steps
+            if (isset($employee['step'])) {
+                $step = \App\Models\Step::updateOrCreate(['id' => $employee['step']['id']], ['name' => $employee['step']['name'], 'grade_level_id' => $employee['grade_level_id']]);
+                $employee['step_id'] = $step->id;
+            }
+        }
+
+        return $employees;
+    }
+
+    public function getWards(Request $request, Lga $lga)
+    {
+        return $lga->wards;
+    }
+
+    public function getAreas(Request $request, Ward $ward)
+    {
+        return $ward->areas;
     }
 
     /**
