@@ -33,111 +33,86 @@ class StaffController extends Controller
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Dashboard');
 
-      
-        // Get staff statistics
-        $totalStaff = Staff::count();
-        $activeStaff = Staff::where('status', 'approved')->count();
-        $pendingChanges = Staff::where('status', 'pending')->count();
-        
-        // Get customer statistics
-        $totalCustomers = \App\Models\Customer::count();
-        $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
-        $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
-        
-        // Get billing statistics
-        $totalBills = \App\Models\Bill::count();
-        $unpaidBills = \App\Models\Bill::where('status', 'unpaid')->count();
-        $paidBills = \App\Models\Bill::where('status', 'paid')->count();
-        
-        // Get payment statistics
-        $totalPayments = \App\Models\Payment::count();
-        $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
-        $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
-        
-        // Get complaint statistics - prioritize GLPI if available, fallback to local
-        $totalComplaints = 0;
-        $openComplaints = 0;
-        $inProgressComplaints = 0;
-        $totalAssets = 0;
-        $activeAssets = 0;
-        $maintenanceAssets = 0;
-        $retiredAssets = 0;
-        
-        try {
-            if ($dolibarrService) {
-                $assetsResponse = $dolibarrService->getAssets(1000, 0); // Get first 1000 assets
-                
-                if ($assetsResponse && is_array($assetsResponse)) {
-                    $totalAssets = count($assetsResponse);
-                    
-                    // Count assets by status (if available)
-                    foreach ($assetsResponse as $asset) {
-                        $status = $asset['status'] ?? 1;
-                        if ($status == 1) {
-                            $activeAssets++;
-                        } else {
-                            $retiredAssets++;
-                        }
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            \Log::error('Dolibarr API Error for assets: ' . $e->getMessage());
+        $user = Auth::user();
+
+        if ($user->hasRole('super-admin')) {
+            // Get all statistics for super-admin
+            $totalStaff = Staff::count();
+            $activeStaff = Staff::where('status', 'approved')->count();
+            $pendingChanges = Staff::where('status', 'pending')->count();
+            $totalCustomers = \App\Models\Customer::count();
+            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
+            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
+            $totalBills = \App\Models\Bill::count();
+            $unpaidBills = \App\Models\Bill::where('status', 'unpaid')->count();
+            $paidBills = \App\Models\Bill::where('status', 'paid')->count();
+            $totalPayments = \App\Models\Payment::count();
+            $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
+            $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
+            $totalComplaints = 0;
+            $openComplaints = 0;
+            $inProgressComplaints = 0;
+            $totalAssets = 0;
+            $activeAssets = 0;
+            $maintenanceAssets = 0;
+            $retiredAssets = 0;
+
+            return view('staff.dashboards.super_admin', compact(
+                'totalStaff', 
+                'activeStaff', 
+                'pendingChanges', 
+                'totalCustomers',
+                'activeCustomers',
+                'pendingCustomerChanges',
+                'totalBills',
+                'unpaidBills',
+                'paidBills',
+                'totalPayments',
+                'successfulPayments',
+                'pendingPayments',
+                'totalComplaints',
+                'openComplaints',
+                'inProgressComplaints',
+                'totalAssets',
+                'activeAssets',
+                'maintenanceAssets',
+                'retiredAssets'
+            ));
+        } elseif ($user->hasRole('manager')) {
+            // Get statistics for manager
+            $totalStaff = Staff::count();
+            $activeStaff = Staff::where('status', 'approved')->count();
+            $pendingChanges = Staff::where('status', 'pending')->count();
+            $totalCustomers = \App\Models\Customer::count();
+            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
+            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
+
+            return view('staff.dashboards.manager', compact(
+                'totalStaff', 
+                'activeStaff', 
+                'pendingChanges', 
+                'totalCustomers',
+                'activeCustomers',
+                'pendingCustomerChanges'
+            ));
+        } else {
+            // Get statistics for staff
+            $totalCustomers = \App\Models\Customer::count();
+            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
+            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
+            $totalTickets = \App\Models\Ticket::count();
+            $openTickets = \App\Models\Ticket::where('status', 'open')->count();
+            $closedTickets = \App\Models\Ticket::where('status', 'closed')->count();
+
+            return view('staff.dashboards.staff', compact(
+                'totalCustomers',
+                'activeCustomers',
+                'pendingCustomerChanges',
+                'totalTickets',
+                'openTickets',
+                'closedTickets'
+            ));
         }
-        
-        // Get recent role assignments (last 5)
-        $recentRoleAssignments = \App\Models\Audit::where('event', 'roles_assigned')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-            
-        // Get recent HR updates (last 5)
-        $recentHrUpdates = \App\Models\Audit::whereIn('event', ['created', 'updated', 'deleted'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-            
-        // Get recent customer activities (last 5)
-        $recentCustomerActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Customer')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-            
-        
-            
-        // Get recent billing activities (last 5)
-        $recentBillingActivities = \App\Models\Audit::where('auditable_type', 'App\Models\Bill')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        return view('staff.dashboard', compact(
-            'totalStaff', 
-            'activeStaff', 
-            'pendingChanges', 
-            'totalCustomers',
-            'activeCustomers',
-            'pendingCustomerChanges',
-            'totalBills',
-            'unpaidBills',
-            'paidBills',
-            'totalPayments',
-            'successfulPayments',
-            'pendingPayments',
-            'totalComplaints',
-            'openComplaints',
-            'inProgressComplaints',
-            // 'resolvedComplaints',
-            'totalAssets',
-            'activeAssets',
-            'maintenanceAssets',
-            'retiredAssets',
-            'recentRoleAssignments', 
-            'recentHrUpdates',
-            'recentCustomerActivities',
-            'recentBillingActivities',
-
-        ));
     }
 
     public function staff(Request $request)
