@@ -65,7 +65,7 @@ class RolePermissionSeeder extends Seeder
             'create-tariff', 'edit-tariff', 'delete-tariff',
             'view-customers', 'view-customer', 'create-customer', 'edit-customer', 'delete-customer',
             'view-locations', 'view-categories', 'view-tariffs', 'view-audit-trail',
-            'create-bill', 'view-bill', 'view-report','view-analytics',
+            'view-report',
             'view-zones', 'view-districts', 'view-paypoints',
             'manage-district-wards', 'view-location-details',
             'manage-staff', 'manage-tickets',
@@ -79,9 +79,8 @@ class RolePermissionSeeder extends Seeder
             'create-category', 'edit-category', 'create-tariff', 'edit-tariff',
             'view-customers', 'view-customer', 'create-customer', 'edit-customer',
             'view-locations', 'view-categories', 'view-tariffs', 'view-bill', 'view-report',
-            'view-analytics',
             'view-staff', 'view-zones', 'view-districts', 'view-paypoints',
-            'view-location-details',
+            'view-location-details', 'manage-tickets',
         ]);
 
         $customerRole = Role::firstOrCreate([

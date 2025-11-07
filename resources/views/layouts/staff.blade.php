@@ -253,6 +253,7 @@
                                 </div>
                             </div>
                             @endif
+                            @can('manage-tickets', 'staff')
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -276,7 +277,8 @@
                                     </div>
                                 </div>
                             </div>
-                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
+                            @endcan
+                            @if(auth()->user()->hasRole(['super-admin', 'manager', 'staff']))
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -322,7 +324,7 @@
                                 </div>
                                 </div>
                             @endif
-                            @if(auth()->user()->hasRole('super-admin'))
+                            @can('view-payment', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.payments.index') }}">
                                     <span class="menu-icon">
@@ -335,6 +337,8 @@
                                     <span class="menu-title">Payment History</span>
                                 </a>
                                 </div>
+                            @endcan
+                            @can('view-bill', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.bills.index') }}">
                                     <span class="menu-icon">
@@ -344,8 +348,10 @@
                                         </i>
                                     </span>
                                     <span class="menu-title">Customer Billing</span>
-                                </a>
+                                a>
                                 </div>
+                            @endcan
+                            @can('view-gis', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.gis') }}">
                                     <span class="menu-icon">
@@ -357,6 +363,8 @@
                                     </span>
                                     <span class="menu-title">Customer GIS Overview</span>
                                 a>n                                </div>
+                            @endcan
+                            @can('view-analytics', 'staff')
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.analytics.index') }}">
                                     <span class="menu-icon">
@@ -369,7 +377,7 @@
                                     <span class="menu-title">Analytics</span>
                                 </a>
                                 </div>
-                            @endif
+                            @endcan
                             @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.approvals.index') }}">
