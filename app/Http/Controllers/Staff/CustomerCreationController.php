@@ -90,6 +90,9 @@ class CustomerCreationController extends Controller
                 'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
             ]);
 
+            // Increase the execution time limit for large imports
+            set_time_limit(300); // 5 minutes
+            
             $import = new CustomerImport();
             Excel::import($import, $request->file('file'));
 

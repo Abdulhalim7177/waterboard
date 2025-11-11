@@ -89,147 +89,174 @@
                 <!--begin::Card title-->
                 <div class="card-title w-100 d-flex align-items-center justify-content-between flex-wrap">
                     <!--begin::Search and Filters Form-->
-                    <form id="customer_filter_form" method="GET" class="d-flex align-items-center gap-3 flex-wrap">
-                        <!--begin::Search-->
-                        <div class="d-flex align-items-center position-relative my-1">
-                            <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                            <input type="text" name="search_customer" id="search_customer" class="form-control form-control-solid w-250px ps-13" placeholder="Search Customers" value="{{ request('search_customer') }}" />
-                        </div>
-                        <!--end::Search-->
-                        <!--begin::Filters-->
-                        <div class="w-150px">
-                            <select name="status_filter" id="status_filter" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Status">
-                                <option value="">All</option>
-                                <option value="pending" {{ request('status_filter') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="approved" {{ request('status_filter') == 'approved' ? 'selected' : '' }}>Approved</option>
-                                <option value="rejected" {{ request('status_filter') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                            </select>
-                        </div>
-                        <div class="w-200px">
-                            <select name="lga_filter" id="lga_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All LGAs">
-                                <option value="">All LGAs</option>
-                                @foreach (App\Models\Lga::where('status', 'approved')->get() as $lga)
-                                    <option value="{{ $lga->id }}" {{ request('lga_filter') == $lga->id ? 'selected' : '' }}>{{ $lga->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="w-200px">
-                            <select name="ward_filter" id="ward_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Wards">
-                                <option value="">All Wards</option>
-                                @foreach (App\Models\Ward::where('status', 'approved')->when(request('lga_filter'), function($query) { return $query->where('lga_id', request('lga_filter')); })->get() as $ward)
-                                    <option value="{{ $ward->id }}" {{ request('ward_filter') == $ward->id ? 'selected' : '' }}>{{ $ward->name }} ({{ $ward->lga ? $ward->lga->name : 'N/A' }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="w-200px">
-                            <select name="area_filter" id="area_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Areas">
-                                <option value="">All Areas</option>
-                                @foreach (App\Models\Area::where('status', 'approved')->when(request('ward_filter'), function($query) { return $query->where('ward_id', request('ward_filter')); })->get() as $area)
-                                    <option value="{{ $area->id }}" {{ request('area_filter') == $area->id ? 'selected' : '' }}>{{ $area->name }} ({{ $area->ward->name ?? 'N/A' }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="w-200px">
-                            <select name="category_filter" id="category_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Categories">
-                                <option value="">All Categories</option>
-                                @foreach (App\Models\Category::where('status', 'approved')->get() as $category)
-                                    <option value="{{ $category->id }}" {{ request('category_filter') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="w-200px">
-                            <select name="tariff_filter" id="tariff_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Tariffs">
-                                <option value="">All Tariffs</option>
-                                @foreach (App\Models\Tariff::where('status', 'approved')->when(request('category_filter'), function($query) { return $query->where('category_id', request('category_filter')); })->get() as $tariff)
-                                    <option value="{{ $tariff->id }}" {{ request('tariff_filter') == $tariff->id ? 'selected' : '' }}>{{ $tariff->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="w-150px">
-                            <select name="per_page" id="per_page" class="form-select form-select-solid" data-control="select2" data-hide-search="true">
-                                <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 per page</option>
-                                <option value="20" {{ request('per_page') == '20' ? 'selected' : '' }}>20 per page</option>
-                                <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 per page</option>
-                                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 per page</option>
-                                <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500 per page</option>
-                                <option value="1000" {{ request('per_page') == '1000' ? 'selected' : '' }}>1000 per page</option>
-                                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
-                            </select>
-                        </div>
-                        <!--end::Filters-->
-                        <!--begin::Filter Actions-->
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <a href="{{ route('staff.customers.index') }}" class="btn btn-light">Reset Filters</a>
-                        <!--end::Filter Actions-->
-                    </form>
-                    <!--end::Search and Filters Form-->
-
-                    <!--begin::Toolbar-->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
-                        <!--begin::Import-->
-                        @can('create-customer', App\Models\Customer::class)
-                            <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#importModal">
-                                <i class="ki-duotone ki-entrance-left fs-2">
+                    <div class="d-flex flex-column w-100">
+                        <!--begin::Filter Toggle Button (Now visible on both mobile and desktop)-->
+                        <div class="d-flex justify-content-between mb-3">
+                            <button class="btn btn-sm btn-light-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                                <i class="ki-duotone ki-filter fs-3">
                                     <span class="path1"></span>
                                     <span class="path2"></span>
                                 </i>
-                                Import Customers
+                                Filters
                             </button>
-                        @endcan
-                        <!--end::Import-->
-                        <!--begin::Export-->
-                        @can('view-customers', App\Models\Customer::class)
-                            <form id="export_csv_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="format" value="csv">
-                                <input type="hidden" name="status" value="{{ request('status_filter') }}">
-                                <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
-                                <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
-                                <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
-                                <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
-                                <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
-                                <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
-                                <button type="submit" class="btn btn-light-primary export-btn" data-format="csv">
-                                    <i class="ki-duotone ki-exit-up fs-2">
+                            <span class="d-block d-lg-none">Tap filters to show</span>
+                        </div>
+                        <!--end::Filter Toggle Button-->
+                        
+                        <!--begin::Filters Collapsible Section (Now collapsed by default)-->
+                        <div class="collapse" id="filterCollapse">
+                            <form id="customer_filter_form" method="GET" class="d-flex flex-column gap-3">
+                                <!--begin::Search Row-->
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="flex-fill">
+                                        <div class="d-flex align-items-center position-relative">
+                                            <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-4">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <input type="text" name="search_customer" id="search_customer" class="form-control form-control-solid ps-13" placeholder="Search Customers" value="{{ request('search_customer') }}" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Search Row-->
+                                <!--begin::Filter Rows (4 per row)-->
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <select name="status_filter" id="status_filter" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Status">
+                                            <option value="">All Status</option>
+                                            <option value="pending" {{ request('status_filter') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="approved" {{ request('status_filter') == 'approved' ? 'selected' : '' }}>Approved</option>
+                                            <option value="rejected" {{ request('status_filter') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="lga_filter" id="lga_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All LGAs">
+                                            <option value="">All LGAs</option>
+                                            @foreach (App\Models\Lga::where('status', 'approved')->get() as $lga)
+                                                <option value="{{ $lga->id }}" {{ request('lga_filter') == $lga->id ? 'selected' : '' }}>{{ $lga->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="ward_filter" id="ward_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Wards">
+                                            <option value="">All Wards</option>
+                                            @foreach (App\Models\Ward::where('status', 'approved')->when(request('lga_filter'), function($query) { return $query->where('lga_id', request('lga_filter')); })->get() as $ward)
+                                                <option value="{{ $ward->id }}" {{ request('ward_filter') == $ward->id ? 'selected' : '' }}>{{ $ward->name }} ({{ $ward->lga ? $ward->lga->name : 'N/A' }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="area_filter" id="area_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Areas">
+                                            <option value="">All Areas</option>
+                                            @foreach (App\Models\Area::where('status', 'approved')->when(request('ward_filter'), function($query) { return $query->where('ward_id', request('ward_filter')); })->get() as $area)
+                                                <option value="{{ $area->id }}" {{ request('area_filter') == $area->id ? 'selected' : '' }}>{{ $area->name }} ({{ $area->ward->name ?? 'N/A' }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <select name="category_filter" id="category_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Categories">
+                                            <option value="">All Categories</option>
+                                            @foreach (App\Models\Category::where('status', 'approved')->get() as $category)
+                                                <option value="{{ $category->id }}" {{ request('category_filter') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="tariff_filter" id="tariff_filter" data-control="select2" class="form-select form-select-solid" data-placeholder="All Tariffs">
+                                            <option value="">All Tariffs</option>
+                                            @foreach (App\Models\Tariff::where('status', 'approved')->when(request('category_filter'), function($query) { return $query->where('category_id', request('category_filter')); })->get() as $tariff)
+                                                <option value="{{ $tariff->id }}" {{ request('tariff_filter') == $tariff->id ? 'selected' : '' }}>{{ $tariff->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="submit" class="btn btn-sm btn-primary flex-fill">Filter</button>
+                                            <a href="{{ route('staff.customers.index') }}" class="btn btn-sm btn-light flex-fill">Reset</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Filter Rows (4 per row)-->
+                            </form>
+                        </div>
+                        <!--end::Filters Collapsible Section-->
+                    </div>
+                    <!--end::Search and Filters Form-->
+
+                    <!--begin::Toolbar (Stacked buttons for mobile)-->
+                    <div class="d-flex flex-column flex-lg-row gap-2 align-items-end ms-auto mt-5 mt-lg-0">
+                        <!--begin::Right Toolbar Buttons (Stacked in pairs/groups of 2-3)-->
+                        <div class="d-flex flex-wrap gap-2">
+                            @can('create-customer', App\Models\Customer::class)
+                                <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="ki-duotone ki-entrance-left fs-3">
                                         <span class="path1"></span>
                                         <span class="path2"></span>
                                     </i>
-                                    Export CSV
+                                    <span class="d-lg-none">Import</span>
+                                    <span class="d-none d-lg-inline">Import Customers</span>
                                 </button>
-                            </form>
-                            <form id="export_excel_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="format" value="xlsx">
-                                <input type="hidden" name="status" value="{{ request('status_filter') }}">
-                                <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
-                                <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
-                                <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
-                                <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
-                                <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
-                                <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
-                                <button type="submit" class="btn btn-light-primary export-btn" data-format="xlsx">
-                                    <i class="ki-duotone ki-exit-up fs-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Export Excel
-                                </button>
-                            </form>
-                        @endcan
-                        <!--end::Export-->
-                        <!--begin::Add customer-->
-                        @can('create-customer', App\Models\Customer::class)
-                            <a href="{{ route('staff.customers.create.personal') }}" class="btn btn-primary">Add Customer</a>
-                        @endcan
-                        <!--end::Add customer-->
-                        <!--begin::View pending-->
-                        @can('approve-customer', App\Models\Customer::class)
-                            <a href="{{ route('staff.customers.pending') }}" class="btn btn-primary ms-2">View Pending Changes</a>
-                        @endcan
-                        <!--end::View pending-->
+                            @endcan
+                            <!--begin::Export Buttons (Stacked for mobile)-->
+                            @can('view-customers', App\Models\Customer::class)
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <form id="export_csv_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="format" value="csv">
+                                        <input type="hidden" name="status" value="{{ request('status_filter') }}">
+                                        <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
+                                        <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
+                                        <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
+                                        <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
+                                        <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+                                        <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
+                                        <button type="submit" class="btn btn-sm btn-light-primary export-btn" data-format="csv">
+                                            <i class="ki-duotone ki-exit-up fs-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span class="d-lg-none">CSV</span>
+                                            <span class="d-none d-lg-inline">CSV</span>
+                                        </button>
+                                    </form>
+                                    <form id="export_excel_form" action="{{ route('staff.customers.export') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="format" value="xlsx">
+                                        <input type="hidden" name="status" value="{{ request('status_filter') }}">
+                                        <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
+                                        <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
+                                        <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
+                                        <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
+                                        <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+                                        <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
+                                        <button type="submit" class="btn btn-sm btn-light-primary export-btn" data-format="xlsx">
+                                            <i class="ki-duotone ki-exit-up fs-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span class="d-lg-none">Excel</span>
+                                            <span class="d-none d-lg-inline">Excel</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endcan
+                        </div>
+                        <!--end::Export Buttons-->                        
+                        <!--begin::Action buttons (Stacked for mobile)-->
+                        <div class="d-flex flex-wrap gap-2">
+                            @can('create-customer', App\Models\Customer::class)
+                                <a href="{{ route('staff.customers.create.personal') }}" class="btn btn-sm btn-primary">Add Customer</a>
+                            @endcan
+                            <!--end::Add customer-->
+                            <!--begin::View pending-->
+                            @can('approve-customer', App\Models\Customer::class)
+                                <a href="{{ route('staff.customers.pending') }}" class="btn btn-sm btn-primary">View Pending</a>
+                            @endcan
+                            <!--end::View pending-->
+                        </div>
+                        <!--end::Action buttons-->
                     </div>
                     <!--end::Toolbar-->
                 </div>
@@ -379,8 +406,32 @@
                     </tbody>
                 </table>
                 <!--end::Table-->
-                <div class="mt-3">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-3">
                     @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                        <!--begin::Per Page Dropdown (Bottom)-->
+                        <div class="mb-2 mb-md-0">
+                            <form method="GET" class="d-flex align-items-center" id="per_page_form_bottom">
+                                <input type="hidden" name="search_customer" value="{{ request('search_customer') }}">
+                                <input type="hidden" name="lga_filter" value="{{ request('lga_filter') }}">
+                                <input type="hidden" name="ward_filter" value="{{ request('ward_filter') }}">
+                                <input type="hidden" name="area_filter" value="{{ request('area_filter') }}">
+                                <input type="hidden" name="category_filter" value="{{ request('category_filter') }}">
+                                <input type="hidden" name="tariff_filter" value="{{ request('tariff_filter') }}">
+                                <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
+                                <label class="me-2">Show</label>
+                                <select name="per_page" id="per_page_bottom" class="form-select form-select-sm w-auto">
+                                    <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
+                                    <option value="20" {{ request('per_page') == '20' ? 'selected' : '' }}>20</option>
+                                    <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
+                                    <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100</option>
+                                    <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500</option>
+                                    <option value="1000" {{ request('per_page') == '1000' ? 'selected' : '' }}>1000</option>
+                                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                                </select>
+                                <label class="ms-2">entries</label>
+                            </form>
+                        </div>
+                        <!--end::Per Page Dropdown (Bottom)-->
                         {{ $customers->appends([
                             'search_customer' => request('search_customer'),
                             'lga_filter' => request('lga_filter'),
@@ -563,6 +614,33 @@
                         $('#kt_content_container').prepend(alert);
                     }
                 });
+            });
+            
+            // Handle filter collapse on mobile
+            $('#filterCollapse').on('show.bs.collapse', function () {
+                $(this).find('select[data-control="select2"]').each(function() {
+                    $(this).select2('destroy').select2({
+                        minimumResultsForSearch: 10,
+                        placeholder: function() {
+                            return $(this).data('placeholder') || $(this).find('option:first').text();
+                        }
+                    });
+                });
+            });
+            
+            // Handle per page dropdown change at bottom
+            $('#per_page_bottom').on('change', function() {
+                const perPage = $(this).val();
+                // Update the per_page parameter in the current URL and reload
+                const url = new URL(window.location);
+                url.searchParams.set('per_page', perPage);
+                window.location = url.toString();
+            });
+            
+            // Also update the original per_page dropdown if it changes
+            $('#per_page').on('change', function() {
+                const perPage = $(this).val();
+                $('#per_page_bottom').val(perPage);
             });
         });
     </script>
