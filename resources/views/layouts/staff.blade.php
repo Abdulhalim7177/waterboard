@@ -348,8 +348,7 @@
                                             <span class="path2"></span>
                                         </i>
                                     </span>
-                                    <span class="menu-title">Customer Billing</span>
-                                a>
+                                    <span class="menu-title">Customer Billing<span>
                                 </div>
                             @endcan
                             @can('view-gis', 'staff')

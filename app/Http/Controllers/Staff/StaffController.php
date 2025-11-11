@@ -18,6 +18,8 @@ use Illuminate\Validation\Rule;
 use App\Services\BreadcrumbService;
 use App\Services\GLPIService;
 
+use App\Services\DolibarrService;
+
 class StaffController extends Controller
 {
     public function __construct()
@@ -27,92 +29,65 @@ class StaffController extends Controller
         $this->middleware(['auth:staff', 'role:super-admin|manager'])->only(['assignRoles', 'removeRoles', 'assignLocations']);
     }
 
-    public function dashboard()
+    public function dashboard(DolibarrService $dolibarrService)
     {
         // Set breadcrumbs
         $breadcrumb = app(BreadcrumbService::class);
         $breadcrumb->addHome()->add('Dashboard');
 
-        $user = Auth::user();
+        $totalStaff = Staff::count();
+        $activeStaff = Staff::where('status', 'approved')->count();
+        $pendingChanges = Staff::where('status', 'pending')->count();
+        $totalCustomers = \App\Models\Customer::count();
+        $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
+        $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
+        $totalBills = \App\Models\Bill::count();
+        $unpaidBills = \App\Models\Bill::where('status', 'unpaid')->count();
+        $paidBills = \App\Models\Bill::where('status', 'paid')->count();
+        $totalPayments = \App\Models\Payment::count();
+        $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
+        $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
+        $totalTickets = \App\Models\Ticket::count();
+        $openTickets = \App\Models\Ticket::where('status', 'open')->count();
+        $closedTickets = \App\Models\Ticket::where('status', 'closed')->count();
+        $totalAssets = count($dolibarrService->getAssets(1000, 0) ?? []);
+        $totalVendors = \App\Models\Vendor::count();
+        $totalCategories = \App\Models\Category::count();
+        $totalTariffs = \App\Models\Tariff::count();
+        $totalLgas = \App\Models\Lga::count();
+        $totalWards = \App\Models\Ward::count();
+        $totalAreas = \App\Models\Area::count();
+        $myTickets = \App\Models\Ticket::where('staff_id', auth()->id())->count();
+        $recentActivities = \App\Models\Audit::with('user')->latest()->take(5)->get();
+        $newCustomers = \App\Models\Customer::latest()->take(5)->get();
 
-        if ($user->hasRole('super-admin')) {
-            // Get all statistics for super-admin
-            $totalStaff = Staff::count();
-            $activeStaff = Staff::where('status', 'approved')->count();
-            $pendingChanges = Staff::where('status', 'pending')->count();
-            $totalCustomers = \App\Models\Customer::count();
-            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
-            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
-            $totalBills = \App\Models\Bill::count();
-            $unpaidBills = \App\Models\Bill::where('status', 'unpaid')->count();
-            $paidBills = \App\Models\Bill::where('status', 'paid')->count();
-            $totalPayments = \App\Models\Payment::count();
-            $successfulPayments = \App\Models\Payment::where('status', 'successful')->count();
-            $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
-            $totalComplaints = 0;
-            $openComplaints = 0;
-            $inProgressComplaints = 0;
-            $totalAssets = 0;
-            $activeAssets = 0;
-            $maintenanceAssets = 0;
-            $retiredAssets = 0;
-
-            return view('staff.dashboards.super_admin', compact(
-                'totalStaff', 
-                'activeStaff', 
-                'pendingChanges', 
-                'totalCustomers',
-                'activeCustomers',
-                'pendingCustomerChanges',
-                'totalBills',
-                'unpaidBills',
-                'paidBills',
-                'totalPayments',
-                'successfulPayments',
-                'pendingPayments',
-                'totalComplaints',
-                'openComplaints',
-                'inProgressComplaints',
-                'totalAssets',
-                'activeAssets',
-                'maintenanceAssets',
-                'retiredAssets'
-            ));
-        } elseif ($user->hasRole('manager')) {
-            // Get statistics for manager
-            $totalStaff = Staff::count();
-            $activeStaff = Staff::where('status', 'approved')->count();
-            $pendingChanges = Staff::where('status', 'pending')->count();
-            $totalCustomers = \App\Models\Customer::count();
-            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
-            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
-
-            return view('staff.dashboards.manager', compact(
-                'totalStaff', 
-                'activeStaff', 
-                'pendingChanges', 
-                'totalCustomers',
-                'activeCustomers',
-                'pendingCustomerChanges'
-            ));
-        } else {
-            // Get statistics for staff
-            $totalCustomers = \App\Models\Customer::count();
-            $activeCustomers = \App\Models\Customer::where('status', 'approved')->count();
-            $pendingCustomerChanges = \App\Models\Customer::where('status', 'pending')->count();
-            $totalTickets = \App\Models\Ticket::count();
-            $openTickets = \App\Models\Ticket::where('status', 'open')->count();
-            $closedTickets = \App\Models\Ticket::where('status', 'closed')->count();
-
-            return view('staff.dashboards.staff', compact(
-                'totalCustomers',
-                'activeCustomers',
-                'pendingCustomerChanges',
-                'totalTickets',
-                'openTickets',
-                'closedTickets'
-            ));
-        }
+        return view('staff.dashboard', compact(
+            'totalStaff', 
+            'activeStaff', 
+            'pendingChanges', 
+            'totalCustomers',
+            'activeCustomers',
+            'pendingCustomerChanges',
+            'totalBills',
+            'unpaidBills',
+            'paidBills',
+            'totalPayments',
+            'successfulPayments',
+            'pendingPayments',
+            'totalTickets',
+            'openTickets',
+            'closedTickets',
+            'totalAssets',
+            'totalVendors',
+            'totalCategories',
+            'totalTariffs',
+            'totalLgas',
+            'totalWards',
+            'totalAreas',
+            'myTickets',
+            'recentActivities',
+            'newCustomers'
+        ));
     }
 
     public function staff(Request $request)
