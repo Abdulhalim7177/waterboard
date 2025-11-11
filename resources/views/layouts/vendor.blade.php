@@ -46,46 +46,38 @@
         <div class="page d-flex flex-row flex-column-fluid">
             <div id="kt_aside" class="aside" data-kt-drawer="true" data-kt-drawer-name="aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_aside_mobile_toggle">
                 <div class="aside-toolbar flex-column-auto" id="kt_aside_toolbar">
-                    <div class="aside-user d-flex align-items-sm-center justify-content-center py-5">
-                        <div class="symbol symbol-50px">
-                            <img src="{{ asset('assets/media/avatars/blank.png') }}" alt="" />
-                        </div>
-                        <div class="aside-user-info flex-row-fluid flex-wrap ms-5">
-                            <div class="d-flex">
-                                <div class="flex-grow-1 me-2">
-                                    <a href="#" class="text-white text-hover-primary fs-6 fw-bold">{{ Auth::guard('vendor')->user()->name }}</a>
-                                    <div class="d-flex align-items-center text-success fs-9">
-                                        <span class="bullet bullet-dot bg-success me-1"></span>online
-                                    </div>
-                                </div>
-                                <div class="me-n2">
-                                    <a href="#" class="btn btn-icon btn-sm btn-active-color-primary mt-n2" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start" data-kt-menu-overflow="true">
-                                        <i class="ki-duotone ki-gear fs-1 text-muted">
-                                            <span class="path1"></span>
-                                            <span class="path2"></span>
-                                        </i>
-                                    </a>
-                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
-                                        <div class="menu-item px-3">
-                                            <div class="menu-content d-flex align-items-center px-3">
-                                                <div class="symbol symbol-50px me-5">
-                                                    <img alt="Logo" src="{{ asset('assets/media/avatars/blank.png') }}" />
-                                                </div>
-                                                <div class="d-flex flex-column">
-                                                    <div class="fw-bold d-flex align-items-center fs-5">{{ Auth::guard('vendor')->user()->name }}
-                                                        <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Vendor</span>
-                                                    </div>
-                                                    <a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ Auth::guard('vendor')->user()->email }}</a>
-                                                </div>
+                    <div class="aside-user d-flex align-items-sm-center justify-content-between py-5 w-100">
+                        <div class="d-flex align-items-center">
+                            <div class="symbol symbol-50px d-none d-lg-block">
+                                <img src="{{ asset('assets/media/avatars/blank.png') }}" alt="" />
+                            </div>
+                            <div class="aside-user-info flex-row-fluid flex-wrap ms-5">
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex align-items-center">
+                                        <div class="symbol symbol-50px me-5 d-block d-lg-none">
+                                            <img alt="Logo" src="{{ asset('assets/media/avatars/blank.png') }}" />
+                                        </div>
+                                        <div class="d-flex flex-column">
+                                            <div class="fw-bold d-flex align-items-center fs-6 fs-lg-5">{{ Auth::guard('vendor')->user()->name }}
+                                                <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">Vendor</span>
+                                            </div>
+                                            <a href="#" class="fw-semibold text-muted text-hover-primary fs-8 fs-lg-7">{{ Auth::guard('vendor')->user()->email }}</a>
+                                            <div class="d-flex align-items-center text-success fs-10 fs-lg-9 d-none d-lg-block">
+                                                <span class="bullet bullet-dot bg-success me-1"></span>online
                                             </div>
                                         </div>
-                                        <div class="menu-item px-5 my-1">
-                                            <a href="#" class="menu-link px-5">Account Settings</a>
+                                    </div>
+                                    <div class="d-flex align-items-center text-success fs-10 fs-lg-9 d-block d-lg-none mt-1">
+                                        <span class="bullet bullet-dot bg-success me-1"></span>online
+                                    </div>
+                                    <div class="d-flex flex-column mt-2">
+                                        <div class="menu-item px-0 my-1">
+                                            <a href="#" class="menu-link px-3 py-1 fs-9">Account Settings</a>
                                         </div>
-                                        <div class="menu-item px-5">
+                                        <div class="menu-item px-0">
                                             <form action="{{ route('vendor.logout') }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="btn btn-danger menu-link px-5">Logout</button>
+                                                <button type="submit" class="btn btn-danger btn-sm menu-link px-3 py-1 fs-9">Logout</button>
                                             </form>
                                         </div>
                                     </div>
@@ -417,6 +409,27 @@
         
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb:hover {
             background: rgba(0,0,0,0.3);
+        }
+        
+        /* Mobile profile section improvements */
+        @media (max-width: 991.98px) {
+            .aside-user .symbol-50px,
+            .aside-user .text-success {
+                display: none !important;
+            }
+            
+            .aside-user {
+                padding: 0.75rem 1rem !important;
+                align-items: center !important;
+            }
+            
+            .aside-user-info {
+                margin-left: 0 !important;
+            }
+            
+            .aside-user-info .d-flex {
+                align-items: flex-start !important;
+            }
         }
     </style>
     

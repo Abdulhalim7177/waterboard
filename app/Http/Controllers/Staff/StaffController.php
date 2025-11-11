@@ -50,7 +50,8 @@ class StaffController extends Controller
         $totalTickets = \App\Models\Ticket::count();
         $openTickets = \App\Models\Ticket::where('status', 'open')->count();
         $closedTickets = \App\Models\Ticket::where('status', 'closed')->count();
-        $totalAssets = count($dolibarrService->getAssets(1000, 0) ?? []);
+        $assets = $dolibarrService->getAssets(1000, 0);
+        $totalAssets = is_array($assets) ? count($assets) : 0;
         $totalVendors = \App\Models\Vendor::count();
         $totalCategories = \App\Models\Category::count();
         $totalTariffs = \App\Models\Tariff::count();
