@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <base href="../../../" />
     <title>Water Board System</title>
@@ -13,7 +14,8 @@
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('css/dashboards.css') }}" rel="stylesheet" type="text/css" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    </head>
+</head>
+
 <body id="kt_body" class="aside-enabled">
     <script>
         var defaultThemeMode = "light";
@@ -49,7 +51,7 @@
                                     <div class="d-flex align-items-center text-success fs-9">
                                         <span class="bullet bullet-dot bg-success me-1"></span>online
                                     </div>
-                                    </div>
+                                </div>
                                 <div class="me-n2">
                                     <a href="#" class="btn btn-icon btn-sm btn-active-color-primary mt-n2" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start" data-kt-menu-overflow="true">
                                         <i class="ki-duotone ki-gear fs-1 text-muted">
@@ -69,7 +71,7 @@
                                                     </div>
                                                     <a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ Auth::guard('staff')->user()->email }}</a>
                                                 </div>
-                                                </div>
+                                            </div>
                                         </div>
                                         <div class="menu-item px-5 my-1">
                                             <a href="../../demo8/dist/account/settings.html" class="menu-link px-5">Account Settings</a>
@@ -80,12 +82,12 @@
                                                 <button type="submit" class="btn btn-danger menu-link px-5">Logout</button>
                                             </form>
                                         </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <div class="aside-menu flex-column-fluid">
                     <div class="hover-scroll-overlay-y px-2 my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="{default: '#kt_aside_toolbar, #kt_aside_footer', lg: '#kt_header, #kt_aside_toolbar, #kt_aside_footer'}" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="5px">
                         <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true">
@@ -156,7 +158,7 @@
                                         </a>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -187,7 +189,7 @@
                                         </a>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -226,7 +228,7 @@
                                         </a>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
                                     <span class="menu-icon">
@@ -269,7 +271,7 @@
                                 </span>
                                 <div class="menu-sub menu-sub-accordion">
                                     <div class="menu-item">
-                                                                                <a class="menu-link" href="{{ route('staff.tickets.index') }}">
+                                        <a class="menu-link" href="{{ route('staff.tickets.index') }}">
                                             <span class="menu-bullet">
                                                 <span class="bullet bullet-dot"></span>
                                             </span>
@@ -323,7 +325,7 @@
                                     </div>
                                     @endcan
                                 </div>
-                                </div>
+                            </div>
                             @endif
                             @can('view-payment', 'staff')
                             <div class="menu-item">
@@ -337,7 +339,7 @@
                                     </span>
                                     <span class="menu-title">Payment History</span>
                                 </a>
-                                </div>
+                            </div>
                             @endcan
                             @can('view-bill', 'staff')
                             <div class="menu-item">
@@ -346,10 +348,12 @@
                                         <i class="ki-duotone ki-file-down fs-2">
                                             <span class="path1"></span>
                                             <span class="path2"></span>
+                                            <span class="path3"></span>
                                         </i>
                                     </span>
                                     <span class="menu-title">Customer Billing<span>
-                                </div>
+                                </a>
+                            </div>
                             @endcan
                             @can('view-gis', 'staff')
                             <div class="menu-item">
@@ -362,7 +366,8 @@
                                         </i>
                                     </span>
                                     <span class="menu-title">Customer GIS Overview</span>
-                                a>n                                </div>
+                                </a>
+                            </div>
                             @endcan
                             @can('view-analytics', 'staff')
                             <div class="menu-item">
@@ -376,7 +381,7 @@
                                     </span>
                                     <span class="menu-title">Analytics</span>
                                 </a>
-                                </div>
+                            </div>
                             @endcan
                             @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div class="menu-item">
@@ -389,7 +394,7 @@
                                     </span>
                                     <span class="menu-title">Approvals</span>
                                 </a>
-                                </div>
+                            </div>
                             @endif
                             <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                                 <span class="menu-link">
@@ -420,7 +425,7 @@
                                         </a>
                                     </div>
                                 </div>
-                                </div>
+                            </div>
                             @if(auth()->user()->hasRole('super-admin'))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.audits.index') }}">
@@ -498,26 +503,26 @@
                             </div>
                             @endif
                         </div>
-                        </div>
                     </div>
+                </div>
                 <div class="aside-footer flex-column-auto py-5" id="kt_aside_footer">
-					<a href="#" class="btn btn-flex btn-custom btn-primary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="Katsina State Water Board">
-						<span class="btn-label">KTSWB </span>
-						<i class="ki-duotone ki-water fs-2 ms-2">
-							<span class="path1"></span>
-							<span class="path2"></span>
-						</i>
-					</a>
-				</div>
-				</div>
+                    <a href="#" class="btn btn-flex btn-custom btn-primary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="Katsina State Water Board">
+                        <span class="btn-label">KTSWB </span>
+                        <i class="ki-duotone ki-water fs-2 ms-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </a>
+                </div>
+            </div>
             <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
                 <div id="kt_header" class="header align-items-stretch" data-kt-sticky="true" data-kt-sticky-name="header" data-kt-sticky-offset="{default: '0px', lg: '0px'}">
                     <div class="header-brand">
-                      <a href="{{route('customer.dashboard')}}" class="d-flex align-items-center">
-							<img alt="Logo" src="{{ asset('assets/media/logos/logo.png') }}" class="h-40px h-lg-40px me-2" />
-							<span class="fs-2 fw-bold text-primary d-none d-lg-inline">KTSWB</span>
-						</a>
-						<div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-minimize d-none d-lg-flex" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
+                        <a href="{{route('customer.dashboard')}}" class="d-flex align-items-center">
+                            <img alt="Logo" src="{{ asset('assets/media/logos/logo.png') }}" class="h-40px h-lg-40px me-2" />
+                            <span class="fs-2 fw-bold text-primary d-none d-lg-inline">KTSWB</span>
+                        </a>
+                        <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-minimize d-none d-lg-flex" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="aside-minimize">
                             <i class="ki-duotone ki-entrance-right fs-1 me-n1 minimize-default">
                                 <span class="path1"></span>
                                 <span class="path2"></span>
@@ -535,7 +540,7 @@
                                 </i>
                             </div>
                         </div>
-                        </div>
+                    </div>
                     <div class="toolbar d-flex align-items-stretch">
                         <div class="container-xxl py-6 py-lg-0 d-flex flex-column flex-lg-row align-items-lg-stretch justify-content-lg-between">
                             <div class="page-title d-flex justify-content-center flex-column me-5">
@@ -549,7 +554,7 @@
                             <div class="d-flex align-items-stretch overflow-auto pt-3 pt-lg-0">
                                 <div class="d-flex align-items-center">
                                     <span class="fs-7 text-gray-700 fw-bold pe-3 d-none d-xxl-block">System Theme:</span>
-                                    </div>
+                                </div>
                                 <div class="d-flex align-items-center">
                                     <a href="#" class="btn btn-sm btn-icon btn-icon-muted btn-active-icon-primary" data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
                                         <i class="ki-duotone ki-night-day theme-light-show fs-1">
@@ -613,39 +618,39 @@
                                                 <span class="menu-title">System</span>
                                             </a>
                                         </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
                     <div class="post d-flex flex-column-fluid" id="kt_post">
                         <div id="kt_content_container" class="container-xxl">
                             @yield('content')
                             @yield('scripts')
                         </div>
-                        </div>
                     </div>
+                </div>
                 <div class="footer py-4 d-flex flex-lg-column" id="kt_footer">
-					<div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between">
-						<div class="text-dark order-2 order-md-1">
-							<span class="text-muted fw-semibold me-1">2023&copy;</span>
-							<a href="https://steadfast.com.ng/" target="_blank" class="text-gray-800 text-hover-primary">@steadfast</a>
-						</div>
-						<ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1">
-							<li class="menu-item">
-								<a href="https://steadfast.com.ng/about/about-us" target="_blank" class="menu-link px-2">About</a>
-							</li>
-							<li class="menu-item">
-								<a href="https://steadfast.com.ng/contact" target="_blank" class="menu-link px-2">Support</a>
-							</li>
-						</ul>
-						</div>
-					</div>
-				</div>
+                    <div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between">
+                        <div class="text-dark order-2 order-md-1">
+                            <span class="text-muted fw-semibold me-1">2023&copy;</span>
+                            <a href="https://steadfast.com.ng/" target="_blank" class="text-gray-800 text-hover-primary">@steadfast</a>
+                        </div>
+                        <ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1">
+                            <li class="menu-item">
+                                <a href="https://steadfast.com.ng/about/about-us" target="_blank" class="menu-link px-2">About</a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="https://steadfast.com.ng/contact" target="_blank" class="menu-link px-2">Support</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
     <script>
         var hostUrl = "assets/";
     </script>
@@ -666,78 +671,78 @@
             .aside-minimize {
                 display: none !important;
             }
-            
+
             .header-brand .fs-2 {
                 font-size: 1.5rem !important;
             }
-            
+
             .page-title h1 {
                 font-size: 1.5rem !important;
             }
-            
+
             .breadcrumb {
                 font-size: 0.8rem !important;
             }
-            
+
             .aside-user-info {
                 margin-left: 0.75rem !important;
             }
-            
+
             .toolbar .container-xxl {
                 padding-left: 1rem;
                 padding-right: 1rem;
             }
         }
-        
+
         @media (max-width: 575.98px) {
             .header-brand img {
                 height: 30px !important;
             }
-            
+
             .aside-user .symbol {
                 width: 40px !important;
                 height: 40px !important;
             }
-            
+
             .menu-title {
                 font-size: 0.9rem;
             }
-            
+
             .footer .container-fluid {
                 flex-direction: column !important;
                 text-align: center;
             }
-            
+
             .footer .menu {
                 margin-top: 1rem;
             }
         }
-        
+
         /* Menu hover effects */
         .menu-link:hover {
             background-color: rgba(var(--bs-primary-rgb), 0.1);
             border-radius: 0.475rem;
             transition: all 0.2s ease;
         }
-        
+
         /* Improved scrollbar for aside menu */
         .hover-scroll-overlay-y::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-track {
             background: transparent;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
         }
-        
+
         /* HRM Sync Notification Styles */
         .hrm-sync-notification {
             position: fixed;
@@ -749,4 +754,5 @@
         }
     </style>
 </body>
+
 </html>
