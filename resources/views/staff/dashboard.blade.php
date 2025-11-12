@@ -331,7 +331,7 @@
                             <tbody>
                                 @foreach($recentActivities as $activity)
                                 <tr>
-                                    <td>{{ $activity->user->name }}</td>
+                                    <td>{{ $activity->user ? $activity->user->name : 'System/Unknown' }}</td>
                                     <td>{{ $activity->event }}</td>
                                     <td>{{ $activity->created_at->diffForHumans() }}</td>
                                 </tr>

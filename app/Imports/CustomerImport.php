@@ -42,10 +42,9 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                 $email = $row['email'] ?? null;
                 $phone = $row['phone_number'] ?? null;
 
-                if (empty($email) && empty($phone)) {
-                    $this->errors[] = "Row " . ($index + 2) . ": Skipping row without email or phone number.";
-                    continue;
-                }
+                // Remove the requirement for both email and phone to exist
+                // Now allow customers to be imported even without email or phone
+                // But we still need to identify the customer for potential updates
 
                 $customerQuery = Customer::query();
                 if (!empty($email)) {
@@ -57,10 +56,26 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                 $customer = $customerQuery->first();
 
                 $lga = Lga::firstOrCreate(['name' => $row['lga']], ['status' => 'approved']);
-                $ward = $row['ward'] && $lga ? Ward::firstOrCreate(['name' => $row['ward'], 'lga_id' => $lga->id], ['status' => 'approved']) : null;
+                
+                // Generate code from ward name if creating new ward
+                $ward = $row['ward'] && $lga ? Ward::firstOrCreate(
+                    ['name' => $row['ward'], 'lga_id' => $lga->id], 
+                    [
+                        'status' => 'approved',
+                        'code' => strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $row['ward']), 0, 5) . $lga->id) // Generate code from ward name + LGA ID
+                    ]
+                ) : null;
+                
                 $area = $row['area'] && $ward ? Area::firstOrCreate(['name' => $row['area'], 'ward_id' => $ward->id], ['status' => 'approved']) : null;
                 $category = Category::firstOrCreate(['name' => $row['category']], ['status' => 'approved']);
-                $tariff = $row['tariff'] && $category ? Tariff::firstOrCreate(['name' => $row['tariff'], 'category_id' => $category->id], ['price' => 0, 'billing_type' => 'flat', 'status' => 'approved']) : null;
+                
+                // Generate catcode: first digit is category ID digit (or last digit if > 9), followed by serial number within category
+                $existingTariffsCount = Tariff::where('category_id', $category->id)->count();
+                $tariffSerial = str_pad($existingTariffsCount + 1, 2, '0', STR_PAD_LEFT);
+                $categoryIdDigit = $category->id % 10; // Use last digit of category ID to ensure single digit
+                $catcode = $categoryIdDigit . $tariffSerial; // First digit is category ID digit, next two are serial
+                
+                $tariff = $row['tariff'] && $category ? Tariff::where('name', $row['tariff'])->where('category_id', $category->id)->first() : null;
 
                 if (!$lga) {
                     $this->errors[] = "Row " . ($index + 2) . ": Invalid LGA: {$row['lga']}";
@@ -108,8 +123,8 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                     'latitude' => $row['latitude'],
                     'longitude' => $row['longitude'],
                     'altitude' => $row['altitude'] ?? null,
-                    'pipe_path' => $this->parsePolygonCoordinates($row['pipe_path'] ?? null),
-                    'polygon_coordinates' => $this->parsePolygonCoordinates($row['polygon_coordinates'] ?? null),
+                    'pipe_path' => ($parsedPipePath = $this->parsePolygonCoordinates($row['pipe_path'] ?? null)) ? json_encode($parsedPipePath) : null,
+                    'polygon_coordinates' => ($parsedPolygonCoords = $this->parsePolygonCoordinates($row['polygon_coordinates'] ?? null)) ? json_encode($parsedPolygonCoords) : null,
                     'status' => 'pending',
                     'account_balance' => $row['account_balance'] ?? 0,
                 ];
@@ -120,20 +135,23 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                     Log::info('Customer updated', ['customer_id' => $customer->id]);
                 } else {
                     // Create new customer
-                    $existingCustomer = Customer::where('email', $email)->orWhere('phone_number', $phone)->first();
-                    if ($existingCustomer) {
-                        $this->errors[] = "Row " . ($index + 2) . ": A customer with this email or phone number already exists.";
-                        continue;
+                    // Only check for existing customer if we have an email or phone to compare
+                    if (!empty($email) || !empty($phone)) {
+                        $existingCustomer = Customer::where('email', $email)->orWhere('phone_number', $phone)->first();
+                        if ($existingCustomer) {
+                            $this->errors[] = "Row " . ($index + 2) . ": A customer with this email or phone number already exists.";
+                            continue;
+                        }
                     }
 
                     $data['email'] = $email;
                     $data['phone_number'] = $phone;
                     $data['password'] = Hash::make($row['password'] ?? 'default123');
                     $data['created_by'] = Auth::guard('staff')->id();
-                    $data['created_at'] = $row['created_at'] ? Carbon::parse($row['created_at']) : now();
+                    $data['created_at'] = isset($row['created_at']) && $row['created_at'] ? Carbon::parse($row['created_at']) : now();
                     
                     Customer::create($data);
-                    Log::info('Customer created', ['email' => $email]);
+                    Log::info('Customer created', ['email' => $email, 'phone' => $phone]);
                 }
             } catch (\Exception $e) {
                 $this->errors[] = "Row " . ($index + 2) . ": Error processing row: {$e->getMessage()}";
@@ -148,8 +166,8 @@ class CustomerImport implements ToCollection, WithHeadingRow, WithValidation, Wi
             'first_name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone_number' => 'required|string|min:10|regex:/^[0-9]+$/',
+            'email' => 'nullable|email|max:255',
+            'phone_number' => 'nullable|string|min:10|regex:/^[0-9]+$/',
             'alternate_phone_number' => 'nullable|string|min:10|regex:/^[0-9]+$/',
             'street_name' => 'nullable|string|max:255',
             'house_number' => 'nullable|string|max:255',

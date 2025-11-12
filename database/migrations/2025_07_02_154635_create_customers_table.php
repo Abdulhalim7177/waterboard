@@ -5,7 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCustomersTable extends Migration
+return new class extends Migration
 {
     public function up()
     {
@@ -13,7 +13,7 @@ class CreateCustomersTable extends Migration
             $table->bigIncrements('id');
             $table->string('first_name');
             $table->string('surname');
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->string('phone_number')->unique();
             $table->string('alternate_phone_number')->nullable();
             $table->string('street_name')->nullable();
@@ -52,4 +52,4 @@ class CreateCustomersTable extends Migration
     {
         Schema::dropIfExists('customers');
     }
-}
+};

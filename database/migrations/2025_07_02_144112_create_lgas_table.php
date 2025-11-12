@@ -4,8 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLgasTable extends Migration
-{
+return new class extends Migration{
+
     public function up()
     {
         Schema::create('lgas', function (Blueprint $table) {
@@ -21,4 +21,4 @@ class CreateLgasTable extends Migration
     {
         Schema::dropIfExists('lgas');
     }
-}
+};
