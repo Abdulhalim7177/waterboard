@@ -84,7 +84,52 @@ class CustomerCreationController extends Controller
     public function import(Request $request)
     {
         try {
+            Log::info('Customer import attempt started', [
+                'staff_id' => Auth::guard('staff')->id(),
+                'has_file' => $request->hasFile('file'),
+                'all_request_data' => $request->all(),
+                'files' => $request->files->all()
+            ]);
+
             $this->authorize('create-customer', Customer::class);
+
+            // Check if file exists before validation
+            if (!$request->hasFile('file')) {
+                Log::error('No file detected in request', [
+                    'staff_id' => Auth::guard('staff')->id(),
+                    'request_headers' => $request->headers->all(),
+                    'content_type' => $request->header('Content-Type'),
+                    'request_method' => $request->method()
+                ]);
+                return redirect()->route('staff.customers.index')
+                    ->with('error', 'No file was uploaded. Please select a file to import.');
+            }
+
+            $uploadedFile = $request->file('file');
+            Log::info('File details', [
+                'original_name' => $uploadedFile->getClientOriginalName(),
+                'mime_type' => $uploadedFile->getMimeType(),
+                'size' => $uploadedFile->getSize(),
+                'error' => $uploadedFile->getError(),
+                'error_message' => $uploadedFile->getErrorMessage(),
+                'is_valid' => $uploadedFile->isValid(),
+                'max_filesize' => ini_get('upload_max_filesize'),
+                'post_max_size' => ini_get('post_max_size')
+            ]);
+
+            if (!$uploadedFile->isValid()) {
+                Log::error('Uploaded file is not valid', [
+                    'error_code' => $uploadedFile->getError(),
+                    'error_message' => $uploadedFile->getErrorMessage(),
+                    'file_info' => [
+                        'name' => $uploadedFile->getClientOriginalName(),
+                        'size' => $uploadedFile->getSize(),
+                        'mime_type' => $uploadedFile->getMimeType()
+                    ]
+                ]);
+                return redirect()->route('staff.customers.index')
+                    ->with('error', 'File upload failed: ' . $uploadedFile->getErrorMessage());
+            }
 
             $request->validate([
                 'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
@@ -92,9 +137,10 @@ class CustomerCreationController extends Controller
 
             // Increase the execution time limit for large imports
             set_time_limit(300); // 5 minutes
-            
+
+            Log::info('Starting Excel import', ['file_name' => $uploadedFile->getClientOriginalName()]);
             $import = new CustomerImport();
-            Excel::import($import, $request->file('file'));
+            Excel::import($import, $uploadedFile);
 
             $errors = $import->getErrors();
             if (!empty($errors)) {
@@ -113,8 +159,27 @@ class CustomerCreationController extends Controller
             Log::warning('Unauthorized attempt to import customers', ['user_id' => Auth::guard('staff')->id()]);
             return redirect()->route('staff.customers.index')
                 ->with('error', 'You are not authorized to import customers.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed during import', [
+                'user_id' => Auth::guard('staff')->id(),
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            return redirect()->route('staff.customers.index')
+                ->with('error', 'Validation failed: ' . implode(', ', $e->errors()));
         } catch (\Exception $e) {
-            Log::error('Customer import failed', ['user_id' => Auth::guard('staff')->id(), 'error' => $e->getMessage()]);
+            Log::error('Customer import failed', [
+                'user_id' => Auth::guard('staff')->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+                'file_info' => $request->hasFile('file') ? [
+                    'name' => $request->file('file')->getClientOriginalName(),
+                    'size' => $request->file('file')->getSize(),
+                    'mime' => $request->file('file')->getMimeType(),
+                    'error' => $request->file('file')->getError()
+                ] : 'No file'
+            ]);
             return redirect()->route('staff.customers.index')
                 ->with('error', 'Failed to import customers: ' . $e->getMessage());
         }
