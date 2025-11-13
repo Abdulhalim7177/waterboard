@@ -17,3 +17,135 @@
     transform: translateY(-3px);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
+
+/* Modern dashboard enhancements */
+.timeline-label {
+    position: relative;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: #f5f8fa;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 4px #f5f8fa;
+}
+
+.timeline-content {
+    position: relative;
+    padding: 0.5rem 0;
+}
+
+/* Enhanced card styling */
+.card.shadow-sm {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card.shadow-sm:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15) !important;
+}
+
+.symbol-label i {
+    transition: all 0.3s ease;
+}
+
+.symbol-label:hover i {
+    transform: scale(1.1);
+}
+
+/* Quick action button styling */
+.btn.btn-sm {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn.btn-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive adjustments - Mobile first approach */
+.symbol-40px {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+}
+
+.symbol-40px i {
+    font-size: 1.5rem;
+}
+
+.fs-3 {
+    font-size: 1.25rem;
+}
+
+.fs-2 {
+    font-size: 1.5rem;
+}
+
+.fs-7 {
+    font-size: 0.9rem;
+}
+
+/* Mobile specific styling */
+@media (max-width: 576px) {
+    .col-6 {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+    
+    .btn.btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .d-flex.flex-wrap.gap-3 {
+        gap: 0.5rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .card-title.fs-2 {
+        font-size: 1.25rem;
+    }
+    
+    .symbol-40px {
+        width: 2.2rem;
+        height: 2.2rem;
+        min-width: 2.2rem;
+    }
+    
+    .symbol-40px i {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .d-flex.flex-column.flex-sm-row {
+        flex-direction: column !important;
+    }
+    
+    .row.g-4 {
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+    
+    .row > [class*="col"] {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+}
