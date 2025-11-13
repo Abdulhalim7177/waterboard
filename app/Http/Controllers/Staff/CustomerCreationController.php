@@ -87,8 +87,18 @@ class CustomerCreationController extends Controller
             Log::info('Customer import attempt started', [
                 'staff_id' => Auth::guard('staff')->id(),
                 'has_file' => $request->hasFile('file'),
-                'all_request_data' => $request->all(),
-                'files' => $request->files->all()
+                'all_files_count' => $request->files->count(),
+                'all_request_data_keys' => array_keys($request->all()),
+                'files_keys' => array_keys($request->files->all()),
+                'file_input_raw' => $_FILES['file'] ?? 'NOT_SET_IN_PHP_FILES',
+                'php_upload_errors' => [
+                    'upload_max_filesize' => ini_get('upload_max_filesize'),
+                    'post_max_size' => ini_get('post_max_size'),
+                    'max_input_vars' => ini_get('max_input_vars'),
+                    'file_uploads' => ini_get('file_uploads'),
+                    'max_execution_time' => ini_get('max_execution_time'),
+                    'memory_limit' => ini_get('memory_limit')
+                ]
             ]);
 
             $this->authorize('create-customer', Customer::class);
@@ -99,7 +109,15 @@ class CustomerCreationController extends Controller
                     'staff_id' => Auth::guard('staff')->id(),
                     'request_headers' => $request->headers->all(),
                     'content_type' => $request->header('Content-Type'),
-                    'request_method' => $request->method()
+                    'content_length' => $request->header('Content-Length'),
+                    'request_method' => $request->method(),
+                    'php_files_global' => $_FILES,
+                    'post_global_size' => strlen(serialize($_POST)),
+                    'server_vars' => [
+                        'CONTENT_LENGTH' => $_SERVER['CONTENT_LENGTH'] ?? 'NOT_SET',
+                        'CONTENT_TYPE' => $_SERVER['CONTENT_TYPE'] ?? 'NOT_SET',
+                        'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'] ?? 'NOT_SET'
+                    ]
                 ]);
                 return redirect()->route('staff.customers.index')
                     ->with('error', 'No file was uploaded. Please select a file to import.');
@@ -132,7 +150,7 @@ class CustomerCreationController extends Controller
             }
 
             $request->validate([
-                'file' => 'required|mimes:csv,xlsx|max:2048', // Max 2MB
+                'file' => 'required|mimes:csv,xlsx|max:51200', // Max 50MB
             ]);
 
             // Increase the execution time limit for large imports
@@ -148,15 +166,37 @@ class CustomerCreationController extends Controller
                     'staff_id' => Auth::guard('staff')->id(),
                     'errors' => $errors
                 ]);
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Import completed with errors: ' . implode(', ', $errors),
+                        'success' => false,
+                        'errors' => $errors
+                    ]);
+                }
+
                 return redirect()->route('staff.customers.index')
                     ->with('warning', 'Import completed with errors: ' . implode(', ', $errors));
             }
 
             Log::info('Customer import completed successfully', ['staff_id' => Auth::guard('staff')->id()]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Customers imported successfully and are pending approval.',
+                    'success' => true
+                ]);
+            }
+
             return redirect()->route('staff.customers.index')
                 ->with('success', 'Customers imported successfully and are pending approval.');
         } catch (AuthorizationException $e) {
             Log::warning('Unauthorized attempt to import customers', ['user_id' => Auth::guard('staff')->id()]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'You are not authorized to import customers.'], 403);
+            }
+
             return redirect()->route('staff.customers.index')
                 ->with('error', 'You are not authorized to import customers.');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -165,8 +205,25 @@ class CustomerCreationController extends Controller
                 'errors' => $e->errors(),
                 'request_data' => $request->all()
             ]);
+
+            // Flatten the validation errors array
+            $errorMessages = [];
+            foreach ($e->errors() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $errorMessages[] = $message;
+                }
+            }
+            $errorMessageString = implode(', ', $errorMessages);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Validation failed: ' . $errorMessageString,
+                    'errors' => $e->errors()
+                ], 422);
+            }
+
             return redirect()->route('staff.customers.index')
-                ->with('error', 'Validation failed: ' . implode(', ', $e->errors()));
+                ->with('error', 'Validation failed: ' . $errorMessageString);
         } catch (\Exception $e) {
             Log::error('Customer import failed', [
                 'user_id' => Auth::guard('staff')->id(),
@@ -180,6 +237,11 @@ class CustomerCreationController extends Controller
                     'error' => $request->file('file')->getError()
                 ] : 'No file'
             ]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Failed to import customers: ' . $e->getMessage()], 500);
+            }
+
             return redirect()->route('staff.customers.index')
                 ->with('error', 'Failed to import customers: ' . $e->getMessage());
         }

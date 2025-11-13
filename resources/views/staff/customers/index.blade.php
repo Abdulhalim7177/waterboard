@@ -472,6 +472,7 @@
                                     <input type="file" name="file" id="import_file" class="form-control" accept=".csv,.xlsx" required>
                                     <small class="form-text text-muted">
                                         File must include headers: First Name, Surname, Middle Name, Email, Phone Number, Alternate Phone Number, Street Name, House Number, Landmark, LGA, Ward, Area, Category, Tariff, Delivery Code, Billing Condition, Water Supply Status, Latitude, Longitude, Altitude, Pipe Path, Polygon Coordinates, Password, Account Balance, Created At.
+                                        Maximum file size: 50MB.
                                         <a href="{{ route('staff.customers.sample') }}">Download sample file</a>.
                                     </small>
                                 </div>
