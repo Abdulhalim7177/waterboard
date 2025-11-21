@@ -16,6 +16,7 @@ use App\Http\Controllers\VendorPaymentController;
 use App\Http\Controllers\Staff\CategoryController;
 use App\Http\Controllers\Staff\LocationController;
 use App\Http\Controllers\Staff\AnalyticsController;
+use App\Http\Controllers\Staff\AccountController;
 
 use App\Http\Controllers\Staff\CustomerCreationController;
 use App\Http\Controllers\Web\Staff\ReservoirController;
@@ -247,6 +248,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     // Reservoir Management Routes
     Route::resource('reservoirs', ReservoirController::class);
 
+    Route::get('/account/overview', [AccountController::class, 'overview'])->name('account.overview');
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
     Route::get('approvals', [\App\Http\Controllers\Staff\ApprovalsController::class, 'index'])->name('approvals.index');

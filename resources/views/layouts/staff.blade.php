@@ -65,9 +65,6 @@
                                         <span class="bullet bullet-dot bg-success me-1"></span>online
                                     </div>
                                     <div class="d-flex flex-column mt-2">
-                                        <div class="menu-item px-0 my-1">
-                                            <a href="../../demo8/dist/account/settings.html" class="menu-link px-3 py-1 fs-9">Account Settings</a>
-                                        </div>
                                         <div class="menu-item px-0">
                                             <form action="{{ route('staff.logout') }}" method="POST">
                                                 @csrf
@@ -388,35 +385,16 @@
                                 </a>
                             </div>
                             @endif
-                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                                <span class="menu-link">
+                            <div class="menu-item">
+                                <a class="menu-link" href="{{ route('staff.account.overview') }}">
                                     <span class="menu-icon">
                                         <i class="ki-duotone ki-user fs-2">
                                             <span class="path1"></span>
                                             <span class="path2"></span>
                                         </i>
                                     </span>
-                                    <span class="menu-title">Account</span>
-                                    <span class="menu-arrow"></span>
-                                </span>
-                                <div class="menu-sub menu-sub-accordion">
-                                    <div class="menu-item">
-                                        <a class="menu-link" href="../../demo8/dist/account/overview.html">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot"></span>
-                                            </span>
-                                            <span class="menu-title">Overview</span>
-                                        </a>
-                                    </div>
-                                    <div class="menu-item">
-                                        <a class="menu-link" href="../../demo8/dist/account/settings.html">
-                                            <span class="menu-bullet">
-                                                <span class="bullet bullet-dot"></span>
-                                            </span>
-                                            <span class="menu-title">Settings</span>
-                                        </a>
-                                    </div>
-                                </div>
+                                    <span class="menu-title">Account Overview</span>
+                                </a>
                             </div>
                             @if(auth()->user()->hasRole('super-admin'))
                             <div class="menu-item">
