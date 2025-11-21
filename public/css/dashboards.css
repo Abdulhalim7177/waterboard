@@ -48,6 +48,7 @@
 /* Enhanced card styling */
 .card.shadow-sm {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card.shadow-sm:hover {
@@ -69,6 +70,7 @@
     padding: 0.5rem 1rem;
     font-weight: 500;
     transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .btn.btn-sm:hover {
@@ -76,8 +78,36 @@
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Responsive adjustments - Mobile first approach */
-.symbol-40px {
+/* Progress bar enhancements */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Badge enhancements */
+.badge {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    padding: 0.35rem 0.7rem;
+}
+
+/* Symbol enhancements */
+.symbol {
+    border-radius: 0.475rem;
+}
+
+.symbol.symbol-8px {
+    width: 0.5rem;
+    height: 0.5rem;
+}
+
+.symbol.symbol-40px {
     width: 2.5rem;
     height: 2.5rem;
     min-width: 2.5rem;
@@ -87,19 +117,25 @@
     font-size: 1.5rem;
 }
 
-.fs-3 {
-    font-size: 1.25rem;
-}
-
+/* Font size enhancements */
 .fs-2 {
     font-size: 1.5rem;
+}
+
+.fs-3 {
+    font-size: 1.25rem;
 }
 
 .fs-7 {
     font-size: 0.9rem;
 }
 
-/* Mobile specific styling */
+/* Card header enhancements */
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments - Mobile first approach */
 @media (max-width: 576px) {
     .col-6 {
         flex: 0 0 auto;
@@ -109,6 +145,7 @@
     .btn.btn-sm {
         padding: 0.4rem 0.8rem;
         font-size: 0.85rem;
+        margin-bottom: 0.5rem;
     }
     
     .d-flex.flex-wrap.gap-3 {
@@ -132,6 +169,14 @@
     .symbol-40px i {
         font-size: 1.2rem;
     }
+    
+    .progress {
+        height: 6px;
+    }
+    
+    .row.g-4 > [class*="col"] {
+        padding-bottom: 0.5rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -148,4 +193,66 @@
         padding-right: 0.5rem;
         padding-left: 0.5rem;
     }
+}
+
+/* Additional visual enhancements */
+.card {
+    border: 0;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+}
+
+.card.bg-light-primary {
+    background-color: #f8f9ff !important;
+}
+
+.card.bg-light-success {
+    background-color: #f1f9f6 !important;
+}
+
+.card.bg-light-warning {
+    background-color: #fff8ef !important;
+}
+
+.card.bg-light-danger {
+    background-color: #fff1f2 !important;
+}
+
+.card.bg-light-info {
+    background-color: #edf7ff !important;
+}
+
+.card.bg-light-secondary {
+    background-color: #f8f9fa !important;
+}
+
+.card.bg-light-dark {
+    background-color: #f8f9fa !important;
+}
+
+/* Hover effects for data lists */
+.d-flex.flex-stack {
+    transition: all 0.2s ease;
+}
+
+.d-flex.flex-stack:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 0.475rem;
+}
+
+/* Enhanced symbol styling */
+.symbol-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Empty state styling */
+.text-center.py-5 {
+    background-color: #f8f9fa;
+    border-radius: 0.475rem;
+}
+
+/* Performance indicators card enhancements */
+.card.border-0 {
+    background-color: #ffffff;
 }
