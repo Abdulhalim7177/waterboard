@@ -46,8 +46,7 @@
                             </th>
                             <th class="min-w-125px">Name</th>
                             <th class="min-w-125px">Code</th>
-                            <th class="min-w-125px">State</th>
-                            <th class="min-w-125px">Status</th>
+                                                        <th class="min-w-125px">Status</th>
                             <th class="text-end min-w-100px">Actions</th>
                         </tr>
                     </thead>
@@ -61,7 +60,6 @@
                                 </td>
                                 <td>{{ $lga->name }}</td>
                                 <td>{{ $lga->code }}</td>
-                                <td>{{ $lga->state }}</td>
                                 <td>
                                     <div class="badge badge-light-{{ $lga->status == 'approved' ? 'success' : ($lga->status == 'pending' || $lga->status == 'pending_delete' ? 'warning' : 'danger') }}">
                                         {{ ucfirst(str_replace('_', ' ', $lga->status)) }}
@@ -123,7 +121,6 @@
                                         <div class="modal-body">
                                             Name: {{ $lga->name }}<br>
                                             Code: {{ $lga->code }}<br>
-                                            State: {{ $lga->state }}<br>
                                             Status: {{ ucfirst(str_replace('_', ' ', $lga->status)) }}
                                         </div>
                                     </div>
@@ -154,10 +151,6 @@
                                                     <div class="fv-row mb-10">
                                                         <label class="fs-5 fw-semibold form-label mb-5">Code</label>
                                                         <input type="text" name="code" value="{{ $lga->code }}" class="form-control form-control-solid" required />
-                                                    </div>
-                                                    <div class="fv-row mb-10">
-                                                        <label class="fs-5 fw-semibold form-label mb-5">State</label>
-                                                        <input type="text" name="state" value="{{ $lga->state }}" class="form-control form-control-solid" required />
                                                     </div>
                                                     <div class="text-center">
                                                         <button type="submit" class="btn btn-primary">Update</button>
@@ -630,10 +623,6 @@
                             <div class="fv-row mb-10">
                                 <label class="fs-5 fw-semibold form-label mb-5">Code</label>
                                 <input type="text" name="code" class="form-control form-control-solid" required />
-                            </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">State</label>
-                                <input type="text" name="state" class="form-control form-control-solid" required />
                             </div>
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Submit</button>

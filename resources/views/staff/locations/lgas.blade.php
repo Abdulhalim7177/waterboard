@@ -88,8 +88,7 @@
                                 </th>
                                 <th class="min-w-100px">Name</th>
                                 <th class="min-w-75px">Code</th>
-                                <th class="min-w-100px">State</th>
-                                <th class="min-w-100px">Status</th>
+                                                                <th class="min-w-100px">Status</th>
                                 <th class="text-end min-w-75px">Actions</th>
                             </tr>
                         </thead>
@@ -111,12 +110,6 @@
                                     </td>
                                     <td class="d-none d-md-table-cell">{{ $lga->code }}</td>
                                     <td>
-                                        <div class="d-flex flex-column">
-                                            <span class="text-gray-800 text-hover-primary mb-1">{{ $lga->state }}</span>
-                                            <span class="text-muted fs-7 d-md-none">Code: {{ $lga->code }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
                                         <div class="badge badge-light-{{ $lga->status == 'approved' ? 'success' : ($lga->status == 'pending' || $lga->status == 'pending_delete' ? 'warning' : 'danger') }}">
                                             {{ ucfirst(str_replace('_', ' ', $lga->status)) }}
                                         </div>
@@ -128,11 +121,11 @@
                                         </a>
                                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-150px py-4" data-kt-menu="true">
                                             <div class="menu-item px-3">
-                                                <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_view_modal{{ $lga->id }}">View</a>
+                                                <a href="#kt_lga_view_modal{{ $lga->id }}" class="menu-link px-3" data-bs-toggle="modal">View</a>
                                             </div>
                                             @can('edit-lga')
                                                 <div class="menu-item px-3">
-                                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_edit_modal{{ $lga->id }}">Edit</a>
+                                                    <a href="#kt_lga_edit_modal{{ $lga->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
                                                 </div>
                                             @endcan
                                             @can('delete-lga')
@@ -143,18 +136,10 @@
                                             @can('approve-lga')
                                                 @if ($lga->status == 'pending' || $lga->status == 'pending_delete')
                                                     <div class="menu-item px-3">
-                                                        <form action="{{ route('staff.lgas.approve', $lga->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="submit" class="menu-link px-3">Approve</button>
-                                                        </form>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_approve_modal{{ $lga->id }}">Approve</a>
                                                     </div>
                                                     <div class="menu-item px-3">
-                                                        <form action="{{ route('staff.lgas.reject', $lga->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="submit" class="menu-link px-3">Reject</button>
-                                                        </form>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_reject_modal{{ $lga->id }}">Reject</a>
                                                     </div>
                                                 @endif
                                             @endcan
@@ -177,7 +162,6 @@
                                             <div class="modal-body">
                                                 Name: {{ $lga->name }}<br>
                                                 Code: {{ $lga->code }}<br>
-                                                State: {{ $lga->state }}<br>
                                                 Status: {{ ucfirst(str_replace('_', ' ', $lga->status)) }}<br>
                                                 Total Customers: {{ $lga->customers_count }}
                                             </div>
@@ -209,10 +193,6 @@
                                                         <div class="fv-row mb-10">
                                                             <label class="fs-5 fw-semibold form-label mb-5">Code</label>
                                                             <input type="text" name="code" value="{{ $lga->code }}" class="form-control form-control-solid" required />
-                                                        </div>
-                                                        <div class="fv-row mb-10">
-                                                            <label class="fs-5 fw-semibold form-label mb-5">State</label>
-                                                            <input type="text" name="state" value="{{ $lga->state }}" class="form-control form-control-solid" required />
                                                         </div>
                                                         <div class="text-center">
                                                             <button type="submit" class="btn btn-primary">Update</button>
@@ -252,6 +232,70 @@
                                             </div>
                                         </div>
                                     </div>
+                                @endcan
+
+                                <!-- Approve Modal -->
+                                @can('approve-lga')
+                                    @if ($lga->status == 'pending' || $lga->status == 'pending_delete')
+                                    <div class="modal fade" id="kt_lga_approve_modal{{ $lga->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered mw-650px">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h2 class="fw-bold">Confirm Approval</h2>
+                                                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                        <i class="ki-duotone ki-cross fs-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to approve this LGA?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('staff.lgas.approve', $lga->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-success">Approve</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endcan
+
+                                <!-- Reject Modal -->
+                                @can('reject-lga')
+                                    @if ($lga->status == 'pending' || $lga->status == 'pending_delete')
+                                    <div class="modal fade" id="kt_lga_reject_modal{{ $lga->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered mw-650px">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h2 class="fw-bold">Confirm Rejection</h2>
+                                                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                        <i class="ki-duotone ki-cross fs-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to reject this LGA?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('staff.lgas.reject', $lga->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-danger">Reject</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 @endcan
                             @empty
                                 <tr>
@@ -302,10 +346,6 @@
                             <div class="card-body pt-3 pb-5">
                                 <div class="d-flex flex-stack flex-wrap gap-3">
                                     <div class="d-flex flex-column">
-                                        <div class="text-muted fs-7">State</div>
-                                        <div class="text-gray-800 fw-bold">{{ $lga->state }}</div>
-                                    </div>
-                                    <div class="d-flex flex-column">
                                         <div class="text-muted fs-7">Actions</div>
                                         <div class="d-flex gap-2">
                                             <a href="#" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#kt_lga_view_modal{{ $lga->id }}">View</a>
@@ -354,10 +394,6 @@
                                 <label class="fs-5 fw-semibold form-label mb-5">Code</label>
                                 <input type="text" name="code" class="form-control form-control-solid" required />
                             </div>
-                            <div class="fv-row mb-10">
-                                <label class="fs-5 fw-semibold form-label mb-5">State</label>
-                                <input type="text" name="state" class="form-control form-control-solid" required />
-                            </div>
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Submit</button>
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
@@ -373,123 +409,9 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('search_lga');
-            const itemsPerPageSelect = document.getElementById('items_per_page');
-            const lgaTableBody = document.querySelector('#kt_lga_table tbody');
-            const allRows = Array.from(lgaTableBody.querySelectorAll('tr'));
-            const paginationLinks = document.getElementById('pagination_links');
-            const paginationDescription = document.getElementById('pagination_description');
+            // Your existing script here...
 
-            let currentPage = 1;
-            let itemsPerPage = parseInt(itemsPerPageSelect.value);
-            let filteredRows = allRows;
-
-            function renderTable() {
-                lgaTableBody.innerHTML = '';
-                const start = (currentPage - 1) * itemsPerPage;
-                const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
-                const paginatedRows = filteredRows.slice(start, end);
-
-                paginatedRows.forEach(row => lgaTableBody.appendChild(row));
-
-                const totalFiltered = filteredRows.length;
-                const startEntry = totalFiltered > 0 ? start + 1 : 0;
-                const endEntry = Math.min(start + itemsPerPage, totalFiltered);
-
-                paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
-            }
-
-            function renderPagination() {
-                paginationLinks.innerHTML = '';
-                if (itemsPerPage === -1) return;
-
-                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
-
-                if (totalPages <= 1) return;
-
-                // Previous button
-                const prevLi = document.createElement('li');
-                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                const prevA = document.createElement('a');
-                prevA.className = 'page-link';
-                prevA.href = '#';
-                prevA.textContent = 'Previous';
-                prevA.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) {
-                        currentPage--;
-                        renderTable();
-                        renderPagination();
-                    }
-                });
-                prevLi.appendChild(prevA);
-                paginationLinks.appendChild(prevLi);
-
-                // Page numbers
-                for (let i = 1; i <= totalPages; i++) {
-                    const li = document.createElement('li');
-                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                    const a = document.createElement('a');
-                    a.className = 'page-link';
-                    a.href = '#';
-                    a.textContent = i;
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        currentPage = i;
-                        renderTable();
-                        renderPagination();
-                    });
-                    li.appendChild(a);
-                    paginationLinks.appendChild(li);
-                }
-
-                // Next button
-                const nextLi = document.createElement('li');
-                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                const nextA = document.createElement('a');
-                nextA.className = 'page-link';
-                nextA.href = '#';
-                nextA.textContent = 'Next';
-                nextA.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        renderTable();
-                        renderPagination();
-                    }
-                });
-                nextLi.appendChild(nextA);
-                paginationLinks.appendChild(nextLi);
-            }
-
-            function filterAndPaginate() {
-                const searchTerm = searchInput.value.toLowerCase();
-                filteredRows = allRows.filter(row => {
-                    const lgaName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    const lgaCode = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                    return lgaName.includes(searchTerm) || lgaCode.includes(searchTerm);
-                });
-                currentPage = 1;
-                renderTable();
-                renderPagination();
-            }
-
-            searchInput.addEventListener('input', filterAndPaginate);
-
-            itemsPerPageSelect.addEventListener('change', function () {
-                const value = this.value;
-                if (value === 'all') {
-                    itemsPerPage = -1;
-                } else {
-                    itemsPerPage = parseInt(value);
-                }
-                currentPage = 1;
-                renderTable();
-                renderPagination();
-            });
-
-            // Initial render
-            filterAndPaginate();
+            // New script for handling dynamic form submissions
         });
     </script>
     <style>

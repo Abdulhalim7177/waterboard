@@ -167,6 +167,7 @@
                                         <td>
                                             <a href="{{ route('staff.paypoints.details', $paypoint->id) }}" class="btn btn-sm btn-light-info me-2">View Details</a>
                                             <a href="#" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#editPaypointModal{{ $paypoint->id }}">Edit</a>
+                                            <a href="{{ route('staff.paypoints.destroy', $paypoint->id) }}" class="btn btn-sm btn-light-danger" data-method="delete" data-confirm="Are you sure you want to delete this paypoint?">Delete</a>
                                         </td>
                                     </tr>
                                 @empty
@@ -391,6 +392,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     @endforeach
+
+    // New script for handling dynamic form submissions
+    document.querySelectorAll('a[data-method]').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            let method = e.target.getAttribute('data-method');
+            let action = e.target.getAttribute('href');
+            let confirmMessage = e.target.getAttribute('data-confirm');
+
+            if (confirm(confirmMessage)) {
+                let form = document.createElement('form');
+                form.setAttribute('method', 'POST');
+                form.setAttribute('action', action);
+
+                let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                let csrfInput = document.createElement('input');
+                csrfInput.setAttribute('type', 'hidden');
+                csrfInput.setAttribute('name', '_token');
+                csrfInput.setAttribute('value', csrfToken);
+                form.appendChild(csrfInput);
+
+                if (method.toLowerCase() !== 'post') {
+                    let methodInput = document.createElement('input');
+                    methodInput.setAttribute('type', 'hidden');
+                    methodInput.setAttribute('name', '_method');
+                    methodInput.setAttribute('value', method);
+                    form.appendChild(methodInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
 });
 </script>
 @endsection

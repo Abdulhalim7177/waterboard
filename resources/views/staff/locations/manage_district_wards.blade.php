@@ -61,9 +61,10 @@
                                             <td>{{ $ward->name }}</td>
                                             <td>{{ $ward->lga->name ?? 'N/A' }}</td>
                                             <td>
-                                                <a href="{{ route('staff.wards.remove-from-district', $ward->id) }}" 
-                                                   class="btn btn-sm btn-danger" 
-                                                   onclick="return confirm('Are you sure you want to remove this ward from the district?')">
+                                                <a href="#"
+                                                   class="btn btn-sm btn-danger"
+                                                   data-bs-toggle="modal"
+                                                   data-bs-target="#kt_remove_ward_modal_{{ $ward->id }}">
                                                    Remove
                                                 </a>
                                             </td>
@@ -82,5 +83,43 @@
             </div>
         </div>
     </div>
+
+    @forelse($assignedWards as $ward)
+    <!-- Remove Ward From District Modal -->
+    <div class="modal fade" id="kt_remove_ward_modal_{{ $ward->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-400px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">Confirm Removal</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to remove this ward ({{ $ward->name }}) from the district?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{{ route('staff.wards.remove-from-district', $ward->id) }}"
+                       class="btn btn-danger"
+                       onclick="event.preventDefault();
+                                document.getElementById('remove-ward-form-{{ $ward->id }}').submit();">
+                       Remove
+                    </a>
+                    <form id="remove-ward-form-{{ $ward->id }}"
+                          action="{{ route('staff.wards.remove-from-district', $ward->id) }}"
+                          method="POST"
+                          class="d-none">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforelse
 </div>
 @endsection

@@ -449,14 +449,12 @@ class LocationController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|unique:lgas,code',
-            'state' => 'required|string|max:255'
+            'code' => 'required|string|unique:lgas,code'
         ]);
 
         Lga::create([
             'name' => $request->name,
             'code' => $request->code,
-            'state' => $request->state,
             'status' => 'pending'
         ]);
 
@@ -467,14 +465,12 @@ class LocationController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|unique:lgas,code,' . $lga->id,
-            'state' => 'required|string|max:255'
+            'code' => 'required|string|unique:lgas,code,' . $lga->id
         ]);
 
         $lga->update([
             'name' => $request->name,
             'code' => $request->code,
-            'state' => $request->state,
             'status' => 'pending'
         ]);
 

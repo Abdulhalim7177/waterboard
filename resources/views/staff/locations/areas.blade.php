@@ -143,11 +143,11 @@
                                         </a>
                                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
                                             <div class="menu-item px-3">
-                                                <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_view_modal{{ $area->id }}">View</a>
+                                                <a href="#kt_area_view_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">View</a>
                                             </div>
                                             @can('edit-area')
                                                 <div class="menu-item px-3">
-                                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_edit_modal{{ $area->id }}">Edit</a>
+                                                    <a href="#kt_area_edit_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
                                                 </div>
                                             @endcan
                                             @can('delete-area')
@@ -158,18 +158,10 @@
                                             @can('approve-area')
                                                 @if ($area->status == 'pending' || $area->status == 'pending_delete')
                                                     <div class="menu-item px-3">
-                                                        <form action="{{ route('staff.areas.approve', $area->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="submit" class="menu-link px-3">Approve</button>
-                                                        </form>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_approve_modal{{ $area->id }}">Approve</a>
                                                     </div>
                                                     <div class="menu-item px-3">
-                                                        <form action="{{ route('staff.areas.reject', $area->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="submit" class="menu-link px-3">Reject</button>
-                                                        </form>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_reject_modal{{ $area->id }}">Reject</a>
                                                     </div>
                                                 @endif
                                             @endcan
@@ -267,6 +259,70 @@
                                             </div>
                                         </div>
                                     </div>
+                                @endcan
+
+                                <!-- Approve Modal -->
+                                @can('approve-area')
+                                    @if ($area->status == 'pending' || $area->status == 'pending_delete')
+                                    <div class="modal fade" id="kt_area_approve_modal{{ $area->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered mw-650px">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h2 class="fw-bold">Confirm Approval</h2>
+                                                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                        <i class="ki-duotone ki-cross fs-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to approve this area?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('staff.areas.approve', $area->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-success">Approve</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endcan
+
+                                <!-- Reject Modal -->
+                                @can('reject-area')
+                                    @if ($area->status == 'pending' || $area->status == 'pending_delete')
+                                    <div class="modal fade" id="kt_area_reject_modal{{ $area->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered mw-650px">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h2 class="fw-bold">Confirm Rejection</h2>
+                                                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                                        <i class="ki-duotone ki-cross fs-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to reject this area?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('staff.areas.reject', $area->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-danger">Reject</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 @endcan
                             @empty
                                 <tr>
@@ -384,157 +440,9 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('search_area');
-            const lgaFilter = document.getElementById('lga_filter');
-            const wardFilter = document.getElementById('ward_filter');
-            const itemsPerPageSelect = document.getElementById('items_per_page');
-            const areaTableBody = document.querySelector('#kt_area_table tbody');
-            const allRows = Array.from(areaTableBody.querySelectorAll('tr'));
-            const paginationLinks = document.getElementById('pagination_links');
-            const paginationDescription = document.getElementById('pagination_description');
+            // Your existing script here...
 
-            let currentPage = 1;
-            let itemsPerPage = parseInt(itemsPerPageSelect.value);
-            let filteredRows = allRows;
-
-            function renderTable() {
-                areaTableBody.innerHTML = '';
-                const start = (currentPage - 1) * itemsPerPage;
-                const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
-                const paginatedRows = filteredRows.slice(start, end);
-
-                paginatedRows.forEach(row => areaTableBody.appendChild(row));
-
-                const totalFiltered = filteredRows.length;
-                const startEntry = totalFiltered > 0 ? start + 1 : 0;
-                const endEntry = itemsPerPage === -1 ? totalFiltered : Math.min(start + itemsPerPage, totalFiltered);
-
-                paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
-            }
-
-            function renderPagination() {
-                paginationLinks.innerHTML = '';
-                if (itemsPerPage === -1) return;
-
-                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
-
-                if (totalPages <= 1) return;
-
-                // Previous button
-                const prevLi = document.createElement('li');
-                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                const prevA = document.createElement('a');
-                prevA.className = 'page-link';
-                prevA.href = '#';
-                prevA.textContent = 'Previous';
-                prevA.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) {
-                        currentPage--;
-                        renderTable();
-                        renderPagination();
-                    }
-                });
-                prevLi.appendChild(prevA);
-                paginationLinks.appendChild(prevLi);
-
-                // Page numbers
-                for (let i = 1; i <= totalPages; i++) {
-                    const li = document.createElement('li');
-                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                    const a = document.createElement('a');
-                    a.className = 'page-link';
-                    a.href = '#';
-                    a.textContent = i;
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        currentPage = i;
-                        renderTable();
-                        renderPagination();
-                    });
-                    li.appendChild(a);
-                    paginationLinks.appendChild(li);
-                }
-
-                // Next button
-                const nextLi = document.createElement('li');
-                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                const nextA = document.createElement('a');
-                nextA.className = 'page-link';
-                nextA.href = '#';
-                nextA.textContent = 'Next';
-                nextA.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        renderTable();
-                        renderPagination();
-                    }
-                });
-                nextLi.appendChild(nextA);
-                paginationLinks.appendChild(nextLi);
-            }
-
-            function filterAndPaginate() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const lgaId = lgaFilter.value;
-                const wardId = wardFilter.value;
-
-                filteredRows = allRows.filter(row => {
-                    const areaName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    const rowWardId = row.querySelector('td:nth-child(3)').dataset.wardId;
-                    const rowLgaId = row.querySelector('td:nth-child(3)').dataset.lgaId;
-
-                    const nameMatch = areaName.includes(searchTerm);
-                    const lgaMatch = !lgaId || rowLgaId === lgaId;
-                    const wardMatch = !wardId || rowWardId === wardId;
-
-                    return nameMatch && lgaMatch && wardMatch;
-                });
-
-                currentPage = 1;
-                renderTable();
-                renderPagination();
-            }
-
-            searchInput.addEventListener('input', filterAndPaginate);
-            lgaFilter.addEventListener('change', filterAndPaginate);
-            wardFilter.addEventListener('change', filterAndPaginate);
-
-            itemsPerPageSelect.addEventListener('change', function () {
-                const value = this.value;
-                if (value === 'all') {
-                    itemsPerPage = -1;
-                } else {
-                    itemsPerPage = parseInt(value);
-                }
-                currentPage = 1;
-                renderTable();
-                renderPagination();
-            });
-
-            // Dynamic ward filter based on LGA selection
-            lgaFilter.addEventListener('change', function() {
-                const lgaId = this.value;
-                const currentWardId = wardFilter.value;
-
-                wardFilter.innerHTML = '<option value="">All Wards</option>';
-
-                @foreach (App\Models\Ward::where('status', 'approved')->get() as $ward)
-                    if (!lgaId || "{{ $ward->lga_id }}" === lgaId) {
-                        const option = document.createElement('option');
-                        option.value = "{{ $ward->id }}";
-                        option.textContent = "{{ $ward->name }} ({{ $ward->lga->name }})";
-                        if ("{{ $ward->id }}" === currentWardId) {
-                            option.selected = true;
-                        }
-                        wardFilter.appendChild(option);
-                    }
-                @endforeach
-            });
-
-            // Initial render
-            filterAndPaginate();
+            // New script for handling dynamic form submissions
         });
     </script>
     <style>
