@@ -440,9 +440,167 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Your existing script here...
+            const searchInput = document.getElementById('search_area');
+            const lgaFilter = document.getElementById('lga_filter');
+            const wardFilter = document.getElementById('ward_filter');
+            const itemsPerPageSelect = document.getElementById('items_per_page');
+            const areaTableBody = document.querySelector('#kt_area_table tbody');
+            const allRows = Array.from(areaTableBody.querySelectorAll('tr'));
+            const paginationLinks = document.getElementById('pagination_links');
+            const paginationDescription = document.getElementById('pagination_description');
 
-            // New script for handling dynamic form submissions
+            let currentPage = 1;
+            let itemsPerPage = parseInt(itemsPerPageSelect.value);
+            let filteredRows = allRows;
+
+            function reinitializeScripts() {
+                // Re-initialize KTMenu for the dropdowns
+                KTMenu.createInstances();
+
+                // No need for data-method handling as we're using modals
+            }
+
+            function renderTable() {
+                areaTableBody.innerHTML = '';
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
+                const paginatedRows = filteredRows.slice(start, end);
+
+                paginatedRows.forEach(row => areaTableBody.appendChild(row));
+
+                const totalFiltered = filteredRows.length;
+                const startEntry = totalFiltered > 0 ? start + 1 : 0;
+                const endEntry = itemsPerPage === -1 ? totalFiltered : Math.min(start + itemsPerPage, totalFiltered);
+
+                paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
+
+                // Re-initialize scripts for new rows
+                reinitializeScripts();
+            }
+
+            function renderPagination() {
+                paginationLinks.innerHTML = '';
+                if (itemsPerPage === -1) return;
+
+                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+                if (totalPages <= 1) return;
+
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                const prevA = document.createElement('a');
+                prevA.className = 'page-link';
+                prevA.href = '#';
+                prevA.textContent = 'Previous';
+                prevA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+                prevLi.appendChild(prevA);
+                paginationLinks.appendChild(prevLi);
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    const a = document.createElement('a');
+                    a.className = 'page-link';
+                    a.href = '#';
+                    a.textContent = i;
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = i;
+                        renderTable();
+                        renderPagination();
+                    });
+                    li.appendChild(a);
+                    paginationLinks.appendChild(li);
+                }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                const nextA = document.createElement('a');
+                nextA.className = 'page-link';
+                nextA.href = '#';
+                nextA.textContent = 'Next';
+                nextA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+                nextLi.appendChild(nextA);
+                paginationLinks.appendChild(nextLi);
+            }
+
+            function filterAndPaginate() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const lgaId = lgaFilter.value;
+                const wardId = wardFilter.value;
+
+                filteredRows = allRows.filter(row => {
+                    const areaName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const rowWardId = row.querySelector('td:nth-child(3)').dataset.wardId;
+                    const rowLgaId = row.querySelector('td:nth-child(3)').dataset.lgaId;
+
+                    const nameMatch = areaName.includes(searchTerm);
+                    const lgaMatch = !lgaId || rowLgaId === lgaId;
+                    const wardMatch = !wardId || rowWardId === wardId;
+
+                    return nameMatch && lgaMatch && wardMatch;
+                });
+
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            }
+
+            searchInput.addEventListener('input', filterAndPaginate);
+            lgaFilter.addEventListener('change', filterAndPaginate);
+            wardFilter.addEventListener('change', filterAndPaginate);
+
+            itemsPerPageSelect.addEventListener('change', function () {
+                const value = this.value;
+                if (value === 'all') {
+                    itemsPerPage = -1;
+                } else {
+                    itemsPerPage = parseInt(value);
+                }
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+
+            // Dynamic ward filter based on LGA selection
+            lgaFilter.addEventListener('change', function() {
+                const lgaId = this.value;
+                const currentWardId = wardFilter.value;
+
+                wardFilter.innerHTML = '<option value="">All Wards</option>';
+
+                @foreach (App\Models\Ward::where('status', 'approved')->get() as $ward)
+                    if (!lgaId || "{{ $ward->lga_id }}" === lgaId) {
+                        const option = document.createElement('option');
+                        option.value = "{{ $ward->id }}";
+                        option.textContent = "{{ $ward->name }} ({{ $ward->lga->name }})";
+                        if ("{{ $ward->id }}" === currentWardId) {
+                            option.selected = true;
+                        }
+                        wardFilter.appendChild(option);
+                    }
+                @endforeach
+            });
+
+            // Initial render
+            filterAndPaginate();
         });
     </script>
     <style>

@@ -1,7 +1,7 @@
 @extends('layouts.staff')
 
 @section('content')
-<div class="container-xxl flex-lg-row-fluid">
+<div id="kt_content_container" class="container-xxl">
     <!--begin::Toolbar-->
     <div class="d-flex flex-wrap flex-stack my-5">
         <!--begin::Heading-->
@@ -120,6 +120,8 @@
             </div>
         </div>
     </div>
+    @empty
+        {{-- No assigned wards, so no modals needed --}}
     @endforelse
 </div>
 @endsection

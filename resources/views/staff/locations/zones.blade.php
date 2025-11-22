@@ -1,220 +1,247 @@
 @extends('layouts.staff')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQZKbw/kjIcgNk6unEJQaZI8W5Ba4I2QlUZrFf+9npJdXbAw99G6xJgNnc" crossorigin="anonymous" referrerpolicy="no-referrer" />
+@endpush
+
 @section('content')
-<div class="container-xxl flex-lg-row-fluid">
+<div id="kt_content_container" class="container-xxl">
     <!--begin::Toolbar-->
-    <div class="d-flex flex-wrap flex-stack my-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-4 my-6">
         <!--begin::Heading-->
-        <h3 class="fw-bold me-5">Zone Management</h3>
+        <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+            <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">Zone Management</h1>
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                <li class="breadcrumb-item text-muted">
+                    <a href="{{ route('staff.dashboard') }}" class="text-muted text-hover-primary">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                </li>
+                <li class="breadcrumb-item text-muted">Locations</li>
+                <li class="breadcrumb-item">
+                    <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                </li>
+                <li class="breadcrumb-item text-gray-900">Zones</li>
+            </ul>
+        </div>
         <!--end::Heading-->
         <!--begin::Controls-->
-        <div class="d-flex flex-wrap my-5 my-md-0">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
             <!--begin::Search-->
-            <form method="GET" action="{{ route('staff.zones.index') }}" class="d-flex align-items-center me-5">
-                <div class="position-relative me-2">
-                    <i class="ki-duotone ki-magnifier fs-2 text-gray-500 position-absolute top-50 ms-4 translate-middle-y">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
-                    <input type="text" name="search_zone" class="form-control w-250px ps-12" placeholder="Search Zones" value="{{ request('search_zone') }}">
-                </div>
-                <button type="submit" class="btn btn-primary">Search</button>
-            </form>
+            <div class="d-flex align-items-center position-relative">
+                <i class="fas fa-search fs-3 text-gray-500 position-absolute start-0 ms-4 translate-middle-y"></i>
+                <input type="text" id="search_zone" class="form-control form-control-solid w-250px ps-12" placeholder="Search Zones" value="{{ request('search_zone') }}" />
+            </div>
             <!--end::Search-->
             <!--begin::Button-->
-            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createZoneModal">Add Zone</a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createZoneModal">
+                <i class="fas fa-plus me-2"></i>
+                Add Zone
+            </button>
             <!--end::Button-->
         </div>
         <!--end::Controls-->
     </div>
     <!--end::Toolbar-->
-    
-    <!--begin::Row-->
+
+    <!--begin::Stats Widgets-->
+    @php
+        $totalStaffCount = 0;
+        $totalCustomerCount = 0;
+        foreach($zones as $zone) {
+            $totalStaffCount += $zone->staffs()->count();
+            $totalCustomerCount += $zone->customers()->count();
+        }
+    @endphp
     <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
-        <!--begin::Col-->
-        <div class="col-12">
-            <!--begin::Card-->
-            <div class="card">
-                <!--begin::Card header-->
-                <div class="card-header border-0 pt-6">
-                    <!--begin::Card title-->
-                    <div class="card-title">
-                        <h3 class="card-title">Zones List</h3>
+        <!--begin::Total Zones Card-->
+        <div class="col-md-6 col-xl-3">
+            <div class="card card-flush h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div class="me-2">
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Total Zones</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $zones->count() }}</div>
                     </div>
-                    <!--begin::Card title-->
-                    <!--begin::Card toolbar-->
-                    <div class="card-toolbar">
-                        <ul class="nav">
-                            <li class="nav-item">
-                                <a class="nav-link btn btn-sm btn-color-muted btn-active btn-active-secondary active fw-bold px-4 me-1" data-bs-toggle="tab" href="#kt_table_widget_5_tab_1">All</a>
-                            </li>
-                        </ul>
+                    <div class="symbol symbol-60px">
+                        <div class="symbol-label bg-light-primary">
+                            <i class="fas fa-map-marker-alt fs-1 text-primary"></i>
+                        </div>
                     </div>
-                    <!--begin::Card toolbar-->
                 </div>
-                <!--end::Card header-->
-                <!--begin::Card body-->
-                <div class="card-body py-4">
-                    <!--begin::Summary Widgets-->
-                    @php
-                        // Calculate total staff and customers for all zones
-                        $totalStaffCount = 0;
-                        $totalCustomerCount = 0;
-                        foreach($zones as $zone) {
-                            $totalStaffCount += $zone->staffs()->count();
-                            $totalCustomerCount += $zone->customers()->count();
-                        }
-                    @endphp
-                    <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
-                        <!--begin::Total Zones Card-->
-                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
-                            <div class="card card-flush mb-xl-10">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="me-2">
-                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Zones</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $zones->count() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="symbol symbol-60px">
-                                        <div class="symbol-label bg-light-primary">
-                                            <i class="ki-duotone ki-geolocation fs-1 text-primary">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Total Zones Card-->
-                        
-                        <!--begin::Total Staff Card-->
-                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
-                            <div class="card card-flush mb-xl-10">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="me-2">
-                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Staff</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $totalStaffCount }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="symbol symbol-60px">
-                                        <div class="symbol-label bg-light-info">
-                                            <i class="ki-duotone ki-people fs-1 text-info">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                                <span class="path3"></span>
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Total Staff Card-->
-                        
-                        <!--begin::Total Customers Card-->
-                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
-                            <div class="card card-flush mb-xl-10">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="me-2">
-                                        <h6 class="text-gray-400 fw-semibold mb-1">Total Customers</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $totalCustomerCount }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="symbol symbol-60px">
-                                        <div class="symbol-label bg-light-success">
-                                            <i class="ki-duotone ki-user fs-1 text-success">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Total Customers Card-->
-                        
-                        <!--begin::Active Zones Card-->
-                        <div class="col-12 col-md-6 col-lg-3 mb-5 mb-xl-10">
-                            <div class="card card-flush mb-xl-10">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="me-2">
-                                        <h6 class="text-gray-400 fw-semibold mb-1">Active Zones</h6>
-                                        <div class="d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-gray-800 lh-1 ls-n2">{{ $zones->where('status', 'approved')->count() }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="symbol symbol-60px">
-                                        <div class="symbol-label bg-light-warning">
-                                            <i class="ki-duotone ki-check-circle fs-1 text-warning">
-                                                <span class="path1"></span>
-                                                <span class="path2"></span>
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!--end::Active Zones Card-->
+            </div>
+        </div>
+        <!--end::Total Zones Card-->
+
+        <!--begin::Total Staff Card-->
+        <div class="col-md-6 col-xl-3">
+            <div class="card card-flush h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div class="me-2">
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Total Staff</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $totalStaffCount }}</div>
                     </div>
-                    <!--end::Summary Widgets-->
-                    
+                    <div class="symbol symbol-60px">
+                        <div class="symbol-label bg-light-info">
+                            <i class="fas fa-users fs-1 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Total Staff Card-->
+
+        <!--begin::Total Customers Card-->
+        <div class="col-md-6 col-xl-3">
+            <div class="card card-flush h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div class="me-2">
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Total Customers</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $totalCustomerCount }}</div>
+                    </div>
+                    <div class="symbol symbol-60px">
+                        <div class="symbol-label bg-light-success">
+                            <i class="fas fa-user fs-1 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Total Customers Card-->
+
+        <!--begin::Active Zones Card-->
+        <div class="col-md-6 col-xl-3">
+            <div class="card card-flush h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div class="me-2">
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Active Zones</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $zones->where('status', 'approved')->count() }}</div>
+                    </div>
+                    <div class="symbol symbol-60px">
+                        <div class="symbol-label bg-light-warning">
+                            <i class="fas fa-check-circle fs-1 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end::Active Zones Card-->
+    </div>
+    <!--end::Stats Widgets-->
+
+    <!--begin::Card-->
+    <div class="card">
+        <!--begin::Card header-->
+        <div class="card-header border-0 pt-6">
+            <!--begin::Card title-->
+            <div class="card-title">
+                <h3 class="card-title align-items-start flex-column">
+                    <span class="card-label fw-bold text-gray-800">Zones List</span>
+                    <span class="text-gray-400 mt-1 fw-semibold fs-6">Manage all zones in the system</span>
+                </h3>
+            </div>
+            <!--end::Card title-->
+        </div>
+        <!--end::Card header-->
+        <!--begin::Card body-->
+        <div class="card-body pt-0">
+
                     @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     @endif
-                    
+
                     @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     @endif
-                    
+
                     <!--begin::Table-->
                     <div class="table-responsive">
                         <table class="table align-middle table-row-dashed fs-6 gy-5">
                             <thead>
-                                <tr class="text-start text-muted text-uppercase fw-bold fs-7 border-bottom-2 border-gray-200">
-                                    <th class="min-w-125px">Name</th>
-                                    <th class="min-w-125px">Code</th>
-                                    <th class="min-w-125px">Status</th>
-                                    <th class="min-w-125px">Actions</th>
+                                <tr class="text-start text-muted text-uppercase fw-bold fs-7 border-bottom border-gray-200">
+                                    <th class="min-w-250px">Zone Details</th>
+                                    <th class="min-w-100px">Code</th>
+                                    <th class="min-w-100px text-center">Status</th>
+                                    <th class="min-w-150px text-end">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="fw-semibold text-gray-600">
+                            <tbody class="text-gray-600 fw-semibold">
                                 @forelse($zones as $zone)
-                                    <tr>
-                                        <td>{{ $zone->name }}</td>
-                                        <td>{{ $zone->code }}</td>
-                                        <td>
-                                            <span class="badge @if($zone->status == 'approved') badge-success @elseif($zone->status == 'pending') badge-warning @elseif($zone->status == 'rejected') badge-danger @else badge-secondary @endif">
-                                                {{ ucfirst(str_replace('_', ' ', $zone->status)) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="{{ route('staff.zones.details', $zone->id) }}" class="btn btn-sm btn-light-info me-2">View Details</a>
-                                            <a href="#" class="btn btn-sm btn-light-primary me-2" data-bs-toggle="modal" data-bs-target="#editZoneModal{{ $zone->id }}">Edit</a>
-                                            <a href="{{ route('staff.zones.destroy', $zone->id) }}" class="btn btn-sm btn-light-danger" data-method="delete" data-confirm="Are you sure you want to delete this zone?">Delete</a>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="symbol symbol-50px me-3">
+                                                <div class="symbol-label bg-light-primary">
+                                                    <i class="fas fa-map-marker-alt fs-2 text-primary"></i>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <a href="{{ route('staff.zones.details', $zone->id) }}" class="text-gray-800 text-hover-primary mb-1">{{ $zone->name }}</a>
+                                                <span class="badge badge-light-primary">{{ $zone->id }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-gray-800 fw-bold">{{ $zone->code }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($zone->status == 'approved')
+                                            <span class="badge badge-light-success">Approved</span>
+                                        @elseif($zone->status == 'pending')
+                                            <span class="badge badge-light-warning">Pending</span>
+                                        @elseif($zone->status == 'rejected')
+                                            <span class="badge badge-light-danger">Rejected</span>
+                                        @else
+                                            <span class="badge badge-light-secondary">{{ ucfirst(str_replace('_', ' ', $zone->status)) }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{{ route('staff.zones.details', $zone->id) }}" class="btn btn-sm btn-icon btn-light-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-icon btn-light-primary" data-bs-toggle="modal" data-bs-target="#editZoneModal{{ $zone->id }}" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-icon btn-light-danger" data-bs-toggle="modal" data-bs-target="#deleteZoneModal{{ $zone->id }}" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center">No zones found</td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="4" class="text-center py-10">
+                                        <div class="text-gray-400 fw-semibold">No zones found</div>
+                                    </td>
+                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                     <!--end::Table-->
-                    
+
                     <!--begin::Pagination-->
-                    <div class="d-flex justify-content-center">
-                        {{ $zones->links() }}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <select id="items_per_page" class="form-select form-select-solid me-3">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                                <option value="all">All</option>
+                            </select>
+                            <span id="pagination_description"></span>
+                        </div>
+                        <nav>
+                            <ul class="pagination" id="pagination_links">
+                            </ul>
+                        </nav>
                     </div>
                     <!--end::Pagination-->
                 </div>
@@ -235,10 +262,7 @@
             <div class="modal-header">
                 <h3 class="modal-title">Create Zone</h3>
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
+                    <i class="fas fa-times"></i>
                 </div>
             </div>
             <!--end::Modal header-->
@@ -277,10 +301,7 @@
             <div class="modal-header">
                 <h3 class="modal-title">Edit Zone</h3>
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
+                    <i class="fas fa-times"></i>
                 </div>
             </div>
             <!--end::Modal header-->
@@ -310,13 +331,132 @@
     </div>
 </div>
 @endforeach
+@endsection
 <!--end::Edit Zone Modals-->
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search_zone');
+        const itemsPerPageSelect = document.getElementById('items_per_page');
+        const zoneTableBody = document.querySelector('.table tbody');
+        const allRows = Array.from(zoneTableBody.querySelectorAll('tr'));
+        const paginationLinks = document.getElementById('pagination_links');
+        const paginationDescription = document.getElementById('pagination_description');
+
+        let currentPage = 1;
+        let itemsPerPage = parseInt(itemsPerPageSelect.value);
+        let filteredRows = allRows;
+
+        function renderTable() {
+            zoneTableBody.innerHTML = '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
+            const paginatedRows = filteredRows.slice(start, end);
+
+            paginatedRows.forEach(row => zoneTableBody.appendChild(row));
+
+            const totalFiltered = filteredRows.length;
+            const startEntry = totalFiltered > 0 ? start + 1 : 0;
+            const endEntry = itemsPerPage === -1 ? totalFiltered : Math.min(start + itemsPerPage, totalFiltered);
+
+            paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
+        }
+
+        function renderPagination() {
+            paginationLinks.innerHTML = '';
+            if (itemsPerPage === -1) return;
+
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            const prevA = document.createElement('a');
+            prevA.className = 'page-link';
+            prevA.href = '#';
+            prevA.textContent = 'Previous';
+            prevA.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+            prevLi.appendChild(prevA);
+            paginationLinks.appendChild(prevLi);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                const a = document.createElement('a');
+                a.className = 'page-link';
+                a.href = '#';
+                a.textContent = i;
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    renderTable();
+                    renderPagination();
+                });
+                li.appendChild(a);
+                paginationLinks.appendChild(li);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            const nextA = document.createElement('a');
+            nextA.className = 'page-link';
+            nextA.href = '#';
+            nextA.textContent = 'Next';
+            nextA.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+            nextLi.appendChild(nextA);
+            paginationLinks.appendChild(nextLi);
+        }
+
+        function filterAndPaginate() {
+            const searchTerm = searchInput.value.toLowerCase();
+            filteredRows = allRows.filter(row => {
+                const zoneName = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                const zoneCode = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                return zoneName.includes(searchTerm) || zoneCode.includes(searchTerm);
+            });
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        searchInput.addEventListener('input', filterAndPaginate);
+
+        itemsPerPageSelect.addEventListener('change', function() {
+            const value = this.value;
+            if (value === 'all') {
+                itemsPerPage = -1;
+            } else {
+                itemsPerPage = parseInt(value);
+            }
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+
+        // Initial render
+        filterAndPaginate();
+
         // New script for handling dynamic form submissions
-        document.querySelectorAll('a[data-method]').forEach(function (link) {
-            link.addEventListener('click', function (e) {
+        document.querySelectorAll('a[data-method]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
                 e.preventDefault();
                 let method = e.target.getAttribute('data-method');
                 let action = e.target.getAttribute('href');

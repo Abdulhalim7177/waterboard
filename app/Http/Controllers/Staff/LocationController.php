@@ -48,6 +48,7 @@ class LocationController extends Controller
         
         $this->middleware(['auth:staff', 'permission:create-paypoint'])->only('storePaypoint');
         $this->middleware(['auth:staff', 'permission:edit-paypoint'])->only('updatePaypoint');
+        $this->middleware(['auth:staff', 'permission:delete-paypoint'])->only('destroyPaypoint');
         $this->middleware(['auth:staff', 'permission:manage-district-wards'])->only(['manageDistrictWards', 'assignWardToDistrict', 'removeWardFromDistrict']);
         $this->middleware(['auth:staff', 'permission:view-location-details'])->only(['zoneDetails', 'districtDetails', 'paypointDetails']);
     }
@@ -642,6 +643,16 @@ class LocationController extends Controller
         $area->logAuditEvent('rejected');
 
         return redirect()->route('staff.areas.index')->with('error', 'Area request rejected.');
+    }
+
+    public function destroyPaypoint(Paypoint $paypoint)
+    {
+        $this->authorize('delete-paypoint');
+
+        $paypoint->delete();
+        $paypoint->logAuditEvent('deleted');
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint deleted successfully.');
     }
 
     public function getWardsByLga(Lga $lga)

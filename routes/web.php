@@ -94,22 +94,23 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::delete('/districts/{district}', [LocationController::class, 'destroyDistrict'])->name('districts.destroy');
     Route::put('/districts/{district}/approve', [LocationController::class, 'approveDistrict'])->name('districts.approve');
     Route::put('/districts/{district}/reject', [LocationController::class, 'rejectDistrict'])->name('districts.reject');
-    
+
     // AJAX endpoints for dynamic loading
     // District-Ward Management
     Route::get('/districts/{district}/wards', [LocationController::class, 'manageDistrictWards'])->name('districts.manage-wards');
     Route::post('/districts/{district}/assign-ward', [LocationController::class, 'assignWardToDistrict'])->name('districts.assign-ward');
     Route::delete('/wards/{ward}/remove-from-district', [LocationController::class, 'removeWardFromDistrict'])->name('wards.remove-from-district');
-    
+
     // Location Details
     Route::get('/zones/{zone}/details', [LocationController::class, 'zoneDetails'])->name('zones.details');
     Route::get('/districts/{district}/details', [LocationController::class, 'districtDetails'])->name('districts.details');
     Route::get('/paypoints/{paypoint}/details', [LocationController::class, 'paypointDetails'])->name('paypoints.details');
-    
+
     // Paypoint Management
     Route::get('/paypoints', [LocationController::class, 'paypoints'])->name('paypoints.index');
     Route::post('/paypoints', [LocationController::class, 'storePaypoint'])->name('paypoints.store');
     Route::put('/paypoints/{paypoint}', [LocationController::class, 'updatePaypoint'])->name('paypoints.update');
+    Route::delete('/paypoints/{paypoint}', [LocationController::class, 'destroyPaypoint'])->name('paypoints.destroy');
 
     Route::get('/filter-wards', [LocationController::class, 'filterWards'])->name('filter.wards');
     Route::get('/filter-areas', [LocationController::class, 'filterAreas'])->name('filter.areas');
@@ -161,18 +162,18 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/{customer}/edit', [\App\Http\Controllers\Staff\CustomerController::class, 'edit'])->name('edit');
         Route::post('/{customer}/edit/section', [\App\Http\Controllers\Staff\CustomerController::class, 'editSection'])->name('edit.section');
         Route::put('/{customer}/update', [CustomerCreationController::class, 'update'])->name('update');
-        
+
         // Individual section edit routes
         Route::get('/{customer}/edit/personal', [CustomerCreationController::class, 'editPersonal'])->name('edit.personal');
         Route::get('/{customer}/edit/address', [CustomerCreationController::class, 'editAddress'])->name('edit.address');
         Route::get('/{customer}/edit/billing', [CustomerCreationController::class, 'editBilling'])->name('edit.billing');
         Route::get('/{customer}/edit/location', [CustomerCreationController::class, 'editLocation'])->name('edit.location');
-        
+
         Route::put('/{customer}/update/personal', [CustomerCreationController::class, 'updatePersonal'])->name('update.personal');
         Route::put('/{customer}/update/address', [CustomerCreationController::class, 'updateAddress'])->name('update.address');
         Route::put('/{customer}/update/billing', [CustomerCreationController::class, 'updateBilling'])->name('update.billing');
         Route::put('/{customer}/update/location', [CustomerCreationController::class, 'updateLocation'])->name('update.location');
-        
+
         // Additional AJAX routes for dynamic filtering
         Route::post('/filter-wards', [CustomerCreationController::class, 'filterWards'])->name('filter.wards');
         Route::post('/filter-areas', [CustomerCreationController::class, 'filterAreas'])->name('filter.areas');
@@ -228,7 +229,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         Route::get('/template', [\App\Http\Controllers\HR\StaffController::class, 'downloadTemplate'])->name('template');
         Route::post('/sync', [\App\Http\Controllers\HR\StaffController::class, 'sync'])->name('sync');
         Route::get('/fetch-data', [\App\Http\Controllers\HR\StaffController::class, 'fetchStaffData'])->name('fetch.data');
-        });
+    });
 
     // Ticket Management
     Route::get('tickets', [\App\Http\Controllers\Staff\TicketController::class, 'index'])->name('tickets.index');

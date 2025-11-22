@@ -130,16 +130,16 @@
                                             @endcan
                                             @can('delete-lga')
                                                 <div class="menu-item px-3">
-                                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_delete_modal{{ $lga->id }}">Delete</a>
+                                                    <a href="{{ route('staff.lgas.destroy', $lga->id) }}" class="menu-link px-3" data-method="delete" data-confirm="Are you sure you want to request deletion of {{ $lga->name }} ({{ $lga->code }})? This action will set the status to pending for admin approval.">Delete</a>
                                                 </div>
                                             @endcan
                                             @can('approve-lga')
                                                 @if ($lga->status == 'pending' || $lga->status == 'pending_delete')
                                                     <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_approve_modal{{ $lga->id }}">Approve</a>
+                                                        <a href="{{ route('staff.lgas.approve', $lga->id) }}" class="menu-link px-3" data-method="put" data-confirm="Are you sure you want to approve this LGA?">Approve</a>
                                                     </div>
                                                     <div class="menu-item px-3">
-                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_lga_reject_modal{{ $lga->id }}">Reject</a>
+                                                        <a href="{{ route('staff.lgas.reject', $lga->id) }}" class="menu-link px-3" data-method="put" data-confirm="Are you sure you want to reject this LGA?">Reject</a>
                                                     </div>
                                                 @endif
                                             @endcan
@@ -409,9 +409,170 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Your existing script here...
+            const searchInput = document.getElementById('search_lga');
+            const itemsPerPageSelect = document.getElementById('items_per_page');
+            const lgaTableBody = document.querySelector('#kt_lga_table tbody');
+            const allRows = Array.from(lgaTableBody.querySelectorAll('tr'));
+            const paginationLinks = document.getElementById('pagination_links');
+            const paginationDescription = document.getElementById('pagination_description');
 
-            // New script for handling dynamic form submissions
+            let currentPage = 1;
+            let itemsPerPage = parseInt(itemsPerPageSelect.value);
+            let filteredRows = allRows;
+
+            function reinitializeScripts() {
+                // Re-initialize KTMenu for the dropdowns
+                KTMenu.createInstances();
+
+                // Re-attach event listeners for data-method links
+                document.querySelectorAll('a[data-method]').forEach(function (link) {
+                    // Prevent multiple listeners by checking for a marker
+                    if (link.getAttribute('data-listener-attached')) {
+                        return;
+                    }
+                    link.setAttribute('data-listener-attached', 'true');
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        let method = e.currentTarget.getAttribute('data-method');
+                        let action = e.currentTarget.getAttribute('href');
+                        let confirmMessage = e.currentTarget.getAttribute('data-confirm');
+
+                        if (confirm(confirmMessage)) {
+                            let form = document.createElement('form');
+                            form.setAttribute('method', 'POST');
+                            form.setAttribute('action', action);
+
+                            let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                            let csrfInput = document.createElement('input');
+                            csrfInput.setAttribute('type', 'hidden');
+                            csrfInput.setAttribute('name', '_token');
+                            csrfInput.setAttribute('value', csrfToken);
+                            form.appendChild(csrfInput);
+
+                            if (method.toLowerCase() !== 'post') {
+                                let methodInput = document.createElement('input');
+                                methodInput.setAttribute('type', 'hidden');
+                                methodInput.setAttribute('name', '_method');
+                                methodInput.setAttribute('value', method);
+                                form.appendChild(methodInput);
+                            }
+
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                });
+            }
+
+            function renderTable() {
+                lgaTableBody.innerHTML = '';
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = itemsPerPage === -1 ? filteredRows.length : start + itemsPerPage;
+                const paginatedRows = filteredRows.slice(start, end);
+
+                paginatedRows.forEach(row => lgaTableBody.appendChild(row));
+
+                const totalFiltered = filteredRows.length;
+                const startEntry = totalFiltered > 0 ? start + 1 : 0;
+                const endEntry = itemsPerPage === -1 ? totalFiltered : Math.min(start + itemsPerPage, totalFiltered);
+
+                paginationDescription.textContent = `Showing ${startEntry} to ${endEntry} of ${totalFiltered} entries`;
+
+                // Re-initialize scripts for new rows
+                reinitializeScripts();
+            }
+
+            function renderPagination() {
+                paginationLinks.innerHTML = '';
+                if (itemsPerPage === -1) return;
+
+                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+                if (totalPages <= 1) return;
+
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                const prevA = document.createElement('a');
+                prevA.className = 'page-link';
+                prevA.href = '#';
+                prevA.textContent = 'Previous';
+                prevA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+                prevLi.appendChild(prevA);
+                paginationLinks.appendChild(prevLi);
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    const a = document.createElement('a');
+                    a.className = 'page-link';
+                    a.href = '#';
+                    a.textContent = i;
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = i;
+                        renderTable();
+                        renderPagination();
+                    });
+                    li.appendChild(a);
+                    paginationLinks.appendChild(li);
+                }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                const nextA = document.createElement('a');
+                nextA.className = 'page-link';
+                nextA.href = '#';
+                nextA.textContent = 'Next';
+                nextA.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+                nextLi.appendChild(nextA);
+                paginationLinks.appendChild(nextLi);
+            }
+
+            function filterAndPaginate() {
+                const searchTerm = searchInput.value.toLowerCase();
+                filteredRows = allRows.filter(row => {
+                    const lgaName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const lgaCode = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    return lgaName.includes(searchTerm) || lgaCode.includes(searchTerm);
+                });
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            }
+
+            searchInput.addEventListener('input', filterAndPaginate);
+
+            itemsPerPageSelect.addEventListener('change', function () {
+                const value = this.value;
+                if (value === 'all') {
+                    itemsPerPage = -1;
+                } else {
+                    itemsPerPage = parseInt(value);
+                }
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+
+            // Initial render
+            filterAndPaginate();
         });
     </script>
     <style>

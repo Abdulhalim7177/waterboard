@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php -i)"
+      "Bash(php -i)",
+      "WebSearch",
+      "WebFetch(domain:preview.keenthemes.com)",
+      "WebFetch(domain:keenthemes.com)"
     ],
     "deny": [],
     "ask": []
