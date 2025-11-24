@@ -203,15 +203,56 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <a href="{{ route('staff.zones.details', $zone->id) }}" class="btn btn-sm btn-icon btn-light-info" title="View Details">
-                                                <i class="fas fa-eye"></i>
+                                            <a href="{{ route('staff.zones.details', $zone->id) }}" class="btn btn-sm btn-light-info" title="View Details">
+                                                <i class="fas fa-eye me-1"></i>
+                                                View
                                             </a>
-                                            <a href="#" class="btn btn-sm btn-icon btn-light-primary" data-bs-toggle="modal" data-bs-target="#editZoneModal{{ $zone->id }}" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="#" class="btn btn-sm btn-icon btn-light-danger" data-bs-toggle="modal" data-bs-target="#deleteZoneModal{{ $zone->id }}" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
+                                            @if($zone->status != 'pending_delete')
+                                                <a href="#" class="btn btn-sm btn-light-primary" data-bs-toggle="modal" data-bs-target="#editZoneModal{{ $zone->id }}" title="Edit">
+                                                    <i class="fas fa-edit me-1"></i>
+                                                    Edit
+                                                </a>
+                                            @endif
+                                            @if($zone->status == 'pending')
+                                                <form method="POST" action="{{ route('staff.zones.approve', $zone->id) }}" style="display: inline;">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="btn btn-sm btn-light-success" title="Approve" onclick="return confirm('Are you sure you want to approve this zone?')">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Approve
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ route('staff.zones.reject', $zone->id) }}" style="display: inline;">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="btn btn-sm btn-light-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this zone?')">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Reject
+                                                    </button>
+                                                </form>
+                                            @elseif($zone->status == 'pending_delete')
+                                                <form method="POST" action="{{ route('staff.zones.approve', $zone->id) }}" style="display: inline;">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="btn btn-sm btn-light-success" title="Approve Deletion" onclick="return confirm('Are you sure you want to approve deletion of this zone?')">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Approve Del
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ route('staff.zones.reject', $zone->id) }}" style="display: inline;">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="btn btn-sm btn-light-warning" title="Reject Deletion" onclick="return confirm('Are you sure you want to reject deletion of this zone?')">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Reject Del
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <a href="#" class="btn btn-sm btn-light-danger" data-bs-toggle="modal" data-bs-target="#deleteZoneModal{{ $zone->id }}" title="Delete">
+                                                    <i class="fas fa-trash me-1"></i>
+                                                    Delete
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

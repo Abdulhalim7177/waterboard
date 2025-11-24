@@ -372,7 +372,7 @@
                                 </a>
                             </div>
                             @endcan
-                            @if(auth()->user()->hasRole(['super-admin', 'manager']))
+                            <!-- @if(auth()->user()->hasRole(['super-admin', 'manager']))
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.approvals.index') }}">
                                     <span class="menu-icon">
@@ -384,7 +384,7 @@
                                     <span class="menu-title">Approvals</span>
                                 </a>
                             </div>
-                            @endif
+                            @endif -->
                             <div class="menu-item">
                                 <a class="menu-link" href="{{ route('staff.account.overview') }}">
                                     <span class="menu-icon">

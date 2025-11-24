@@ -111,6 +111,8 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::post('/paypoints', [LocationController::class, 'storePaypoint'])->name('paypoints.store');
     Route::put('/paypoints/{paypoint}', [LocationController::class, 'updatePaypoint'])->name('paypoints.update');
     Route::delete('/paypoints/{paypoint}', [LocationController::class, 'destroyPaypoint'])->name('paypoints.destroy');
+    Route::put('/paypoints/{paypoint}/approve', [LocationController::class, 'approvePaypoint'])->name('paypoints.approve');
+    Route::put('/paypoints/{paypoint}/reject', [LocationController::class, 'rejectPaypoint'])->name('paypoints.reject');
 
     Route::get('/filter-wards', [LocationController::class, 'filterWards'])->name('filter.wards');
     Route::get('/filter-areas', [LocationController::class, 'filterAreas'])->name('filter.areas');

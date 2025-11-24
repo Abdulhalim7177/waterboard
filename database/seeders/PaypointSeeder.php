@@ -31,7 +31,7 @@ class PaypointSeeder extends Seeder
                 'zone_id' => $zones->firstWhere('code', 'ZN001')->id ?? $zones->first()->id,
                 'district_id' => null,
                 'description' => 'Paypoint for Northern Zone',
-                'status' => 'active'
+                'status' => 'approved'
             ],
             [
                 'code' => 'PP002',
@@ -40,7 +40,7 @@ class PaypointSeeder extends Seeder
                 'zone_id' => null,
                 'district_id' => $districts->firstWhere('code', 'DT001')->id ?? $districts->first()->id,
                 'description' => 'Paypoint for Northern District',
-                'status' => 'active'
+                'status' => 'approved'
             ],
             [
                 'code' => 'PP003',
@@ -49,7 +49,7 @@ class PaypointSeeder extends Seeder
                 'zone_id' => $zones->firstWhere('code', 'ZN002')->id ?? $zones->get(1)->id,
                 'district_id' => null,
                 'description' => 'Paypoint for Southern Zone',
-                'status' => 'active'
+                'status' => 'approved'
             ]
         ];
         

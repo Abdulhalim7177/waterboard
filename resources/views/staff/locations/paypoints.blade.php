@@ -47,10 +47,10 @@
 
     <!--begin::Stats Widgets-->
     @php
-        $totalStaffCount = 0;
-        foreach($paypoints as $paypoint) {
-            $totalStaffCount += $paypoint->staff()->count();
-        }
+    $totalStaffCount = 0;
+    foreach($paypoints as $paypoint) {
+    $totalStaffCount += $paypoint->staff()->count();
+    }
     @endphp
     <div class="row g-6 g-xl-9 mb-6 mb-xl-9">
         <!--begin::Total Paypoints Card-->
@@ -89,13 +89,13 @@
         </div>
         <!--end::Total Staff Card-->
 
-        <!--begin::Active Paypoints Card-->
+        <!--begin::Approved Paypoints Card-->
         <div class="col-md-6 col-xl-3">
             <div class="card card-flush h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div class="me-2">
-                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Active Paypoints</div>
-                        <div class="fw-bold text-gray-800 fs-2hx">{{ $paypoints->where('status', 'active')->count() }}</div>
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Approved Paypoints</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $paypoints->where('status', 'approved')->count() }}</div>
                     </div>
                     <div class="symbol symbol-60px">
                         <div class="symbol-label bg-light-success">
@@ -105,15 +105,15 @@
                 </div>
             </div>
         </div>
-        <!--end::Active Paypoints Card-->
+        <!--end::Approved Paypoints Card-->
 
-        <!--begin::Inactive Paypoints Card-->
+        <!--begin::Rejected Paypoints Card-->
         <div class="col-md-6 col-xl-3">
             <div class="card card-flush h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div class="me-2">
-                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Inactive Paypoints</div>
-                        <div class="fw-bold text-gray-800 fs-2hx">{{ $paypoints->where('status', 'inactive')->count() }}</div>
+                        <div class="text-gray-400 fw-semibold fs-7 mb-1">Rejected Paypoints</div>
+                        <div class="fw-bold text-gray-800 fs-2hx">{{ $paypoints->where('status', 'rejected')->count() }}</div>
                     </div>
                     <div class="symbol symbol-60px">
                         <div class="symbol-label bg-light-danger">
@@ -203,10 +203,14 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($paypoint->status == 'active')
-                                <span class="badge badge-light-success">Active</span>
+                                @if($paypoint->status == 'approved')
+                                <span class="badge badge-light-success">Approved</span>
+                                @elseif($paypoint->status == 'rejected')
+                                <span class="badge badge-light-danger">Rejected</span>
+                                @elseif($paypoint->status == 'pending')
+                                <span class="badge badge-light-warning">Pending</span>
                                 @else
-                                <span class="badge badge-light-danger">Inactive</span>
+                                <span class="badge badge-light-danger">Pending Delete</span>
                                 @endif
                             </td>
                             <td class="text-end">
@@ -214,12 +218,46 @@
                                     <a href="{{ route('staff.paypoints.details', $paypoint->id) }}" class="btn btn-sm btn-icon btn-light-info" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    @if($paypoint->status != 'pending_delete')
                                     <a href="#" class="btn btn-sm btn-icon btn-light-primary" data-bs-toggle="modal" data-bs-target="#editPaypointModal{{ $paypoint->id }}" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    @endif
+                                    @if($paypoint->status == 'pending')
+                                    <form method="POST" action="{{ route('staff.paypoints.approve', $paypoint->id) }}" style="display: inline;">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-icon btn-light-success" title="Approve" onclick="return confirm('Are you sure you want to approve this paypoint?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('staff.paypoints.reject', $paypoint->id) }}" style="display: inline;">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-icon btn-light-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this paypoint?')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    @elseif($paypoint->status == 'pending_delete')
+                                    <form method="POST" action="{{ route('staff.paypoints.approve', $paypoint->id) }}" style="display: inline;">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-icon btn-light-success" title="Approve Deletion" onclick="return confirm('Are you sure you want to approve deletion of this paypoint?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('staff.paypoints.reject', $paypoint->id) }}" style="display: inline;">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-icon btn-light-warning" title="Reject Deletion" onclick="return confirm('Are you sure you want to reject deletion of this paypoint?')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    @else
                                     <a href="#" class="btn btn-sm btn-icon btn-light-danger" data-bs-toggle="modal" data-bs-target="#deletePaypointModal{{ $paypoint->id }}" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -276,50 +314,70 @@
             <div class="modal-body scroll-y px-10 py-8">
                 <form method="POST" action="{{ route('staff.paypoints.store') }}">
                     @csrf
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="fv-row mb-8">
                         <label class="required form-label fs-6 fw-semibold mb-2">Paypoint Name</label>
-                        <input type="text" class="form-control form-control-solid" name="name" placeholder="Enter paypoint name" required>
+                        <input type="text" class="form-control form-control-solid @error('name') is-invalid @enderror" name="name" placeholder="Enter paypoint name" required value="{{ old('name') }}">
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="fv-row mb-8">
                         <label class="required form-label fs-6 fw-semibold mb-2">Code</label>
-                        <input type="text" class="form-control form-control-solid" name="code" placeholder="Enter paypoint code" required>
+                        <input type="text" class="form-control form-control-solid @error('code') is-invalid @enderror" name="code" placeholder="Enter paypoint code" required value="{{ old('code') }}">
+                        @error('code')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="fv-row mb-8">
                         <label class="required form-label fs-6 fw-semibold mb-2">Type</label>
-                        <select name="type" class="form-select form-select-solid" data-control="select2" data-placeholder="Select type" id="paypointType" required>
-                            <option value=""></option>
-                            <option value="zone">Zone</option>
-                            <option value="district">District</option>
+                        <select name="type" class="form-select form-select-solid @error('type') is-invalid @enderror" data-control="select2" data-placeholder="Select type" id="paypointType" required>
+                            <option value="" {{ old('type') ? '' : 'selected' }}>Select Type</option>
+                            <option value="zone" {{ old('type') == 'zone' ? 'selected' : '' }}>Zone</option>
+                            <option value="district" {{ old('type') == 'district' ? 'selected' : '' }}>District</option>
                         </select>
+                        @error('type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="fv-row mb-8" id="zoneSelection" style="display:none;">
                         <label class="form-label fs-6 fw-semibold mb-2">Zone</label>
-                        <select name="zone_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Select zone">
-                            <option value=""></option>
+                        <select name="zone_id" class="form-select form-select-solid @error('zone_id') is-invalid @enderror" data-control="select2" data-placeholder="Select zone">
+                            <option value="" {{ old('zone_id') ? '' : 'selected' }}>Select Zone</option>
                             @foreach(\App\Models\Zone::all() as $zone)
-                            <option value="{{ $zone->id }}">{{ $zone->name }}</option>
+                            <option value="{{ $zone->id }}" {{ old('zone_id') == $zone->id ? 'selected' : '' }}>{{ $zone->name }}</option>
                             @endforeach
                         </select>
+                        @error('zone_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="fv-row mb-8" id="districtSelection" style="display:none;">
                         <label class="form-label fs-6 fw-semibold mb-2">District</label>
-                        <select name="district_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Select district">
-                            <option value=""></option>
+                        <select name="district_id" class="form-select form-select-solid @error('district_id') is-invalid @enderror" data-control="select2" data-placeholder="Select district">
+                            <option value="" {{ old('district_id') ? '' : 'selected' }}>Select District</option>
                             @foreach(\App\Models\District::all() as $district)
-                            <option value="{{ $district->id }}">{{ $district->name }} ({{ $district->zone->name }})</option>
+                            <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }} ({{ $district->zone->name }})</option>
                             @endforeach
                         </select>
+                        @error('district_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="fv-row mb-8">
                         <label class="form-label fs-6 fw-semibold mb-2">Description</label>
-                        <textarea name="description" class="form-control form-control-solid" rows="3" placeholder="Enter description (optional)"></textarea>
-                    </div>
-                    <div class="fv-row mb-8">
-                        <label class="required form-label fs-6 fw-semibold mb-2">Status</label>
-                        <select name="status" class="form-select form-select-solid" required>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                        <textarea name="description" class="form-control form-control-solid @error('description') is-invalid @enderror" rows="3" placeholder="Enter description (optional)">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="text-center pt-5">
                         <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>
@@ -395,13 +453,6 @@
                     <div class="fv-row mb-10">
                         <label class="form-label fs-6 fw-bold">Description</label>
                         <textarea name="description" class="form-control form-control-lg form-control-solid">{{ $paypoint->description }}</textarea>
-                    </div>
-                    <div class="fv-row mb-10">
-                        <label class="form-label fs-6 fw-bold">Status</label>
-                        <select name="status" class="form-control form-control-solid" required>
-                            <option value="active" {{ $paypoint->status == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ $paypoint->status == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
                     </div>
                     <div class="text-center pt-15">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</button>

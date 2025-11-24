@@ -49,6 +49,8 @@ class LocationController extends Controller
         $this->middleware(['auth:staff', 'permission:create-paypoint'])->only('storePaypoint');
         $this->middleware(['auth:staff', 'permission:edit-paypoint'])->only('updatePaypoint');
         $this->middleware(['auth:staff', 'permission:delete-paypoint'])->only('destroyPaypoint');
+        $this->middleware(['auth:staff', 'permission:approve-paypoint'])->only('approvePaypoint');
+        $this->middleware(['auth:staff', 'permission:reject-paypoint'])->only('rejectPaypoint');
         $this->middleware(['auth:staff', 'permission:manage-district-wards'])->only(['manageDistrictWards', 'assignWardToDistrict', 'removeWardFromDistrict']);
         $this->middleware(['auth:staff', 'permission:view-location-details'])->only(['zoneDetails', 'districtDetails', 'paypointDetails']);
     }
@@ -369,13 +371,16 @@ class LocationController extends Controller
             'type' => 'required|in:zone,district',
             'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
             'district_id' => 'nullable|required_if:type,district|exists:districts,id',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive'
+            'description' => 'nullable|string'
+            // Note: status is not required in the validation, it defaults to 'pending'
         ]);
 
-        Paypoint::create($request->all());
+        $paypointData = $request->only(['name', 'code', 'type', 'zone_id', 'district_id', 'description']);
+        $paypointData['status'] = 'pending';
 
-        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint created successfully.');
+        Paypoint::create($paypointData);
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint creation request submitted for approval.');
     }
 
     public function updatePaypoint(Request $request, Paypoint $paypoint)
@@ -386,13 +391,16 @@ class LocationController extends Controller
             'type' => 'required|in:zone,district',
             'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
             'district_id' => 'nullable|required_if:type,district|exists:districts,id',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive'
+            'description' => 'nullable|string'
+            // Note: status is not validated here as it will be set to 'pending'
         ]);
 
-        $paypoint->update($request->all());
+        $paypointData = $request->only(['name', 'code', 'type', 'zone_id', 'district_id', 'description']);
+        $paypointData['status'] = 'pending';
 
-        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint updated successfully.');
+        $paypoint->update($paypointData);
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint update request submitted for approval.');
     }
 
     public function updateDistrict(Request $request, District $district)
@@ -653,6 +661,31 @@ class LocationController extends Controller
         $paypoint->logAuditEvent('deleted');
 
         return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint deleted successfully.');
+    }
+
+    public function approvePaypoint(Paypoint $paypoint)
+    {
+        $this->authorize('approve-paypoint');
+
+        if ($paypoint->status === 'pending_delete') {
+            $paypoint->logAuditEvent('deleted');
+            $paypoint->delete();
+        } else {
+            $paypoint->update(['status' => 'approved']);
+            $paypoint->logAuditEvent('approved');
+        }
+
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint request approved.');
+    }
+
+    public function rejectPaypoint(Paypoint $paypoint)
+    {
+        $this->authorize('reject-paypoint');
+
+        $paypoint->update(['status' => 'rejected']);
+        $paypoint->logAuditEvent('rejected');
+
+        return redirect()->route('staff.paypoints.index')->with('error', 'Paypoint request rejected.');
     }
 
     public function getWardsByLga(Lga $lga)
