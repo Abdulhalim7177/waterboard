@@ -1222,54 +1222,54 @@ class CustomerCreationController extends Controller
             ]);
 
             $customer = Customer::findOrFail($request->customer_id);
-            
+
             // Check if the staff can access this customer
             $staff = auth()->guard('staff')->user();
             $accessibleWardIds = $staff->getAccessibleWardIds();
-            
+
             if (!empty($accessibleWardIds) && !in_array($customer->ward_id, $accessibleWardIds)) {
                 return response()->json(['error' => 'You are not authorized to edit this customer.'], 403);
             }
-            
+
             $selectedLgaId = $request->lga_id;
             $selectedWardId = $request->ward_id;
-            
+
             // Check if the selected LGA and Ward are accessible to the staff
             $accessibleLgaIds = $staff->getAccessibleLgaIds();
             $lgaQuery = Lga::where('status', 'approved');
-            
+
             if (!empty($accessibleLgaIds)) {
                 $lgaQuery->whereIn('id', $accessibleLgaIds);
             }
-            
+
             $lgas = $lgaQuery->get();
-            
+
             // Check if the selectedLgaId and selectedWardId are accessible
             if (!empty($accessibleLgaIds) && !in_array($selectedLgaId, $accessibleLgaIds)) {
                 return response()->json(['error' => 'You are not authorized to access this LGA.'], 403);
             }
-            
+
             if (!empty($accessibleWardIds) && !in_array($selectedWardId, $accessibleWardIds)) {
                 return response()->json(['error' => 'You are not authorized to access this Ward.'], 403);
             }
-            
+
             // Get wards for the selected LGA
             $wardQuery = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved');
-            
+
             if (!empty($accessibleWardIds)) {
                 $wardQuery->whereIn('id', $accessibleWardIds);
             }
-            
+
             $wards = $wardQuery->get();
-            
+
             // Get areas for the selected ward
             $accessibleAreaIds = $staff->getAccessibleAreaIds();
             $areaQuery = Area::where('ward_id', $selectedWardId)->where('status', 'approved');
-            
+
             if (!empty($accessibleAreaIds)) {
                 $areaQuery->whereIn('id', $accessibleAreaIds);
             }
-            
+
             $areas = $areaQuery->get();
             return response()->json([
                 'html' => view('staff.customers.partials.edit_address', compact('customer', 'lgas', 'wards', 'areas', 'selectedLgaId', 'selectedWardId'))->render(),
@@ -1279,6 +1279,54 @@ class CustomerCreationController extends Controller
             return response()->json(['error' => 'You are not authorized to perform this action.'], 403);
         } catch (\Exception $e) {
             Log::error('Error filtering areas', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'An error occurred while filtering areas: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Add new method to filter areas for customer creation
+    public function filterAreasForCustomer(Request $request)
+    {
+        try {
+            $this->authorize('create-customer', Customer::class);
+            $request->validate([
+                'ward_id' => 'required|exists:wards,id',
+            ]);
+
+            $staff = auth()->guard('staff')->user();
+            $accessibleAreaIds = $staff->getAccessibleAreaIds();
+
+            $selectedWardId = $request->ward_id;
+
+            // Check if the selected ward is accessible to the staff
+            $accessibleWardIds = $staff->getAccessibleWardIds();
+            if (!empty($accessibleWardIds) && !in_array($selectedWardId, $accessibleWardIds)) {
+                return response()->json(['error' => 'You are not authorized to access this Ward.'], 403);
+            }
+
+            // Get areas for the selected ward
+            $areaQuery = Area::where('ward_id', $selectedWardId)->where('status', 'approved');
+
+            if (!empty($accessibleAreaIds)) {
+                $areaQuery->whereIn('id', $accessibleAreaIds);
+            }
+
+            $areas = $areaQuery->get();
+
+            // Return HTML options for the dropdown
+            $optionsHtml = '<option value="">Select Area</option>';
+            foreach ($areas as $area) {
+                $optionsHtml .= '<option value="' . $area->id . '">' . $area->name . '</option>';
+            }
+            $optionsHtml .= '<option value="add_new_area">+ Add New Area</option>';
+
+            return response()->json([
+                'options_html' => $optionsHtml
+            ]);
+        } catch (AuthorizationException $e) {
+            Log::warning('Unauthorized attempt to filter areas in customer creation', ['user_id' => Auth::guard('staff')->id()]);
+            return response()->json(['error' => 'You are not authorized to perform this action.'], 403);
+        } catch (\Exception $e) {
+            Log::error('Error filtering areas in customer creation', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'An error occurred while filtering areas: ' . $e->getMessage()], 500);
         }
     }

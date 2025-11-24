@@ -145,26 +145,46 @@
                                             <div class="menu-item px-3">
                                                 <a href="#kt_area_view_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">View</a>
                                             </div>
-                                            @can('edit-area')
-                                                <div class="menu-item px-3">
-                                                    <a href="#kt_area_edit_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
-                                                </div>
-                                            @endcan
-                                            @can('delete-area')
-                                                <div class="menu-item px-3">
-                                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_delete_modal{{ $area->id }}">Delete</a>
-                                                </div>
-                                            @endcan
-                                            @can('approve-area')
-                                                @if ($area->status == 'pending' || $area->status == 'pending_delete')
+                                            @if($area->status == 'pending')
+                                                @can('approve-area')
                                                     <div class="menu-item px-3">
                                                         <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_approve_modal{{ $area->id }}">Approve</a>
                                                     </div>
                                                     <div class="menu-item px-3">
                                                         <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_reject_modal{{ $area->id }}">Reject</a>
                                                     </div>
-                                                @endif
-                                            @endcan
+                                                @endcan
+                                                @can('edit-area')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#kt_area_edit_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete-area')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_delete_modal{{ $area->id }}">Delete Request</a>
+                                                    </div>
+                                                @endcan
+                                            @elseif($area->status == 'pending_delete')
+                                                @can('approve-area')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_approve_modal{{ $area->id }}">Approve Deletion</a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_reject_modal{{ $area->id }}">Reject Deletion</a>
+                                                    </div>
+                                                @endcan
+                                            @else
+                                                @can('edit-area')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#kt_area_edit_modal{{ $area->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete-area')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#kt_area_delete_modal{{ $area->id }}">Delete Request</a>
+                                                    </div>
+                                                @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

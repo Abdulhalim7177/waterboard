@@ -214,39 +214,23 @@
                                                 </a>
                                             @endif
                                             @if($zone->status == 'pending')
-                                                <form method="POST" action="{{ route('staff.zones.approve', $zone->id) }}" style="display: inline;">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-light-success" title="Approve" onclick="return confirm('Are you sure you want to approve this zone?')">
-                                                        <i class="fas fa-check me-1"></i>
-                                                        Approve
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('staff.zones.reject', $zone->id) }}" style="display: inline;">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-light-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this zone?')">
-                                                        <i class="fas fa-times me-1"></i>
-                                                        Reject
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-light-success" title="Approve" data-bs-toggle="modal" data-bs-target="#approveZoneModal{{ $zone->id }}">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    Approve
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-light-danger" title="Reject" data-bs-toggle="modal" data-bs-target="#rejectZoneModal{{ $zone->id }}">
+                                                    <i class="fas fa-times me-1"></i>
+                                                    Reject
+                                                </button>
                                             @elseif($zone->status == 'pending_delete')
-                                                <form method="POST" action="{{ route('staff.zones.approve', $zone->id) }}" style="display: inline;">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-light-success" title="Approve Deletion" onclick="return confirm('Are you sure you want to approve deletion of this zone?')">
-                                                        <i class="fas fa-check me-1"></i>
-                                                        Approve Del
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('staff.zones.reject', $zone->id) }}" style="display: inline;">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-light-warning" title="Reject Deletion" onclick="return confirm('Are you sure you want to reject deletion of this zone?')">
-                                                        <i class="fas fa-times me-1"></i>
-                                                        Reject Del
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-light-success" title="Approve Deletion" data-bs-toggle="modal" data-bs-target="#approveZoneModal{{ $zone->id }}">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    Approve Del
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-light-warning" title="Reject Deletion" data-bs-toggle="modal" data-bs-target="#rejectZoneModal{{ $zone->id }}">
+                                                    <i class="fas fa-times me-1"></i>
+                                                    Reject Del
+                                                </button>
                                             @else
                                                 <a href="#" class="btn btn-sm btn-light-danger" data-bs-toggle="modal" data-bs-target="#deleteZoneModal{{ $zone->id }}" title="Delete">
                                                     <i class="fas fa-trash me-1"></i>
@@ -372,7 +356,67 @@
     </div>
 </div>
 @endforeach
+
+<!--begin::Approve Zone Modals for each zone-->
+@foreach($zones as $zone)
+<div class="modal fade" id="approveZoneModal{{ $zone->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Approval</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if($zone->status == 'pending')
+                    Are you sure you want to approve this zone ({{ $zone->name }})?
+                @elseif($zone->status == 'pending_delete')
+                    Are you sure you want to approve deletion of this zone ({{ $zone->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.zones.approve', $zone->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectZoneModal{{ $zone->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Rejection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if($zone->status == 'pending')
+                    Are you sure you want to reject this zone ({{ $zone->name }})?
+                @elseif($zone->status == 'pending_delete')
+                    Are you sure you want to reject deletion of this zone ({{ $zone->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.zones.reject', $zone->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
 @endsection
+<!--end::Approve/Reject Zone Modals-->
 <!--end::Edit Zone Modals-->
 @section('scripts')
 <script>

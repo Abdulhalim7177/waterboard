@@ -139,26 +139,46 @@
                                             <div class="menu-item px-3">
                                                 <a href="#kt_ward_view_modal{{ $ward->id }}" class="menu-link px-3" data-bs-toggle="modal">View</a>
                                             </div>
-                                            @can('edit-ward')
-                                                <div class="menu-item px-3">
-                                                    <a href="#kt_ward_edit_modal{{ $ward->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
-                                                </div>
-                                            @endcan
-                                            @can('delete-ward')
-                                                <div class="menu-item px-3">
-                                                    <a href="{{ route('staff.wards.destroy', $ward->id) }}" class="menu-link px-3" data-method="delete" data-confirm="Are you sure you want to request deletion of {{ $ward->name }} ({{ $ward->code }})? This action will set the status to pending for admin approval.">Delete</a>
-                                                </div>
-                                            @endcan
-                                            @can('approve-ward')
-                                                @if ($ward->status == 'pending' || $ward->status == 'pending_delete')
+                                            @if($ward->status == 'pending')
+                                                @can('approve-ward')
                                                     <div class="menu-item px-3">
-                                                        <a href="{{ route('staff.wards.approve', $ward->id) }}" class="menu-link px-3" data-method="put" data-confirm="Are you sure you want to approve this ward?">Approve</a>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#approveWardModal{{ $ward->id }}">Approve</a>
                                                     </div>
                                                     <div class="menu-item px-3">
-                                                        <a href="{{ route('staff.wards.reject', $ward->id) }}" class="menu-link px-3" data-method="put" data-confirm="Are you sure you want to reject this ward?">Reject</a>
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#rejectWardModal{{ $ward->id }}">Reject</a>
                                                     </div>
-                                                @endif
-                                            @endcan
+                                                @endcan
+                                                @can('edit-ward')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#kt_ward_edit_modal{{ $ward->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete-ward')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteWardModal{{ $ward->id }}">Delete Request</a>
+                                                    </div>
+                                                @endcan
+                                            @elseif($ward->status == 'pending_delete')
+                                                @can('approve-ward')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#approveWardModal{{ $ward->id }}">Approve Deletion</a>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#rejectWardModal{{ $ward->id }}">Reject Deletion</a>
+                                                    </div>
+                                                @endcan
+                                            @else
+                                                @can('edit-ward')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#kt_ward_edit_modal{{ $ward->id }}" class="menu-link px-3" data-bs-toggle="modal">Edit</a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete-ward')
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteWardModal{{ $ward->id }}">Delete Request</a>
+                                                    </div>
+                                                @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -633,4 +653,103 @@
             color: #6c757d;
         }
     </style>
+
+    <!--begin::Approve Ward Modals for each Ward-->
+    @foreach($wards as $ward)
+    @if ($ward->status == 'pending' || $ward->status == 'pending_delete')
+    <div class="modal fade" id="approveWardModal{{ $ward->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">Confirm Approval</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                    @if($ward->status == 'pending')
+                        Are you sure you want to approve this ward ({{ $ward->name }})?
+                    @elseif($ward->status == 'pending_delete')
+                        Are you sure you want to approve deletion of this ward ({{ $ward->name }})?
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ route('staff.wards.approve', $ward->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="rejectWardModal{{ $ward->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">Confirm Rejection</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                    @if($ward->status == 'pending')
+                        Are you sure you want to reject this ward ({{ $ward->name }})?
+                    @elseif($ward->status == 'pending_delete')
+                        Are you sure you want to reject deletion of this ward ({{ $ward->name }})?
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ route('staff.wards.reject', $ward->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    @endforeach
+    <!--end::Approve/Reject Ward Modals-->
+
+    <!--begin::Delete Ward Modals for each Ward-->
+    @foreach($wards as $ward)
+    <div class="modal fade" id="deleteWardModal{{ $ward->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bold">Confirm Deletion Request</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                    Are you sure you want to request deletion of this ward ({{ $ward->name }})? This action will set the status to pending for admin approval.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ route('staff.wards.destroy', $ward->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Request Deletion</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    <!--end::Delete Ward Modals-->
 @endsection

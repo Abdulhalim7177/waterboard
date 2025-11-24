@@ -179,6 +179,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
         // Additional AJAX routes for dynamic filtering
         Route::post('/filter-wards', [CustomerCreationController::class, 'filterWards'])->name('filter.wards');
         Route::post('/filter-areas', [CustomerCreationController::class, 'filterAreas'])->name('filter.areas');
+        Route::post('/filter-areas-customer', [CustomerCreationController::class, 'filterAreasForCustomer'])->name('filter.areas.customer');
         Route::post('/filter-tariffs', [CustomerCreationController::class, 'filterTariffs'])->name('filter.tariffs');
     });
 

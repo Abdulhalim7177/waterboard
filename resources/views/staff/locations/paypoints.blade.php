@@ -224,39 +224,23 @@
                                     </a>
                                     @endif
                                     @if($paypoint->status == 'pending')
-                                    <form method="POST" action="{{ route('staff.paypoints.approve', $paypoint->id) }}" style="display: inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-sm btn-icon btn-light-success" title="Approve" onclick="return confirm('Are you sure you want to approve this paypoint?')">
+                                        <button type="button" class="btn btn-sm btn-icon btn-light-success" title="Approve" data-bs-toggle="modal" data-bs-target="#approvePaypointModal{{ $paypoint->id }}">
                                             <i class="fas fa-check"></i>
                                         </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('staff.paypoints.reject', $paypoint->id) }}" style="display: inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-sm btn-icon btn-light-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this paypoint?')">
+                                        <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="Reject" data-bs-toggle="modal" data-bs-target="#rejectPaypointModal{{ $paypoint->id }}">
                                             <i class="fas fa-times"></i>
                                         </button>
-                                    </form>
                                     @elseif($paypoint->status == 'pending_delete')
-                                    <form method="POST" action="{{ route('staff.paypoints.approve', $paypoint->id) }}" style="display: inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-sm btn-icon btn-light-success" title="Approve Deletion" onclick="return confirm('Are you sure you want to approve deletion of this paypoint?')">
+                                        <button type="button" class="btn btn-sm btn-icon btn-light-success" title="Approve Deletion" data-bs-toggle="modal" data-bs-target="#approvePaypointModal{{ $paypoint->id }}">
                                             <i class="fas fa-check"></i>
                                         </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('staff.paypoints.reject', $paypoint->id) }}" style="display: inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-sm btn-icon btn-light-warning" title="Reject Deletion" onclick="return confirm('Are you sure you want to reject deletion of this paypoint?')">
+                                        <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Reject Deletion" data-bs-toggle="modal" data-bs-target="#rejectPaypointModal{{ $paypoint->id }}">
                                             <i class="fas fa-times"></i>
                                         </button>
-                                    </form>
                                     @else
-                                    <a href="#" class="btn btn-sm btn-icon btn-light-danger" data-bs-toggle="modal" data-bs-target="#deletePaypointModal{{ $paypoint->id }}" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
+                                        <a href="#" class="btn btn-sm btn-icon btn-light-danger" data-bs-toggle="modal" data-bs-target="#deletePaypointModal{{ $paypoint->id }}" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -505,7 +489,73 @@
     </div>
 </div>
 @endforeach
+
+<!--begin::Approve Paypoint Modals for each paypoint-->
+@foreach($paypoints as $paypoint)
+<div class="modal fade" id="approvePaypointModal{{ $paypoint->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-400px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Approval</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </div>
+            </div>
+            <div class="modal-body">
+                @if($paypoint->status == 'pending')
+                    Are you sure you want to approve this paypoint ({{ $paypoint->name }})?
+                @elseif($paypoint->status == 'pending_delete')
+                    Are you sure you want to approve deletion of this paypoint ({{ $paypoint->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.paypoints.approve', $paypoint->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectPaypointModal{{ $paypoint->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-400px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Rejection</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </div>
+            </div>
+            <div class="modal-body">
+                @if($paypoint->status == 'pending')
+                    Are you sure you want to reject this paypoint ({{ $paypoint->name }})?
+                @elseif($paypoint->status == 'pending_delete')
+                    Are you sure you want to reject deletion of this paypoint ({{ $paypoint->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.paypoints.reject', $paypoint->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
 @endsection
+<!--end::Approve/Reject Paypoint Modals-->
 <!--end::Delete Paypoint Modals-->
 @section('scripts')
 <script>
@@ -639,33 +689,47 @@
                 if (selectedValue === 'zone') {
                     zoneSel.style.display = 'block';
                     districtSel.style.display = 'none';
+                    // Enable zone selection and disable district
+                    zoneSel.querySelector('select').required = true;
+                    districtSel.querySelector('select').required = false;
                 } else if (selectedValue === 'district') {
                     zoneSel.style.display = 'none';
                     districtSel.style.display = 'block';
+                    // Enable district selection and disable zone
+                    zoneSel.querySelector('select').required = false;
+                    districtSel.querySelector('select').required = true;
                 } else {
                     zoneSel.style.display = 'none';
                     districtSel.style.display = 'none';
+                    // Disable both selections
+                    zoneSel.querySelector('select').required = false;
+                    districtSel.querySelector('select').required = false;
                 }
             });
         }
 
+        // Initialize the type selection behavior on page load for create form
+        if (createTypeSelect) {
+            const initialSelectedValue = createTypeSelect.value;
+            if (initialSelectedValue === 'zone') {
+                document.getElementById('zoneSelection').style.display = 'block';
+                document.getElementById('districtSelection').style.display = 'none';
+                document.getElementById('zoneSelection').querySelector('select').required = true;
+            } else if (initialSelectedValue === 'district') {
+                document.getElementById('zoneSelection').style.display = 'none';
+                document.getElementById('districtSelection').style.display = 'block';
+                document.getElementById('districtSelection').querySelector('select').required = true;
+            } else {
+                document.getElementById('zoneSelection').style.display = 'none';
+                document.getElementById('districtSelection').style.display = 'none';
+            }
+        }
+
         // Handle paypoint type selection for edit forms
         @foreach($paypoints as $paypoint)
-        const editTypeSelect {
-            {
-                $paypoint - > id
-            }
-        } = document.getElementById('editPaypointType{{ $paypoint->id }}');
-        if (editTypeSelect {
-                {
-                    $paypoint - > id
-                }
-            }) {
-            editTypeSelect {
-                {
-                    $paypoint - > id
-                }
-            }.addEventListener('change', function() {
+        const editTypeSelect{{ $paypoint->id }} = document.getElementById('editPaypointType{{ $paypoint->id }}');
+        if (editTypeSelect{{ $paypoint->id }}) {
+            editTypeSelect{{ $paypoint->id }}.addEventListener('change', function() {
                 const selectedValue = this.value;
                 const zoneSel = document.getElementById('editZoneSelection{{ $paypoint->id }}');
                 const districtSel = document.getElementById('editDistrictSelection{{ $paypoint->id }}');
@@ -673,14 +737,38 @@
                 if (selectedValue === 'zone') {
                     zoneSel.style.display = 'block';
                     districtSel.style.display = 'none';
+                    // Enable zone selection and disable district
+                    zoneSel.querySelector('select').required = true;
+                    districtSel.querySelector('select').required = false;
                 } else if (selectedValue === 'district') {
                     zoneSel.style.display = 'none';
                     districtSel.style.display = 'block';
+                    // Enable district selection and disable zone
+                    zoneSel.querySelector('select').required = false;
+                    districtSel.querySelector('select').required = true;
                 } else {
                     zoneSel.style.display = 'none';
                     districtSel.style.display = 'none';
+                    // Disable both selections
+                    zoneSel.querySelector('select').required = false;
+                    districtSel.querySelector('select').required = false;
                 }
             });
+
+            // Initialize the type selection behavior on page load for edit form
+            const initialSelectedValue{{ $paypoint->id }} = editTypeSelect{{ $paypoint->id }}.value;
+            if (initialSelectedValue{{ $paypoint->id }} === 'zone') {
+                document.getElementById('editZoneSelection{{ $paypoint->id }}').style.display = 'block';
+                document.getElementById('editDistrictSelection{{ $paypoint->id }}').style.display = 'none';
+                document.getElementById('editZoneSelection{{ $paypoint->id }}').querySelector('select').required = true;
+            } else if (initialSelectedValue{{ $paypoint->id }} === 'district') {
+                document.getElementById('editZoneSelection{{ $paypoint->id }}').style.display = 'none';
+                document.getElementById('editDistrictSelection{{ $paypoint->id }}').style.display = 'block';
+                document.getElementById('editDistrictSelection{{ $paypoint->id }}').querySelector('select').required = true;
+            } else {
+                document.getElementById('editZoneSelection{{ $paypoint->id }}').style.display = 'none';
+                document.getElementById('editDistrictSelection{{ $paypoint->id }}').style.display = 'none';
+            }
         }
         @endforeach
 

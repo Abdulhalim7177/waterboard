@@ -248,35 +248,47 @@
             filterAreas();
         }
 
-        // Filter areas based on selected ward
+        // Filter areas based on selected ward via AJAX
         function filterAreas() {
             const selectedWardId = wardSelect.value;
-            
+
             // Update hidden input
             hiddenWardInput.value = selectedWardId;
-            
+
             // Clear area selection
-            areaSelect.value = '';
-            
-            // Show/hide areas based on ward
-            allAreas.forEach(option => {
-                if (selectedWardId === '' || option.dataset.ward === selectedWardId) {
-                    option.style.display = '';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
-            
-            // Also update the visibility of the "Add New Area" option based on ward selection
-            const addNewAreaOption = areaSelect.querySelector('option[value="add_new_area"]');
+            areaSelect.innerHTML = '<option value="">Select Area</option>';
+
             if (selectedWardId) {
-                addNewAreaOption.style.display = '';
-            } else {
-                addNewAreaOption.style.display = 'none';
-                // If "Add New Area" was selected and we clear the ward, reset selection
-                if (areaSelect.value === 'add_new_area') {
-                    areaSelect.value = '';
-                }
+                // Make AJAX call to get areas for this ward
+                const formData = new FormData();
+                formData.append('ward_id', selectedWardId);
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '{{ route("staff.customers.filter.areas.customer") }}');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.options_html) {
+                                areaSelect.innerHTML = response.options_html;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            areaSelect.innerHTML = '<option value="">Select Area</option><option value="">Error loading areas</option>';
+                        }
+                    } else {
+                        areaSelect.innerHTML = '<option value="">Select Area</option><option value="">Error loading areas</option>';
+                    }
+                };
+
+                xhr.onerror = function() {
+                    areaSelect.innerHTML = '<option value="">Select Area</option><option value="">Error loading areas</option>';
+                };
+
+                xhr.send(formData);
             }
         }
 
@@ -306,74 +318,73 @@
             createNewAreaBtn.querySelector('.indicator-label').style.display = 'none';
             createNewAreaBtn.querySelector('.indicator-progress').style.display = 'inline';
 
-            try {
-                const response = await fetch('{{ route("staff.areas.store") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        name: areaName,
-                        ward_id: selectedWardId
-                    })
-                });
+            // Create form data
+            const formData = new FormData();
+            formData.append('name', areaName);
+            formData.append('ward_id', selectedWardId);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
-                // Check if response is JSON before parsing
-                const contentType = response.headers.get('content-type');
-                let data = {};
-                
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    // If it's not JSON, we have a different kind of error
-                    alert('Server returned an unexpected response format. Status: ' + response.status);
-                    return;
-                }
+            // Create and send request
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route("staff.areas.store") }}');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-                if (response.ok) {
-                    // Add the new area to the dropdown
-                    const newOption = document.createElement('option');
-                    newOption.value = data.area.id;
-                    newOption.textContent = data.area.name;
-                    newOption.setAttribute('data-ward', data.area.ward_id);
-                    areaSelect.appendChild(newOption);
-                    
-                    // Select the new area
-                    areaSelect.value = data.area.id;
-                    
-                    // Reset and hide the form
-                    document.getElementById('new_area_name').value = '';
-                    toggleNewAreaForm();
-                    
-                    // Show success message
-                    alert('New area created successfully and pending approval.');
-                } else {
-                    // Handle different types of errors
-                    if (data && data.errors) {
-                        // Validation errors
-                        if (data.errors.name) {
-                            document.getElementById('new_area_name_error').textContent = data.errors.name[0];
-                        }
-                        if (data.errors.ward_id) {
-                            alert(data.errors.ward_id[0]);
-                        }
-                    } else if (data && data.message) {
-                        // Error message from server
-                        alert(data.message);
-                    } else {
-                        // General error
-                        alert('An error occurred while creating the area. Status: ' + response.status);
-                    }
-                }
-            } catch (error) {
-                console.error('Error creating area:', error);
-                alert('An error occurred while creating the area.');
-            } finally {
+            xhr.onload = function() {
                 createNewAreaBtn.disabled = false;
                 createNewAreaBtn.querySelector('.indicator-label').style.display = 'inline';
                 createNewAreaBtn.querySelector('.indicator-progress').style.display = 'none';
-            }
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+
+                        if (response.area && response.area.id) {
+                            // Add the new area to the dropdown
+                            const newOption = document.createElement('option');
+                            newOption.value = response.area.id;
+                            newOption.textContent = response.area.name;
+                            newOption.setAttribute('data-ward', response.area.ward_id);
+                            areaSelect.appendChild(newOption);
+
+                            // Select the new area
+                            areaSelect.value = response.area.id;
+
+                            // Reset and hide the form
+                            document.getElementById('new_area_name').value = '';
+                            toggleNewAreaForm();
+
+                            // Show success message
+                            alert('New area created successfully and pending approval.');
+                        } else {
+                            alert('Unexpected response from server.');
+                        }
+                    } catch (e) {
+                        alert('Unexpected response format from server: ' + xhr.responseText);
+                    }
+                } else {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.errors && response.errors.name) {
+                            document.getElementById('new_area_name_error').textContent = response.errors.name[0];
+                        } else if (response.message) {
+                            alert(response.message);
+                        } else {
+                            alert('An error occurred while creating the area. Status: ' + xhr.status);
+                        }
+                    } catch (e) {
+                        alert('An error occurred while creating the area. Status: ' + xhr.status);
+                    }
+                }
+            };
+
+            xhr.onerror = function() {
+                createNewAreaBtn.disabled = false;
+                createNewAreaBtn.querySelector('.indicator-label').style.display = 'inline';
+                createNewAreaBtn.querySelector('.indicator-progress').style.display = 'none';
+                alert('An error occurred while communicating with the server.');
+            };
+
+            xhr.send(formData);
         }
 
         // Handle area selection change

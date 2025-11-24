@@ -250,39 +250,23 @@
                                                     </a>
                                                 @endif
                                                 @if($district->status == 'pending')
-                                                    <form method="POST" action="{{ route('staff.districts.approve', $district->id) }}" style="display: inline;">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <button type="submit" class="btn btn-sm btn-light-success" title="Approve" onclick="return confirm('Are you sure you want to approve this district?')">
-                                                            <i class="fas fa-check me-1"></i>
-                                                            Approve
-                                                        </button>
-                                                    </form>
-                                                    <form method="POST" action="{{ route('staff.districts.reject', $district->id) }}" style="display: inline;">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <button type="submit" class="btn btn-sm btn-light-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this district?')">
-                                                            <i class="fas fa-times me-1"></i>
-                                                            Reject
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-light-success" title="Approve" data-bs-toggle="modal" data-bs-target="#approveDistrictModal{{ $district->id }}">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Approve
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-light-danger" title="Reject" data-bs-toggle="modal" data-bs-target="#rejectDistrictModal{{ $district->id }}">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Reject
+                                                    </button>
                                                 @elseif($district->status == 'pending_delete')
-                                                    <form method="POST" action="{{ route('staff.districts.approve', $district->id) }}" style="display: inline;">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <button type="submit" class="btn btn-sm btn-light-success" title="Approve Deletion" onclick="return confirm('Are you sure you want to approve deletion of this district?')">
-                                                            <i class="fas fa-check me-1"></i>
-                                                            Approve Del
-                                                        </button>
-                                                    </form>
-                                                    <form method="POST" action="{{ route('staff.districts.reject', $district->id) }}" style="display: inline;">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <button type="submit" class="btn btn-sm btn-light-warning" title="Reject Deletion" onclick="return confirm('Are you sure you want to reject deletion of this district?')">
-                                                            <i class="fas fa-times me-1"></i>
-                                                            Reject Del
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-light-success" title="Approve Deletion" data-bs-toggle="modal" data-bs-target="#approveDistrictModal{{ $district->id }}">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Approve Del
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-light-warning" title="Reject Deletion" data-bs-toggle="modal" data-bs-target="#rejectDistrictModal{{ $district->id }}">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Reject Del
+                                                    </button>
                                                 @else
                                                     <a href="#" class="btn btn-sm btn-light-danger" data-bs-toggle="modal" data-bs-target="#deleteDistrictModal{{ $district->id }}" title="Delete">
                                                         <i class="fas fa-trash me-1"></i>
@@ -635,6 +619,66 @@
         });
     });
 </script>
+
+<!--begin::Approve District Modals for each district-->
+@foreach($districts as $district)
+<div class="modal fade" id="approveDistrictModal{{ $district->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Approval</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if($district->status == 'pending')
+                    Are you sure you want to approve this district ({{ $district->name }})?
+                @elseif($district->status == 'pending_delete')
+                    Are you sure you want to approve deletion of this district ({{ $district->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.districts.approve', $district->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rejectDistrictModal{{ $district->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Rejection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if($district->status == 'pending')
+                    Are you sure you want to reject this district ({{ $district->name }})?
+                @elseif($district->status == 'pending_delete')
+                    Are you sure you want to reject deletion of this district ({{ $district->name }})?
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('staff.districts.reject', $district->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+<!--end::Approve/Reject District Modals-->
 <!--begin::Delete District Modals for each district-->
 @foreach($districts as $district)
 <div class="modal fade" id="deleteDistrictModal{{ $district->id }}" tabindex="-1" aria-hidden="true">

@@ -210,7 +210,27 @@
             <div class="row mb-7">
                 <label class="col-lg-4 fw-semibold text-muted">Employment Status</label>
                 <div class="col-lg-8">
-                    <span class="badge badge-{{ $staff->employment_status === 'active' ? 'success' : ($staff->employment_status === 'on_leave' ? 'info' : 'warning') }} fs-7 fw-bold ms-2">{{ $staff->employment_status ?? 'Not provided' }}</span>
+                    @php
+                        $badgeClass = '';
+                        switch ($staff->employment_status) {
+                            case 'active':
+                                $badgeClass = 'badge-success';
+                                break;
+                            case 'inactive':
+                            case 'terminated':
+                                $badgeClass = 'badge-danger';
+                                break;
+                            case 'suspended':
+                                $badgeClass = 'badge-warning';
+                                break;
+                            case 'on_leave':
+                                $badgeClass = 'badge-info';
+                                break;
+                            default:
+                                $badgeClass = 'badge-secondary';
+                        }
+                    @endphp
+                    <span class="badge {{ $badgeClass }} fs-7 fw-bold ms-2">{{ ucfirst(str_replace('_', ' ', $staff->employment_status)) }}</span>
                 </div>
             </div>
             <!--end::Input group-->
@@ -219,7 +239,30 @@
             <div class="row mb-7">
                 <label class="col-lg-4 fw-semibold text-muted">Account Status</label>
                 <div class="col-lg-8">
-                    <span class="badge badge-{{ $staff->status === 'approved' ? 'success' : ($staff->status === 'pending' ? 'warning' : 'danger') }} fs-7 fw-bold ms-2">{{ ucfirst($staff->status) }}</span>
+                    @php
+                        $badgeClass = '';
+                        switch ($staff->status) {
+                            case 'active':
+                            case 'approved':
+                                $badgeClass = 'badge-success';
+                                break;
+                            case 'inactive':
+                            case 'rejected':
+                            case 'terminated':
+                                $badgeClass = 'badge-danger';
+                                break;
+                            case 'pending':
+                            case 'suspended':
+                                $badgeClass = 'badge-warning';
+                                break;
+                            case 'on_leave':
+                                $badgeClass = 'badge-info';
+                                break;
+                            default:
+                                $badgeClass = 'badge-secondary';
+                        }
+                    @endphp
+                    <span class="badge {{ $badgeClass }} fs-7 fw-bold ms-2">{{ ucfirst(str_replace('_', ' ', $staff->status)) }}</span>
                 </div>
             </div>
             <!--end::Input group-->

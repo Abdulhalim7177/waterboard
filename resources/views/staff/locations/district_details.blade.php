@@ -190,7 +190,30 @@
                                             <td>{{ $staff->mobile_no ?? 'N/A' }}</td>
                                             <td>{{ $staff->paypoint ? $staff->paypoint->name : 'N/A' }}</td>
                                             <td>
-                                                <span class="badge @if($staff->status == 'approved') badge-success @elseif($staff->status == 'pending') badge-warning @elseif($staff->status == 'rejected') badge-danger @else badge-secondary @endif">
+                                                @php
+                                                    $badgeClass = '';
+                                                    switch ($staff->status) {
+                                                        case 'active':
+                                                        case 'approved':
+                                                            $badgeClass = 'badge-success';
+                                                            break;
+                                                        case 'inactive':
+                                                        case 'rejected':
+                                                        case 'terminated':
+                                                            $badgeClass = 'badge-danger';
+                                                            break;
+                                                        case 'pending':
+                                                        case 'suspended':
+                                                            $badgeClass = 'badge-warning';
+                                                            break;
+                                                        case 'on_leave':
+                                                            $badgeClass = 'badge-info';
+                                                            break;
+                                                        default:
+                                                            $badgeClass = 'badge-secondary';
+                                                    }
+                                                @endphp
+                                                <span class="badge {{ $badgeClass }}">
                                                     {{ ucfirst(str_replace('_', ' ', $staff->status)) }}
                                                 </span>
                                             </td>
