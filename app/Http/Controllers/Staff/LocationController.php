@@ -365,40 +365,69 @@ class LocationController extends Controller
 
     public function storePaypoint(Request $request)
     {
-        $request->validate([
+        // Custom validation based on type
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|unique:paypoints,code',
             'type' => 'required|in:zone,district',
-            'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
-            'district_id' => 'nullable|required_if:type,district|exists:districts,id',
-            'description' => 'nullable|string'
-            // Note: status is not required in the validation, it defaults to 'pending'
+            'zone_id' => 'nullable|exists:zones,id',
+            'district_id' => 'nullable|exists:districts,id',
+            'description' => 'nullable|string',
         ]);
 
-        $paypointData = $request->only(['name', 'code', 'type', 'zone_id', 'district_id', 'description']);
-        $paypointData['status'] = 'pending';
+        // Additional validation based on type selection
+        if ($validatedData['type'] === 'zone' && empty($validatedData['zone_id'])) {
+            return redirect()->back()->withErrors(['zone_id' => 'Zone selection is required when type is zone.'])->withInput();
+        }
 
-        Paypoint::create($paypointData);
+        if ($validatedData['type'] === 'district' && empty($validatedData['district_id'])) {
+            return redirect()->back()->withErrors(['district_id' => 'District selection is required when type is district.'])->withInput();
+        }
+
+        // Ensure only the correct location field is set based on type
+        if ($validatedData['type'] === 'zone') {
+            $validatedData['district_id'] = null;
+        } else {
+            $validatedData['zone_id'] = null;
+        }
+
+        $validatedData['status'] = 'pending';
+
+        Paypoint::create($validatedData);
 
         return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint creation request submitted for approval.');
     }
 
     public function updatePaypoint(Request $request, Paypoint $paypoint)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|unique:paypoints,code,' . $paypoint->id,
             'type' => 'required|in:zone,district',
-            'zone_id' => 'nullable|required_if:type,zone|exists:zones,id',
-            'district_id' => 'nullable|required_if:type,district|exists:districts,id',
-            'description' => 'nullable|string'
-            // Note: status is not validated here as it will be set to 'pending'
+            'zone_id' => 'nullable|exists:zones,id',
+            'district_id' => 'nullable|exists:districts,id',
+            'description' => 'nullable|string',
         ]);
 
-        $paypointData = $request->only(['name', 'code', 'type', 'zone_id', 'district_id', 'description']);
-        $paypointData['status'] = 'pending';
+        // Additional validation based on type selection
+        if ($validatedData['type'] === 'zone' && empty($validatedData['zone_id'])) {
+            return redirect()->back()->withErrors(['zone_id' => 'Zone selection is required when type is zone.'])->withInput();
+        }
 
-        $paypoint->update($paypointData);
+        if ($validatedData['type'] === 'district' && empty($validatedData['district_id'])) {
+            return redirect()->back()->withErrors(['district_id' => 'District selection is required when type is district.'])->withInput();
+        }
+
+        // Ensure only the correct location field is set based on type
+        if ($validatedData['type'] === 'zone') {
+            $validatedData['district_id'] = null;
+        } else {
+            $validatedData['zone_id'] = null;
+        }
+
+        $validatedData['status'] = 'pending';
+
+        $paypoint->update($validatedData);
 
         return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint update request submitted for approval.');
     }
@@ -461,11 +490,23 @@ class LocationController extends Controller
             'code' => 'required|string|unique:lgas,code'
         ]);
 
-        Lga::create([
+        $lga = Lga::create([
             'name' => $request->name,
             'code' => $request->code,
             'status' => 'pending'
         ]);
+
+        // Check if this is an AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'lga' => [
+                    'id' => $lga->id,
+                    'name' => $lga->name,
+                    'code' => $lga->code
+                ],
+                'message' => 'LGA created successfully and pending approval.'
+            ]);
+        }
 
         return redirect()->route('staff.lgas.index')->with('success', 'LGA creation request submitted for approval.');
     }
@@ -513,8 +554,15 @@ class LocationController extends Controller
     {
         $this->authorize('reject-lga');
 
-        $lga->update(['status' => 'rejected']);
-        $lga->logAuditEvent('rejected');
+        if ($lga->status === 'pending_delete') {
+            // When rejecting deletion, revert to approved state
+            $lga->update(['status' => 'approved']);
+            $lga->logAuditEvent('deletion_rejected');
+        } else {
+            // For other pending requests, set to rejected
+            $lga->update(['status' => 'rejected']);
+            $lga->logAuditEvent('rejected');
+        }
 
         return redirect()->route('staff.lgas.index')->with('error', 'LGA request rejected.');
     }
@@ -527,12 +575,25 @@ class LocationController extends Controller
             'lga_id' => 'required|exists:lgas,id'
         ]);
 
-        Ward::create([
+        $ward = Ward::create([
             'name' => $request->name,
             'code' => $request->code,
             'lga_id' => $request->lga_id,
             'status' => 'pending'
         ]);
+
+        // Check if this is an AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'ward' => [
+                    'id' => $ward->id,
+                    'name' => $ward->name,
+                    'code' => $ward->code,
+                    'lga_id' => $ward->lga_id
+                ],
+                'message' => 'Ward created successfully and pending approval.'
+            ]);
+        }
 
         return redirect()->route('staff.wards.index')->with('success', 'Ward creation request submitted for approval.');
     }
@@ -582,8 +643,15 @@ class LocationController extends Controller
     {
         $this->authorize('reject-ward');
 
-        $ward->update(['status' => 'rejected']);
-        $ward->logAuditEvent('rejected');
+        if ($ward->status === 'pending_delete') {
+            // When rejecting deletion, revert to approved state
+            $ward->update(['status' => 'approved']);
+            $ward->logAuditEvent('deletion_rejected');
+        } else {
+            // For other pending requests, set to rejected
+            $ward->update(['status' => 'rejected']);
+            $ward->logAuditEvent('rejected');
+        }
 
         return redirect()->route('staff.wards.index')->with('error', 'Ward request rejected.');
     }
@@ -595,11 +663,23 @@ class LocationController extends Controller
             'ward_id' => 'required|exists:wards,id'
         ]);
 
-        Area::create([
+        $area = Area::create([
             'name' => $request->name,
             'ward_id' => $request->ward_id,
             'status' => 'pending'
         ]);
+
+        // Check if this is an AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'area' => [
+                    'id' => $area->id,
+                    'name' => $area->name,
+                    'ward_id' => $area->ward_id
+                ],
+                'message' => 'Area created successfully and pending approval.'
+            ]);
+        }
 
         return redirect()->route('staff.areas.index')->with('success', 'Area creation request submitted for approval.');
     }
@@ -647,8 +727,15 @@ class LocationController extends Controller
     {
         $this->authorize('reject-area');
 
-        $area->update(['status' => 'rejected']);
-        $area->logAuditEvent('rejected');
+        if ($area->status === 'pending_delete') {
+            // When rejecting deletion, revert to approved state
+            $area->update(['status' => 'approved']);
+            $area->logAuditEvent('deletion_rejected');
+        } else {
+            // For other pending requests, set to rejected
+            $area->update(['status' => 'rejected']);
+            $area->logAuditEvent('rejected');
+        }
 
         return redirect()->route('staff.areas.index')->with('error', 'Area request rejected.');
     }
@@ -657,10 +744,10 @@ class LocationController extends Controller
     {
         $this->authorize('delete-paypoint');
 
-        $paypoint->delete();
-        $paypoint->logAuditEvent('deleted');
+        $paypoint->update(['status' => 'pending_delete']);
+        $paypoint->logAuditEvent('delete_requested');
 
-        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint deleted successfully.');
+        return redirect()->route('staff.paypoints.index')->with('success', 'Paypoint deletion request submitted for approval.');
     }
 
     public function approvePaypoint(Paypoint $paypoint)
@@ -682,8 +769,15 @@ class LocationController extends Controller
     {
         $this->authorize('reject-paypoint');
 
-        $paypoint->update(['status' => 'rejected']);
-        $paypoint->logAuditEvent('rejected');
+        if ($paypoint->status === 'pending_delete') {
+            // When rejecting deletion, revert to approved state
+            $paypoint->update(['status' => 'approved']);
+            $paypoint->logAuditEvent('deletion_rejected');
+        } else {
+            // For other pending requests, set to rejected
+            $paypoint->update(['status' => 'rejected']);
+            $paypoint->logAuditEvent('rejected');
+        }
 
         return redirect()->route('staff.paypoints.index')->with('error', 'Paypoint request rejected.');
     }

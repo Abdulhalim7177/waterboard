@@ -320,18 +320,29 @@ class VendorPaymentController extends Controller
                                 'MetaData' => $metadata,
                             ];            Log::debug('Initiating NABRoll transaction for vendor payment', ['payload' => $payload]);
 
-            $response = Http::asForm()->post("{$this->baseUrl}/transactions/initiate", $payload);
+            $response = Http::asForm()->timeout(30)->retry(2, 500)->post("{$this->baseUrl}/transactions/initiate", $payload);
+
+            // Log the raw response for debugging
+            Log::debug('NABRoll response details for vendor payment', [
+                'status_code' => $response->status(),
+                'body' => (string)$response->body(),
+                'headers' => $response->headers(),
+            ]);
+
             $result = $response->json();
 
-            if ($response->failed() || !isset($result['status']) || $result['status'] !== 'SUCCESSFUL') {
+            if ($response->failed() || is_null($result) || !isset($result['status']) || $result['status'] !== 'SUCCESSFUL') {
                 Log::error('NABRoll transaction initiation failed for vendor payment', [
                     'vendor_id' => $vendor->id,
                     'vendor_payment_id' => $vendorPayment->id,
-                    'response' => $result,
+                    'status_code' => $response->status(),
+                    'response_body' => (string)$response->body(),
+                    'result' => $result,
                 ]);
                 $vendorPayment->update(['payment_status' => 'FAILED', 'status' => 'failed']);
                 DB::commit();
-                return back()->withErrors(['error' => 'Failed to initiate payment: ' . ($result['msg'] ?? 'Unknown error')])->withInput();
+                $errorMessage = $result['msg'] ?? $this->getSpecificErrorMessage((string)$response->body(), $response->status());
+                return back()->withErrors(['error' => 'Failed to initiate payment: ' . $errorMessage])->withInput();
             }
 
             $vendorPayment->update([
@@ -551,5 +562,35 @@ class VendorPaymentController extends Controller
         }
         
         return view('vendor.payments.funding', compact('vendorPayments'));
+    }
+
+    /**
+     * Get specific error message based on response and status code
+     * Used to provide better error messages for different API response codes
+     */
+    private function getSpecificErrorMessage($responseBody, $statusCode) {
+        if ($statusCode == 526) {
+            return 'Payment gateway connection error (SSL/TLS failure). Please try again later.';
+        } elseif ($statusCode == 502) {
+            return 'Payment gateway temporarily unavailable. Please try again later.';
+        } elseif ($statusCode == 503) {
+            return 'Payment gateway service unavailable. Please try again later.';
+        } elseif ($statusCode >= 500) {
+            return "Server error ({$statusCode}). Please contact support.";
+        } elseif ($statusCode == 400) {
+            return 'Invalid request parameters. Please verify your information.';
+        } elseif ($statusCode == 401) {
+            return 'Authentication failed. Please contact support.';
+        } elseif ($statusCode == 403) {
+            return 'Access forbidden. Please contact support.';
+        } elseif ($statusCode == 404) {
+            return 'Payment gateway endpoint not found. Please contact support.';
+        } elseif (strpos(strtolower($responseBody), 'ssl') !== false) {
+            return 'Secure connection error. Please contact support.';
+        } elseif (strpos(strtolower($responseBody), 'certificate') !== false) {
+            return 'Certificate validation error. Please contact support.';
+        }
+
+        return "Error code: {$statusCode}";
     }
 }

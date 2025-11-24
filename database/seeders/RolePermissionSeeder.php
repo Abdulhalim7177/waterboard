@@ -30,7 +30,7 @@ class RolePermissionSeeder extends Seeder
             'create-paypoint', 'edit-paypoint', 'delete-paypoint', 'approve-paypoint', 'reject-paypoint', 'view-paypoints',
             'assign-staff-role', 'revoke-staff-role', 'manage-staff-permissions',
             'manage-district-wards', 'view-location-details',
-            'manage-staff', 'manage-tickets', 'approve-actions',
+            'manage-staff', 'manage-tickets', 'approve-actions', 'view-gis',
         ];
 
         foreach ($permissions as $permission) {

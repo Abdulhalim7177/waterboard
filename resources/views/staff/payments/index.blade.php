@@ -39,6 +39,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="customer_id" class="form-label">Customer</label>
                             <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
                                 <option value="">All Customers</option>
                                 @foreach ($customers as $customer)
@@ -49,6 +50,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="status" class="form-label">Payment Status</label>
                             <select name="status" id="status" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Statuses</option>
                                 @foreach ($statuses as $status)
@@ -57,6 +59,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="category_id" class="form-label">Customer Category</label>
                             <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Categories</option>
                                 @foreach ($categories as $category)
@@ -67,6 +70,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="tariff_id" class="form-label">Customer Tariff</label>
                             <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Tariffs</option>
                                 @foreach ($tariffs as $tariff)
@@ -77,6 +81,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="lga_id" class="form-label">Local Government Area (LGA)</label>
                             <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All LGAs</option>
                                 @foreach ($lgas as $lga)
@@ -87,6 +92,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="ward_id" class="form-label">Ward</label>
                             <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Wards</option>
                                 @foreach ($wards as $ward)
@@ -97,6 +103,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="area_id" class="form-label">Area</label>
                             <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Areas</option>
                                 @foreach ($areas as $area)
@@ -107,10 +114,12 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label for="start_date" class="form-label">Start Date</label>
                             <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
                                    class="form-control form-control-solid w-200px" placeholder="Start Date" />
                         </div>
                         <div class="col-md-4">
+                            <label for="end_date" class="form-label">End Date</label>
                             <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
                                    class="form-control form-control-solid w-200px" placeholder="End Date" />
                         </div>
@@ -124,13 +133,13 @@
             <table class="table align-middle table-row-dashed fs-6 gy-3" id="kt_payment_table">
                 <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                        <th class="min-w-150px">Customer</th>
+                        <th class="min-w-150px">Customer Name</th>
                         <th class="text-end pe-3 min-w-100px">Payment Date</th>
                         <th class="text-end pe-3 min-w-100px">Bill ID</th>
-                        <th class="text-end pe-3 min-w-100px">Amount</th>
-                        <th class="text-end pe-3 min-w-100px">Method</th>
-                        <th class="text-end pe-3 min-w-100px">Status</th>
-                        <th class="text-end pe-0 min-w-150px">Transaction Ref</th>
+                        <th class="text-end pe-3 min-w-100px">Payment Amount</th>
+                        <th class="text-end pe-3 min-w-100px">Payment Method</th>
+                        <th class="text-end pe-3 min-w-100px">Payment Status</th>
+                        <th class="text-end pe-0 min-w-150px">Transaction Reference</th>
                     </tr>
                 </thead>
                 <tbody class="fw-bold text-gray-600">

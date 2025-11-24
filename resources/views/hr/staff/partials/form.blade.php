@@ -129,6 +129,11 @@
             <label for="status" class="form-label">Status</label>
             <select class="form-select" id="status" name="status">
                 <option value="pending" {{ old('status', $staff->status ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="active" {{ old('status', $staff->status ?? '') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ old('status', $staff->status ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="on_leave" {{ old('status', $staff->status ?? '') == 'on_leave' ? 'selected' : '' }}>On Leave</option>
+                <option value="suspended" {{ old('status', $staff->status ?? '') == 'suspended' ? 'selected' : '' }}>Suspended</option>
+                <option value="terminated" {{ old('status', $staff->status ?? '') == 'terminated' ? 'selected' : '' }}>Terminated</option>
                 <option value="approved" {{ old('status', $staff->status ?? '') == 'approved' ? 'selected' : '' }}>Approved</option>
                 <option value="rejected" {{ old('status', $staff->status ?? '') == 'rejected' ? 'selected' : '' }}>Rejected</option>
             </select>

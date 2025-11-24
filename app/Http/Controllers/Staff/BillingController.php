@@ -44,8 +44,11 @@ class BillingController extends Controller
             $query->whereIn('customers.ward_id', $accessibleWardIds);
         }
 
-        if ($yearMonth = $request->input('year_month')) {
-            $query->where('bills.year_month', $yearMonth);
+        if ($request->filled('start_date')) {
+            $query->whereDate('bills.billing_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('bills.billing_date', '<=', $request->end_date);
         }
         if ($categoryId = $request->input('category_id')) {
             $query->where('customers.category_id', $categoryId);
@@ -100,14 +103,7 @@ class BillingController extends Controller
         $wards = $wardQuery->get(['id', 'name']);
         $areas = $areaQuery->get(['id', 'name']);
 
-        // Get unique year-month combinations for the filter dropdown
-        $yearMonthQuery = Bill::join('customers', 'bills.customer_id', '=', 'customers.id');
-        if (!empty($accessibleWardIds)) {
-            $yearMonthQuery->whereIn('customers.ward_id', $accessibleWardIds);
-        }
-        $yearMonths = $yearMonthQuery->select('bills.year_month')->distinct()->orderBy('bills.year_month', 'DESC')->pluck('year_month');
-
-        return view('staff.bills.index', compact('bills', 'customers', 'categories', 'tariffs', 'lgas', 'wards', 'areas', 'yearMonths'));
+        return view('staff.bills.index', compact('bills', 'customers', 'categories', 'tariffs', 'lgas', 'wards', 'areas'));
     }
 
     public function generateBills(Request $request)
@@ -336,8 +332,11 @@ class BillingController extends Controller
             ->select('bills.*')
             ->where('bills.approval_status', 'approved');
 
-        if ($yearMonth = $request->input('year_month')) {
-            $query->where('bills.year_month', $yearMonth);
+        if ($request->filled('start_date')) {
+            $query->whereDate('bills.billing_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('bills.billing_date', '<=', $request->end_date);
         }
         if ($categoryId = $request->input('category_id')) {
             $query->where('customers.category_id', $categoryId);

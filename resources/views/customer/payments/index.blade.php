@@ -28,7 +28,7 @@
                     <div class="d-flex flex-stack flex-wrap gap-4">
                         <!--begin::Method Filter-->
                         <div class="d-flex align-items-center fw-bold">
-                            <div class="text-muted fs-7 me-2">Method</div>
+                            <div class="text-muted fs-7 me-2">Payment Method</div>
                             <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select an option">
                                 <option></option>
                                 <option value="Show All" selected>Show All</option>
@@ -40,7 +40,7 @@
                         <!--end::Method Filter-->
                         <!--begin::Status Filter-->
                         <div class="d-flex align-items-center fw-bold">
-                            <div class="text-muted fs-7 me-2">Status</div>
+                            <div class="text-muted fs-7 me-2">Payment Status</div>
                             <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select an option" data-kt-table-widget-5="filter_status">
                                 <option></option>
                                 <option value="Show All" selected>Show All</option>
@@ -74,11 +74,11 @@
                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
                             <th class="min-w-150px">Payment Date</th>
                             <th class="text-end pe-3 min-w-100px">Bill ID</th>
-                            <th class="text-end pe-3 min-w-100px">Amount</th>
-                            <th class="text-end pe-3 min-w-100px">Method</th>
-                            <th class="text-end pe-3 min-w-100px">Status</th>
-                            <th class="text-end pe-0 min-w-150px">Transaction Ref</th>
-                            <th class="text-end pe-0 min-w-150px">Source</th>
+                            <th class="text-end pe-3 min-w-100px">Payment Amount</th>
+                            <th class="text-end pe-3 min-w-100px">Payment Method</th>
+                            <th class="text-end pe-3 min-w-100px">Payment Status</th>
+                            <th class="text-end pe-0 min-w-150px">Transaction Reference</th>
+                            <th class="text-end pe-0 min-w-150px">Payment Source</th>
                         </tr>
                     </thead>
                     <tbody class="fw-bold text-gray-600">
@@ -89,8 +89,8 @@
                                 <td class="text-end">₦{{ number_format($payment->amount, 2) }}</td>
                                 <td class="text-end">{{ $payment->method }}</td>
                                 <td class="text-end">
-                                    <span class="badge py-3 px-4 fs-7 
-                                        {{ $payment->payment_status === 'SUCCESSFUL' ? 'badge-light-primary' : 
+                                    <span class="badge py-3 px-4 fs-7
+                                        {{ $payment->payment_status === 'SUCCESSFUL' ? 'badge-light-primary' :
                                            ($payment->payment_status === 'FAILED' ? 'badge-light-danger' : 'badge-light-warning') }}">
                                         {{ $payment->payment_status }}
                                     </span>

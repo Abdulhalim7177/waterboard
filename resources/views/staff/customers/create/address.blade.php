@@ -149,6 +149,7 @@
                                     <input type="text" id="new_area_name" class="form-control form-control-solid" placeholder="Enter area name">
                                     <div class="invalid-feedback" id="new_area_name_error"></div>
                                 </div>
+                                <div id="new-area-alert-container"></div>
                                 <div class="text-center">
                                     <button type="button" class="btn btn-primary" id="create-new-area-btn">
                                         <span class="indicator-label">Create Area</span>
@@ -189,7 +190,7 @@
                             </i> Back to Customers
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <span class="indicator-label">Save and Continue</span>
+                            <span class="indicator-label">Submit</span>
                             <span class="indicator-progress">Please wait...
                                 <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                             </span>
@@ -353,13 +354,13 @@
                             document.getElementById('new_area_name').value = '';
                             toggleNewAreaForm();
 
-                            // Show success message
-                            alert('New area created successfully and pending approval.');
+                            // Show success message using Bootstrap alert
+                            showAlert('New area created successfully and pending approval.', 'success');
                         } else {
-                            alert('Unexpected response from server.');
+                            showAlert('Unexpected response from server.', 'danger');
                         }
                     } catch (e) {
-                        alert('Unexpected response format from server: ' + xhr.responseText);
+                        showAlert('Unexpected response format from server.', 'danger');
                     }
                 } else {
                     try {
@@ -367,12 +368,12 @@
                         if (response.errors && response.errors.name) {
                             document.getElementById('new_area_name_error').textContent = response.errors.name[0];
                         } else if (response.message) {
-                            alert(response.message);
+                            showAlert(response.message, 'danger');
                         } else {
-                            alert('An error occurred while creating the area. Status: ' + xhr.status);
+                            showAlert('An error occurred while creating the area. Status: ' + xhr.status, 'danger');
                         }
                     } catch (e) {
-                        alert('An error occurred while creating the area. Status: ' + xhr.status);
+                        showAlert('An error occurred while creating the area. Status: ' + xhr.status, 'danger');
                     }
                 }
             };
@@ -381,7 +382,7 @@
                 createNewAreaBtn.disabled = false;
                 createNewAreaBtn.querySelector('.indicator-label').style.display = 'inline';
                 createNewAreaBtn.querySelector('.indicator-progress').style.display = 'none';
-                alert('An error occurred while communicating with the server.');
+                showAlert('An error occurred while communicating with the server.', 'danger');
             };
 
             xhr.send(formData);
@@ -409,6 +410,42 @@
 
         // Initialize filtering on page load
         filterWards();
+
+        // Function to show Bootstrap alerts
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('new-area-alert-container');
+
+            // Remove any existing alerts
+            alertContainer.innerHTML = '';
+
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} d-flex align-items-center fade show`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} fs-4 me-3"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // Add alert to container
+            alertContainer.appendChild(alertDiv);
+
+            // Automatically hide success alerts after 5 seconds
+            if (type === 'success') {
+                setTimeout(function() {
+                    if (alertDiv.parentNode) {
+                        alertDiv.classList.remove('show');
+                        alertDiv.classList.add('hide');
+                        setTimeout(function() {
+                            if (alertDiv.parentNode) {
+                                alertDiv.parentNode.removeChild(alertDiv);
+                            }
+                        }, 150); // Match Bootstrap transition duration
+                    }
+                }, 5000);
+            }
+        }
     });
 </script>
 @endsection

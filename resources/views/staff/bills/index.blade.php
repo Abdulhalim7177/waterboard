@@ -45,7 +45,7 @@
                             <input type="date" name="end_date" id="end_date" class="form-control form-control-solid w-200px">
                         </div>
                         <div class="col-md-4">
-                            <label for="customer_id" class="block text-sm font-medium text-gray-700">Select Customer to Filter By</label>
+                            <label for="customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
                             <select name="customer_id" id="customer_id" class="form-control form-control-solid w-250px" data-control="select2">
                                 <option value="">All Customers</option>
                                 @foreach ($customers as $customer)
@@ -54,7 +54,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">Select Category to Filter By</label>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Customer Category</label>
                             <select name="category_id" id="category_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Categories</option>
                                 @foreach ($categories as $category)
@@ -63,7 +63,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="tariff_id" class="block text-sm font-medium text-gray-700">Select Tariff to Filter By</label>
+                            <label for="tariff_id" class="block text-sm font-medium text-gray-700">Customer Tariff</label>
                             <select name="tariff_id" id="tariff_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Tariffs</option>
                                 @foreach ($tariffs as $tariff)
@@ -72,7 +72,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="lga_id" class="block text-sm font-medium text-gray-700">Select LGA to Filter By</label>
+                            <label for="lga_id" class="block text-sm font-medium text-gray-700">Local Government Area (LGA)</label>
                             <select name="lga_id" id="lga_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All LGAs</option>
                                 @foreach ($lgas as $lga)
@@ -81,7 +81,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="ward_id" class="block text-sm font-medium text-gray-700">Select Ward to Filter By</label>
+                            <label for="ward_id" class="block text-sm font-medium text-gray-700">Ward</label>
                             <select name="ward_id" id="ward_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Wards</option>
                                 @foreach ($wards as $ward)
@@ -90,7 +90,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="area_id" class="block text-sm font-medium text-gray-700">Select Area to Filter By</label>
+                            <label for="area_id" class="block text-sm font-medium text-gray-700">Area</label>
                             <select name="area_id" id="area_id" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Areas</option>
                                 @foreach ($areas as $area)
@@ -122,38 +122,17 @@
                     <form method="GET" action="{{ route('staff.bills.index') }}" class="d-flex flex-wrap align-items-end gap-4" id="filter-form">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <select name="year_month" id="year_month" class="form-control form-control-solid w-200px" data-control="select2">
-                                    <option value="">All Months</option>
-                                    @foreach ($yearMonths as $ym)
-                                        @if($ym)
-                                            @php
-                                                $label = $ym;
-                                                try {
-                                                    if (preg_match('/^\d{6}$/', $ym)) {
-                                                        // Format like 202509
-                                                        $label = \Carbon\Carbon::createFromFormat('Ym', $ym)->format('F Y');
-                                                    } elseif (preg_match('/^\d{4}-\d{2}$/', $ym)) {
-                                                        // Format like 2025-09
-                                                        $label = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('F Y');
-                                                    } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $ym)) {
-                                                        // Format like 2025-09-01
-                                                        $label = \Carbon\Carbon::parse($ym)->format('F Y');
-                                                    } else {
-                                                        // Try a generic parse and fallback to raw value on failure
-                                                        $label = \Carbon\Carbon::parse($ym)->format('F Y');
-                                                    }
-                                                } catch (\Exception $e) {
-                                                    $label = $ym;
-                                                }
-                                            @endphp
-                                            <option value="{{ $ym }}" {{ request('year_month') == $ym ? 'selected' : '' }}>
-                                                {{ $label }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
+                                       class="form-control form-control-solid w-200px" placeholder="Start Date" />
                             </div>
                             <div class="col-md-4">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
+                                       class="form-control form-control-solid w-200px" placeholder="End Date" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="customer_id_filter" class="form-label">Customer</label>
                                 <select name="customer_id" id="customer_id_filter" class="form-control form-control-solid w-250px" data-control="select2">
                                     <option value="">All Customers</option>
                                     @foreach ($customers as $customer)
@@ -164,6 +143,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="category_id_filter" class="form-label">Customer Category</label>
                                 <select name="category_id" id="category_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All Categories</option>
                                     @foreach ($categories as $category)
@@ -174,6 +154,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="tariff_id_filter" class="form-label">Customer Tariff</label>
                                 <select name="tariff_id" id="tariff_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All Tariffs</option>
                                     @foreach ($tariffs as $tariff)
@@ -184,6 +165,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="lga_id_filter" class="form-label">Local Government Area (LGA)</label>
                                 <select name="lga_id" id="lga_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All LGAs</option>
                                     @foreach ($lgas as $lga)
@@ -194,6 +176,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="ward_id_filter" class="form-label">Ward</label>
                                 <select name="ward_id" id="ward_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All Wards</option>
                                     @foreach ($wards as $ward)
@@ -204,6 +187,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="area_id_filter" class="form-label">Area</label>
                                 <select name="area_id" id="area_id_filter" class="form-control form-control-solid w-200px" data-control="select2">
                                     <option value="">All Areas</option>
                                     @foreach ($areas as $area)
@@ -460,7 +444,8 @@
             });
 
             // Debounced filter handling
-            const yearMonthSelect = document.getElementById('year_month');
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
             const customerSelect = document.getElementById('customer_id_filter');
             const categorySelect = document.getElementById('category_id_filter');
             const tariffSelect = document.getElementById('tariff_id_filter');
@@ -472,7 +457,8 @@
             let filterTimeout;
 
             function updateURL() {
-                const yearMonth = yearMonthSelect.value;
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
                 const customer = customerSelect.value;
                 const category = categorySelect.value;
                 const tariff = tariffSelect.value;
@@ -480,7 +466,8 @@
                 const ward = wardSelect.value;
                 const area = areaSelect.value;
                 const url = new URL('{{ route("staff.bills.index") }}');
-                if (yearMonth) url.searchParams.set('year_month', yearMonth);
+                if (startDate) url.searchParams.set('start_date', startDate);
+                if (endDate) url.searchParams.set('end_date', endDate);
                 if (customer) url.searchParams.set('customer_id', customer);
                 if (category) url.searchParams.set('category_id', category);
                 if (tariff) url.searchParams.set('tariff_id', tariff);
@@ -496,7 +483,8 @@
                 filterTimeout = setTimeout(updateURL, 500);
             }
 
-            yearMonthSelect.addEventListener('change', handleInput);
+            startDateInput.addEventListener('change', handleInput);
+            endDateInput.addEventListener('change', handleInput);
             customerSelect.addEventListener('change', handleInput);
             categorySelect.addEventListener('change', handleInput);
             tariffSelect.addEventListener('change', handleInput);

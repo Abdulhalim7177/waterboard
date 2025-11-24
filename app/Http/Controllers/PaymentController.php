@@ -47,7 +47,15 @@ class PaymentController extends Controller
 
         Log::debug('Verifying NABRoll transaction', ['payload' => $verifyPayload]);
 
-        $response = Http::asForm()->post("{$this->baseUrl}/transactions/verify", $verifyPayload);
+        $response = Http::asForm()->timeout(30)->retry(2, 500)->post("{$this->baseUrl}/transactions/verify", $verifyPayload);
+
+        // Log the raw response for debugging
+        Log::debug('NABRoll verify response details', [
+            'status_code' => $response->status(),
+            'body' => (string)$response->body(),
+            'headers' => $response->headers(),
+        ]);
+
         $result = $response->json();
 
         Log::debug('NABRoll verify response', [
@@ -56,14 +64,18 @@ class PaymentController extends Controller
             'response' => $result,
         ]);
 
-        if ($response->failed() || !isset($result['status']) || $result['status'] !== 'SUCCESSFUL') {
+        if ($response->failed() || is_null($result) || !isset($result['status']) || $result['status'] !== 'SUCCESSFUL') {
             $payment->update(['payment_status' => 'FAILED', 'status' => 'failed']);
             Log::error('Payment verification failed', [
                 'payment_id' => $payment->id,
                 'transaction_ref' => $transactionRef,
+                'status_code' => $response->status(),
+                'response_body' => (string)$response->body(),
                 'response' => $result,
             ]);
-            return redirect()->route('customer.bills')->with('error', 'Payment verification failed: ' . ($result['msg'] ?? 'Unknown error'));
+
+            $errorMessage = $result['msg'] ?? $this->getSpecificErrorMessage((string)$response->body(), $response->status());
+            return redirect()->route('customer.bills')->with('error', 'Payment verification failed: ' . $errorMessage);
         }
 
         // Process payment
@@ -104,5 +116,35 @@ class PaymentController extends Controller
             Log::error('Payment processing failed', ['error' => $e->getMessage()]);
             return redirect()->route('customer.bills')->with('error', 'Payment processing failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get specific error message based on response and status code
+     * Used to provide better error messages for different API response codes
+     */
+    private function getSpecificErrorMessage($responseBody, $statusCode) {
+        if ($statusCode == 526) {
+            return 'Payment gateway connection error (SSL/TLS failure). Please try again later.';
+        } elseif ($statusCode == 502) {
+            return 'Payment gateway temporarily unavailable. Please try again later.';
+        } elseif ($statusCode == 503) {
+            return 'Payment gateway service unavailable. Please try again later.';
+        } elseif ($statusCode >= 500) {
+            return "Server error ({$statusCode}). Please contact support.";
+        } elseif ($statusCode == 400) {
+            return 'Invalid request parameters. Please verify your information.';
+        } elseif ($statusCode == 401) {
+            return 'Authentication failed. Please contact support.';
+        } elseif ($statusCode == 403) {
+            return 'Access forbidden. Please contact support.';
+        } elseif ($statusCode == 404) {
+            return 'Payment gateway endpoint not found. Please contact support.';
+        } elseif (strpos(strtolower($responseBody), 'ssl') !== false) {
+            return 'Secure connection error. Please contact support.';
+        } elseif (strpos(strtolower($responseBody), 'certificate') !== false) {
+            return 'Certificate validation error. Please contact support.';
+        }
+
+        return "Error code: {$statusCode}";
     }
 }

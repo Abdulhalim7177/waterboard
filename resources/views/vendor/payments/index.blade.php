@@ -42,7 +42,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Customer</label>
+                                    <label class="fs-6 fw-semibold mb-2">Customer Name</label>
                                     <select name="customer_id" class="form-select" data-control="select2" data-placeholder="Select customer">
                                         <option value=""></option>
                                         @foreach($customers as $customer)
@@ -55,7 +55,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Status</label>
+                                    <label class="fs-6 fw-semibold mb-2">Payment Status</label>
                                     <select name="status" class="form-select">
                                         <option value="">All Statuses</option>
                                         <option value="SUCCESSFUL" {{ request('status') == 'SUCCESSFUL' ? 'selected' : '' }}>Successful</option>
@@ -68,13 +68,13 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Min Amount</label>
+                                    <label class="fs-6 fw-semibold mb-2">Minimum Payment Amount</label>
                                     <input type="number" step="0.01" class="form-control" name="min_amount" placeholder="0.00" value="{{ request('min_amount') }}" />
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Max Amount</label>
+                                    <label class="fs-6 fw-semibold mb-2">Maximum Payment Amount</label>
                                     <input type="number" step="0.01" class="form-control" name="max_amount" placeholder="0.00" value="{{ request('max_amount') }}" />
                                 </div>
                             </div>
@@ -108,12 +108,12 @@
                 <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4 table-auto table-striped">
                     <thead>
                         <tr class="fw-bold text-muted">
-                            <th class="min-w-150px">Date</th>
-                            <th class="min-w-150px">Customer</th>
+                            <th class="min-w-150px">Payment Date</th>
+                            <th class="min-w-150px">Customer Name</th>
                             <th class="min-w-120px">Billing ID</th>
-                            <th class="min-w-120px">Amount</th>
-                            <th class="min-w-120px">Method</th>
-                            <th class="min-w-120px">Status</th>
+                            <th class="min-w-120px">Payment Amount</th>
+                            <th class="min-w-120px">Payment Method</th>
+                            <th class="min-w-120px">Payment Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -157,7 +157,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-center">
                 @if ($vendorPayments instanceof \Illuminate\Pagination\LengthAwarePaginator)
                     {{ $vendorPayments->links() }}
