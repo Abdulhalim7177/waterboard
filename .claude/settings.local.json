@@ -8,7 +8,12 @@
       "Bash(npm run build)",
       "Bash(rm -rf node_modules)",
       "Bash(npm install)",
-      "Bash(npm cache clean --force)"
+      "Bash(npm cache clean --force)",
+      "Bash(npm install vite)",
+      "Bash(npm config list)",
+      "Bash(npx vite --version)",
+      "Bash(npx vite build)",
+      "Bash(npm install --no-optional --legacy-peer-deps)"
     ],
     "deny": [],
     "ask": []

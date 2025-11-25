@@ -90,7 +90,7 @@
                 <div class="card-title w-100 d-flex align-items-center justify-content-between flex-wrap">
                     <!--begin::Search and Filters Form-->
                     <div class="d-flex flex-column w-100">
-                        <!--begin::Filter Toggle Button (Now visible on both mobile and desktop)-->
+                        <!--begin::Filter Toggle Button-->
                         <div class="d-flex justify-content-between mb-3">
                             <button class="btn btn-sm btn-light-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
                                 <i class="ki-duotone ki-filter fs-3">
@@ -99,7 +99,7 @@
                                 </i>
                                 Filters
                             </button>
-                            <span class="d-block d-lg-none">Tap filters to show</span>
+
                         </div>
                         <!--end::Filter Toggle Button-->
                         
@@ -278,138 +278,98 @@
             <!--begin::Card body-->
             <div class="card-body pt-0">
                 <!--begin::Table-->
-                <div class="table-responsive">
-                <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_customers_table">
-                    <thead>
-                        <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                            <th class="w-10px pe-2">
-                                <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                    <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_customers_table .form-check-input" value="1" />
-                                </div>
-                            </th>
-                            <th class="min-w-125px">Billing ID</th>
-                            <th class="min-w-125px">Name</th>
-                            <th class="min-w-125px d-none d-md-table-cell">Email</th>
-                            <th class="min-w-125px d-none d-sm-table-cell">Area</th>
-                            <th class="min-w-125px">Status</th>
-                            <th class="min-w-125px d-none d-lg-table-cell">Created Date</th>
-                            <th class="text-end min-w-100px">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="fw-semibold text-gray-600">
-                        @forelse ($customers as $customer)
-                            <tr>
-                                <td>
-                                    <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="checkbox" value="{{ $customer->id }}" />
+                <!--begin::Table (Desktop & Mobile Default)-->
+                <div class="table-responsive" id="kt_customers_table_wrapper">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_customers_table">
+                        <thead>
+                            <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
+                                <th class="w-10px pe-2">
+                                    <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
+                                        <input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_customers_table .form-check-input" value="1" />
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold">{{ $customer->billing_id ?? 'Pending' }}</span>
-                                    <div class="d-block d-md-none text-gray-500 fs-7">{{ $customer->email }}</div>
-                                </td>
-                                <td>
-                                    <a href="{{ route('staff.customers.show', $customer) }}" class="text-gray-800 text-hover-primary mb-1">
-                                        {{ $customer->first_name }} {{ $customer->surname }}
-                                    </a>
-                                    <div class="d-block d-sm-none text-gray-500 fs-7">{{ $customer->area ? $customer->area->name : 'N/A' }}</div>
-                                </td>
-                                <td class="d-none d-md-table-cell">
-                                    <a href="#" class="text-gray-600 text-hover-primary mb-1">{{ $customer->email }}</a>
-                                </td>
-                                <td class="d-none d-sm-table-cell">{{ $customer->area ? $customer->area->name : 'N/A' }}</td>
-                                <td>
-                                    <div class="badge badge-light-{{ $customer->status == 'approved' ? 'success' : ($customer->status == 'pending' ? 'warning' : 'danger') }}">
-                                        {{ ucfirst($customer->status) }}
-                                    </div>
-                                </td>
-                                <td class="d-none d-lg-table-cell">{{ $customer->created_at->format('d M Y, h:i A') }}</td>
-                                <td class="text-end">
-                                    <a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                        Actions
-                                        <i class="ki-duotone ki-down fs-5 ms-1"></i>
-                                    </a>
-                                    <!--begin::Menu-->
-                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-150px py-4" data-kt-menu="true">
-                                        <!--begin::Menu item-->
-                                        <div class="menu-item px-3">
-                                            <a href="{{ route('staff.customers.show', $customer) }}" class="menu-link px-3">View</a>
-                                        </div>
-                                        <!--end::Menu item-->
-                                        @can('edit-customer', $customer)
-                                            <!--begin::Menu item-->
-                                            <div class="menu-item px-3">
-                                                <a href="{{ route('staff.customers.edit', $customer) }}" class="menu-link px-3">Edit</a>
-                                            </div>
-                                            <!--end::Menu item-->
-                                        @endcan
-                                        @can('approve-customer', App\Models\Customer::class)
-                                            @if ($customer->status == 'pending')
-                                                <!--begin::Menu item-->
-                                                <div class="menu-item px-3">
-                                                    <form action="{{ route('staff.customers.approve', $customer) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="menu-link px-3">Approve</button>
-                                                    </form>
-                                                </div>
-                                                <!--end::Menu item-->
-                                                <!--begin::Menu item-->
-                                                <div class="menu-item px-3">
-                                                    <form action="{{ route('staff.customers.reject', $customer) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="menu-link px-3">Reject</button>
-                                                    </form>
-                                                </div>
-                                                <!--end::Menu item-->
-                                            @endif
-                                        @endcan
-                                        @can('delete-customer', $customer)
-                                            <!--begin::Menu item-->
-                                            <div class="menu-item px-3">
-                                                <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $customer->id }}">Delete</a>
-                                            </div>
-                                            <!--end::Menu item-->
-                                        @endcan
-                                    </div>
-                                    <!--end::Menu-->
-                                </td>
+                                </th>
+                                <th class="min-w-125px">Billing ID</th>
+                                <th class="min-w-125px">Name</th>
+                                <th class="min-w-125px">Email</th>
+                                <th class="min-w-125px">Area</th>
+                                <th class="min-w-125px">Status</th>
+                                <th class="min-w-125px">Created Date</th>
+                                <th class="text-end min-w-100px">Actions</th>
                             </tr>
-                            <!--begin::Delete Modal-->
-                            <div class="modal fade" id="deleteModal{{ $customer->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $customer->id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="deleteModalLabel{{ $customer->id }}">Confirm Deletion</h5>
-                                            <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                                                <i class="ki-duotone ki-cross fs-1">
-                                                    <span class="path1"></span>
-                                                    <span class="path2"></span>
-                                                </i>
+                        </thead>
+                        <tbody class="fw-semibold text-gray-600">
+                            @forelse ($customers as $customer)
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                            <input class="form-check-input" type="checkbox" value="{{ $customer->id }}" />
+                                        </div>
+                                    </td>
+                                    <td><span class="fw-bold">{{ $customer->billing_id ?? 'Pending' }}</span></td>
+                                    <td>
+                                        <a href="{{ route('staff.customers.show', $customer) }}" class="text-gray-800 text-hover-primary mb-1">
+                                            {{ $customer->first_name }} {{ $customer->surname }}
+                                        </a>
+                                    </td>
+                                    <td><a href="#" class="text-gray-600 text-hover-primary mb-1">{{ $customer->email }}</a></td>
+                                    <td>{{ $customer->area ? $customer->area->name : 'N/A' }}</td>
+                                    <td>
+                                        <div class="badge badge-light-{{ $customer->status == 'approved' ? 'success' : ($customer->status == 'pending' ? 'warning' : 'danger') }}">
+                                            {{ ucfirst($customer->status) }}
+                                        </div>
+                                    </td>
+                                    <td>{{ $customer->created_at->format('d M Y, h:i A') }}</td>
+                                    <td class="text-end">
+                                        <a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                            Actions
+                                            <i class="ki-duotone ki-down fs-5 ms-1"></i>
+                                        </a>
+                                        <!--begin::Menu-->
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-150px py-4" data-kt-menu="true">
+                                            <div class="menu-item px-3">
+                                                <a href="{{ route('staff.customers.show', $customer) }}" class="menu-link px-3">View</a>
                                             </div>
+                                            @can('edit-customer', $customer)
+                                                <div class="menu-item px-3">
+                                                    <a href="{{ route('staff.customers.edit', $customer) }}" class="menu-link px-3">Edit</a>
+                                                </div>
+                                            @endcan
+                                            @can('approve-customer', App\Models\Customer::class)
+                                                @if ($customer->status == 'pending')
+                                                    <div class="menu-item px-3">
+                                                        <form action="{{ route('staff.customers.approve', $customer) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="menu-link px-3 w-100 text-start border-0 bg-transparent">Approve</button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="menu-item px-3">
+                                                        <form action="{{ route('staff.customers.reject', $customer) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="menu-link px-3 w-100 text-start border-0 bg-transparent">Reject</button>
+                                                        </form>
+                                                    </div>
+                                                @endif
+                                            @endcan
+                                            @can('delete-customer', $customer)
+                                                <div class="menu-item px-3">
+                                                    <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $customer->id }}">Delete</a>
+                                                </div>
+                                            @endcan
                                         </div>
-                                        <div class="modal-body text-start">
-                                            Are you sure you want to delete {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->billing_id ?? 'Pending' }})? This action cannot be undone.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ route('staff.customers.destroy', $customer) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--end::Delete Modal-->
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center">No customers found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                <!--end::Table-->
+                                        <!--end::Menu-->
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center">No customers found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <!--end::Table (Desktop)-->
+
+
                 <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-3">
                     @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator)
                         <!--begin::Per Page Dropdown (Bottom)-->
@@ -449,7 +409,7 @@
                     @endif
                 </div>
             </div>
-            </div>
+
             <!--end::Card body-->
         </div>
         <!--end::Card-->
@@ -637,16 +597,16 @@
             $('#per_page_bottom').on('change', function() {
                 const perPage = $(this).val();
                 // Update the per_page parameter in the current URL and reload
-                const url = new URL(window.location);
+                let perPage = $(this).val();
+                let url = new URL(window.location.href);
                 url.searchParams.set('per_page', perPage);
-                window.location = url.toString();
+                window.location.href = url.toString();
             });
-            
-            // Also update the original per_page dropdown if it changes
+
+            // Sync top and bottom per page dropdowns if they exist
             $('#per_page').on('change', function() {
-                const perPage = $(this).val();
+                let perPage = $(this).val();
                 $('#per_page_bottom').val(perPage);
             });
-        });
     </script>
 @endsection

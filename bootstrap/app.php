@@ -25,6 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'admin' => AdminMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('mngr-secure-9374/*')) {
+                return route('staff.login');
+            }
+            if ($request->is('customer/*')) {
+                return route('customer.login');
+            }
+            if ($request->is('vendor/*')) {
+                return route('vendor.login');
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
