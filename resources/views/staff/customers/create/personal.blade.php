@@ -20,7 +20,7 @@
         </div>
         <!--end::Card header-->
         <!--begin::Card body-->
-        <div class="card-body py-10 px-lg-17">
+        <div class="card-body py-10 px-4 px-lg-17">
             <!--begin::Alerts-->
             @if (session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -41,49 +41,78 @@
             <!--end::Alerts-->
 
             <!--begin::Tab Navigation-->
-            <ul class="nav nav-stretch nav-pills nav-pills-custom d-flex mt-3">
-                <li class="nav-item p-0 ms-0 me-8">
-                    <a class="nav-link btn btn-color-muted active px-0" href="{{ route('staff.customers.create.personal') }}">
-                        <span class="nav-text fw-semibold fs-4 mb-3">Personal Info</span>
-                        <span class="badge badge-{{ session('customer_creation.personal') ? 'success' : 'warning' }} ms-2">
-                            {{ session('customer_creation.personal') ? 'Completed' : 'Incomplete' }}
-                        </span>
-                        <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                    </a>
-                </li>
-                <li class="nav-item p-0 ms-0 me-8">
-                    <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.address') }}" {{ !session('customer_creation.personal') ? 'aria-disabled="true" style="pointer-events: none; opacity: 0.5;"' : '' }}>
-                        <span class="nav-text fw-semibold fs-4 mb-3">Address</span>
-                        <span class="badge badge-{{ session('customer_creation.address') ? 'success' : 'warning' }} ms-2">
-                            {{ session('customer_creation.address') ? 'Completed' : 'Incomplete' }}
-                        </span>
-                        <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                    </a>
-                </li>
-                <li class="nav-item p-0 ms-0 me-8">
-                    <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.billing') }}" {{ !session('customer_creation.personal') || !session('customer_creation.address') ? 'aria-disabled="true" style="pointer-events: none; opacity: 0.5;"' : '' }}>
-                        <span class="nav-text fw-semibold fs-4 mb-3">Billing</span>
-                        <span class="badge badge-{{ session('customer_creation.billing') ? 'success' : 'warning' }} ms-2">
-                            {{ session('customer_creation.billing') ? 'Completed' : 'Incomplete' }}
-                        </span>
-                        <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                    </a>
-                </li>
-                <li class="nav-item p-0 ms-0">
-                    <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.location') }}" {{ !session('customer_creation.personal') || !session('customer_creation.address') || !session('customer_creation.billing') ? 'aria-disabled="true" style="pointer-events: none; opacity: 0.5;"' : '' }}>
-                        <span class="nav-text fw-semibold fs-4 mb-3">Location</span>
-                        <span class="badge badge-{{ session('customer_creation.location') ? 'success' : 'warning' }} ms-2">
-                            {{ session('customer_creation.location') ? 'Completed' : 'Incomplete' }}
-                        </span>
-                        <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                    </a>
-                </li>
-            </ul>
+            <div id="tab-alert-container"></div>
+            <div class="d-flex overflow-auto pb-2" id="tab-scroll-container">
+                <ul class="nav nav-pills nav-pills-custom d-flex mt-3 flex-nowrap text-nowrap gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light-primary active d-flex align-items-center flex-column flex-sm-row px-2 py-2" href="{{ route('staff.customers.create.personal') }}">
+                            <span class="nav-text fw-semibold fs-4">Personal Info</span>
+                            <span class="badge badge-{{ session('customer_creation.personal') ? 'success' : 'warning' }} ms-2">
+                                {{ session('customer_creation.personal') ? 'Completed' : 'Incomplete' }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" 
+                           href="{{ session('customer_creation.personal') ? route('staff.customers.create.address') : '#' }}"
+                           @if(!session('customer_creation.personal')) onclick="showTabAlert('Please complete the Personal Info step first.'); return false;" @endif
+                           {{ !session('customer_creation.personal') ? 'aria-disabled="true" style="opacity: 0.5;"' : '' }}>
+                            <span class="nav-text fw-semibold fs-4">Address</span>
+                            <span class="badge badge-{{ session('customer_creation.address') ? 'success' : 'warning' }} ms-2">
+                                {{ session('customer_creation.address') ? 'Completed' : 'Incomplete' }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" 
+                           href="{{ session('customer_creation.address') ? route('staff.customers.create.billing') : '#' }}"
+                           @if(!session('customer_creation.personal') || !session('customer_creation.address')) onclick="showTabAlert('Please complete the Personal Info and Address steps first.'); return false;" @endif
+                           {{ !session('customer_creation.personal') || !session('customer_creation.address') ? 'aria-disabled="true" style="opacity: 0.5;"' : '' }}>
+                            <span class="nav-text fw-semibold fs-4">Billing</span>
+                            <span class="badge badge-{{ session('customer_creation.billing') ? 'success' : 'warning' }} ms-2">
+                                {{ session('customer_creation.billing') ? 'Completed' : 'Incomplete' }}
+                            </span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" 
+                           href="{{ session('customer_creation.billing') ? route('staff.customers.create.location') : '#' }}"
+                           @if(!session('customer_creation.personal') || !session('customer_creation.address') || !session('customer_creation.billing')) onclick="showTabAlert('Please complete the previous steps first.'); return false;" @endif
+                           {{ !session('customer_creation.personal') || !session('customer_creation.address') || !session('customer_creation.billing') ? 'aria-disabled="true" style="opacity: 0.5;"' : '' }}>
+                            <span class="nav-text fw-semibold fs-4">Location</span>
+                            <span class="badge badge-{{ session('customer_creation.location') ? 'success' : 'warning' }} ms-2">
+                                {{ session('customer_creation.location') ? 'Completed' : 'Incomplete' }}
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const activeTab = document.querySelector('.nav-link.active');
+                    if (activeTab) {
+                        activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                });
+
+                function showTabAlert(message) {
+                    const container = document.getElementById('tab-alert-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                ${message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `;
+                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            </script>
             <!--end::Tab Navigation-->
 
             <!--begin::Form-->
             <div class="scroll-y me-n7 pe-7" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_add_customer_header" data-kt-scroll-wrappers="#kt_modal_add_customer_scroll" data-kt-scroll-offset="300px">
-                <form action="{{ route('staff.customers.store.personal') }}" method="POST">
+                <form class="p-3" action="{{ route('staff.customers.store.personal') }}" method="POST">
                     @csrf
                     <div class="row g-9 mb-7">
                         <div class="col-md-6 fv-row">
@@ -120,14 +149,14 @@
                     <div class="row g-9 mb-7">
                         <div class="col-md-6 fv-row">
                             <label for="phone_number" class="fs-6 fw-semibold mb-2 required">Primary Phone Number</label>
-                            <input type="text" class="form-control form-control-solid @error('phone_number') is-invalid @enderror" id="phone_number" name="phone_number" value="{{ old('phone_number', session('customer_creation.personal.phone_number')) }}" required>
+                            <input type="text" inputmode="numeric" class="form-control form-control-solid @error('phone_number') is-invalid @enderror" id="phone_number" name="phone_number" value="{{ old('phone_number', session('customer_creation.personal.phone_number')) }}" required>
                             @error('phone_number')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6 fv-row">
                             <label for="alternate_phone_number" class="fs-6 fw-semibold mb-2">Alternate Phone Number</label>
-                            <input type="text" class="form-control form-control-solid @error('alternate_phone_number') is-invalid @enderror" id="alternate_phone_number" name="alternate_phone_number" value="{{ old('alternate_phone_number', session('customer_creation.personal.alternate_phone_number')) }}">
+                            <input type="text" inputmode="numeric" class="form-control form-control-solid @error('alternate_phone_number') is-invalid @enderror" id="alternate_phone_number" name="alternate_phone_number" value="{{ old('alternate_phone_number', session('customer_creation.personal.alternate_phone_number')) }}">
                             @error('alternate_phone_number')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

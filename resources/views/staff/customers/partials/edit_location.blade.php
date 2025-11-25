@@ -10,62 +10,71 @@
             
             <div class="row mb-6">
                 <div class="col-md-12 fv-row mb-6">
-                    <button type="button" id="getLocationBtn" class="btn btn-light-primary">
-                        <i class="ki-duotone ki-geolocation fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Get Current Location
-                    </button>
-                    <button type="button" id="toggleMapBtn" class="btn btn-light-primary ms-2">
-                        <i class="ki-duotone ki-map fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Show Map
-                    </button>
-                    <button type="button" id="startDrawingPolygonBtn" class="btn btn-light-primary ms-2">
-                        <i class="ki-duotone ki-pencil fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Draw Polygon
-                    </button>
-                    <button type="button" id="startDrawingPipeBtn" class="btn btn-light-primary ms-2">
-                        <i class="ki-duotone ki-pencil fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Draw Pipe Path
-                    </button>
-                    <button type="button" id="zoomToLocationBtn" class="btn btn-light-primary ms-2">
-                        <i class="ki-duotone ki-magnifier fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Zoom to Location
-                    </button>
-                    <button type="button" id="resetPolygonBtn" class="btn btn-light-secondary ms-2">
-                        <i class="ki-duotone ki-trash fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Reset Polygon
-                    </button>
-                    <button type="button" id="resetPipeBtn" class="btn btn-light-secondary ms-2">
-                        <i class="ki-duotone ki-trash fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Reset Pipe Path
-                    </button>
-                    <button type="button" id="clearAllBtn" class="btn btn-light-secondary ms-2">
-                        <i class="ki-duotone ki-trash fs-2 me-2">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
-                        </i>
-                        Clear All
-                    </button>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" id="getLocationBtn" class="btn btn-light-primary">
+                            <i class="ki-duotone ki-geolocation fs-2 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Get Current Location
+                        </button>
+                        <button type="button" id="toggleMapBtn" class="btn btn-light-primary">
+                            <i class="ki-duotone ki-map fs-2 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Show Map
+                        </button>
+                    </div>
+                    
+                    <div id="mapTools" class="d-none flex-wrap gap-2">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" id="startDrawingPolygonBtn" class="btn btn-light-primary">
+                                <i class="ki-duotone ki-pencil fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Draw Polygon
+                            </button>
+                            <button type="button" id="startDrawingPipeBtn" class="btn btn-light-primary">
+                                <i class="ki-duotone ki-pencil fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Draw Pipe Path
+                            </button>
+                            <button type="button" id="zoomToLocationBtn" class="btn btn-light-primary">
+                                <i class="ki-duotone ki-magnifier fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Zoom to Location
+                            </button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+                            <button type="button" id="resetPolygonBtn" class="btn btn-light-secondary">
+                                <i class="ki-duotone ki-trash fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Reset Polygon
+                            </button>
+                            <button type="button" id="resetPipeBtn" class="btn btn-light-secondary">
+                                <i class="ki-duotone ki-trash fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Reset Pipe Path
+                            </button>
+                            <button type="button" id="clearAllBtn" class="btn btn-light-secondary">
+                                <i class="ki-duotone ki-trash fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-12 fv-row mb-6">
                     <div id="map" style="height: 400px; border: 1px solid #ddd; border-radius: 4px; display: none;"></div>
@@ -405,10 +414,14 @@
         }
     }
 
+    const mapTools = document.getElementById('mapTools');
+
     toggleMapBtn.addEventListener('click', function () {
         console.log('Toggle Map button clicked');
         if (mapContainer.style.display === 'none') {
             mapContainer.style.display = 'block';
+            mapTools.classList.remove('d-none');
+            mapTools.classList.add('d-flex');
             toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Hide Map';
             if (!mapInitialized) {
                 const lat = parseFloat(latitudeField.value) || 6.5244;
@@ -419,6 +432,8 @@
             showAlert('success', 'Map is now visible. Click "Draw Polygon" or "Draw Pipe Path" to start.');
         } else {
             mapContainer.style.display = 'none';
+            mapTools.classList.add('d-none');
+            mapTools.classList.remove('d-flex');
             toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Show Map';
             if (map) map.remove();
             mapInitialized = false;

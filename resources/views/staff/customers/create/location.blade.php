@@ -12,49 +12,69 @@
                         <a href="{{ route('staff.customers.index') }}" class="btn btn-secondary">Back to Customers</a>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body px-4 px-lg-17">
                     <!-- Single Alert Container -->
                     <div id="alertContainer"></div>
 
                     <!-- Tab Navigation -->
-                    <ul class="nav nav-stretch nav-pills nav-pills-custom d-flex mt-3">
-                        <li class="nav-item p-0 ms-0 me-8">
-                            <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.personal') }}">
-                                <span class="nav-text fw-semibold fs-4 mb-3">Personal Info</span>
-                                <span class="badge badge-{{ session('customer_creation.personal') ? 'success' : 'warning' }} ms-2">
-                                    {{ session('customer_creation.personal') ? 'Completed' : 'Incomplete' }}
-                                </span>
-                                <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                            </a>
-                        </li>
-                        <li class="nav-item p-0 ms-0 me-8">
-                            <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.address') }}">
-                                <span class="nav-text fw-semibold fs-4 mb-3">Address</span>
-                                <span class="badge badge-{{ session('customer_creation.address') ? 'success' : 'warning' }} ms-2">
-                                    {{ session('customer_creation.address') ? 'Completed' : 'Incomplete' }}
-                                </span>
-                                <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                            </a>
-                        </li>
-                        <li class="nav-item p-0 ms-0 me-8">
-                            <a class="nav-link btn btn-color-muted px-0" href="{{ route('staff.customers.create.billing') }}">
-                                <span class="nav-text fw-semibold fs-4 mb-3">Billing</span>
-                                <span class="badge badge-{{ session('customer_creation.billing') ? 'success' : 'warning' }} ms-2">
-                                    {{ session('customer_creation.billing') ? 'Completed' : 'Incomplete' }}
-                                </span>
-                                <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                            </a>
-                        </li>
-                        <li class="nav-item p-0 ms-0">
-                            <a class="nav-link btn btn-color-muted active px-0" href="{{ route('staff.customers.create.location') }}">
-                                <span class="nav-text fw-semibold fs-4 mb-3">Location</span>
-                                <span class="badge badge-{{ session('customer_creation.location') ? 'success' : 'warning' }} ms-2">
-                                    {{ session('customer_creation.location') ? 'Completed' : 'Incomplete' }}
-                                </span>
-                                <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-0 bg-primary rounded"></span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div id="tab-alert-container"></div>
+                    <div class="d-flex overflow-auto pb-2" id="tab-scroll-container">
+                        <ul class="nav nav-pills nav-pills-custom d-flex mt-3 flex-nowrap text-nowrap gap-1">
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" href="{{ route('staff.customers.create.personal') }}">
+                                    <span class="nav-text fw-semibold fs-4">Personal Info</span>
+                                    <span class="badge badge-{{ session('customer_creation.personal') ? 'success' : 'warning' }} ms-2">
+                                        {{ session('customer_creation.personal') ? 'Completed' : 'Incomplete' }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" href="{{ route('staff.customers.create.address') }}">
+                                    <span class="nav-text fw-semibold fs-4">Address</span>
+                                    <span class="badge badge-{{ session('customer_creation.address') ? 'success' : 'warning' }} ms-2">
+                                        {{ session('customer_creation.address') ? 'Completed' : 'Incomplete' }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-active-light-primary d-flex align-items-center flex-column flex-sm-row px-2 py-2" href="{{ route('staff.customers.create.billing') }}">
+                                    <span class="nav-text fw-semibold fs-4">Billing</span>
+                                    <span class="badge badge-{{ session('customer_creation.billing') ? 'success' : 'warning' }} ms-2">
+                                        {{ session('customer_creation.billing') ? 'Completed' : 'Incomplete' }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-active-light-primary active d-flex align-items-center flex-column flex-sm-row px-2 py-2" href="{{ route('staff.customers.create.location') }}">
+                                    <span class="nav-text fw-semibold fs-4">Location</span>
+                                    <span class="badge badge-{{ session('customer_creation.location') ? 'success' : 'warning' }} ms-2">
+                                        {{ session('customer_creation.location') ? 'Completed' : 'Incomplete' }}
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const activeTab = document.querySelector('.nav-link.active');
+                            if (activeTab) {
+                                activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                            }
+                        });
+
+                        function showTabAlert(message) {
+                            const container = document.getElementById('tab-alert-container');
+                            if (container) {
+                                container.innerHTML = `
+                                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                        ${message}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                `;
+                                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }
+                    </script>
 
                     @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -77,62 +97,71 @@
                         @csrf
                         <div class="row mb-6">
                             <div class="col-md-12 fv-row mb-6">
-                                <button type="button" id="getLocationBtn" class="btn btn-light-primary">
-                                    <i class="ki-duotone ki-geolocation fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Get Current Location
-                                </button>
-                                <button type="button" id="toggleMapBtn" class="btn btn-light-primary ms-2">
-                                    <i class="ki-duotone ki-map fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Show Map
-                                </button>
-                                <button type="button" id="startDrawingPolygonBtn" class="btn btn-light-primary ms-2">
-                                    <i class="ki-duotone ki-pencil fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Draw Polygon
-                                </button>
-                                <button type="button" id="startDrawingPipeBtn" class="btn btn-light-primary ms-2">
-                                    <i class="ki-duotone ki-pencil fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Draw Pipe Path
-                                </button>
-                                <button type="button" id="zoomToLocationBtn" class="btn btn-light-primary ms-2">
-                                    <i class="ki-duotone ki-magnifier fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Zoom to Location
-                                </button>
-                                <button type="button" id="resetPolygonBtn" class="btn btn-light-secondary ms-2">
-                                    <i class="ki-duotone ki-trash fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Reset Polygon
-                                </button>
-                                <button type="button" id="resetPipeBtn" class="btn btn-light-secondary ms-2">
-                                    <i class="ki-duotone ki-trash fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Reset Pipe Path
-                                </button>
-                                <button type="button" id="clearAllBtn" class="btn btn-light-secondary ms-2">
-                                    <i class="ki-duotone ki-trash fs-2 me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Clear All
-                                </button>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button type="button" id="getLocationBtn" class="btn btn-light-primary">
+                                        <i class="ki-duotone ki-geolocation fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Get Current Location
+                                    </button>
+                                    <button type="button" id="toggleMapBtn" class="btn btn-light-primary">
+                                        <i class="ki-duotone ki-map fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Show Map
+                                    </button>
+                                </div>
+                                
+                                <div id="mapTools" class="d-none flex-wrap gap-2">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" id="startDrawingPolygonBtn" class="btn btn-light-primary">
+                                            <i class="ki-duotone ki-pencil fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Draw Polygon
+                                        </button>
+                                        <button type="button" id="startDrawingPipeBtn" class="btn btn-light-primary">
+                                            <i class="ki-duotone ki-pencil fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Draw Pipe Path
+                                        </button>
+                                        <button type="button" id="zoomToLocationBtn" class="btn btn-light-primary">
+                                            <i class="ki-duotone ki-magnifier fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Zoom to Location
+                                        </button>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+                                        <button type="button" id="resetPolygonBtn" class="btn btn-light-secondary">
+                                            <i class="ki-duotone ki-trash fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Reset Polygon
+                                        </button>
+                                        <button type="button" id="resetPipeBtn" class="btn btn-light-secondary">
+                                            <i class="ki-duotone ki-trash fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Reset Pipe Path
+                                        </button>
+                                        <button type="button" id="clearAllBtn" class="btn btn-light-secondary">
+                                            <i class="ki-duotone ki-trash fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Clear All
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-12 fv-row mb-6">
                                 <div id="map" style="height: 400px; border: 1px solid #ddd; border-radius: 4px; display: none;"></div>
@@ -477,10 +506,14 @@
             }
         }
 
+        const mapTools = document.getElementById('mapTools');
+
         toggleMapBtn.addEventListener('click', function () {
             console.log('Toggle Map button clicked');
             if (mapContainer.style.display === 'none') {
                 mapContainer.style.display = 'block';
+                mapTools.classList.remove('d-none');
+                mapTools.classList.add('d-flex');
                 toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Hide Map';
                 if (!mapInitialized) {
                     const lat = parseFloat(latitudeField.value) || 6.5244;
@@ -491,6 +524,8 @@
                 showAlert('success', 'Map is now visible. Click "Draw Polygon" or "Draw Pipe Path" to start.');
             } else {
                 mapContainer.style.display = 'none';
+                mapTools.classList.add('d-none');
+                mapTools.classList.remove('d-flex');
                 toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Show Map';
                 if (map) map.remove();
                 mapInitialized = false;

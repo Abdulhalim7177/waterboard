@@ -1304,7 +1304,7 @@ class CustomerCreationController extends Controller
             }
 
             // Get areas for the selected ward
-            $areaQuery = Area::where('ward_id', $selectedWardId)->where('status', 'approved');
+            $areaQuery = Area::where('ward_id', $selectedWardId);
 
             if (!empty($accessibleAreaIds)) {
                 $areaQuery->whereIn('id', $accessibleAreaIds);

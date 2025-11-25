@@ -289,10 +289,10 @@
                             </th>
                             <th class="min-w-125px">Billing ID</th>
                             <th class="min-w-125px">Name</th>
-                            <th class="min-w-125px">Email</th>
-                            <th class="min-w-125px">Area</th>
+                            <th class="min-w-125px d-none d-md-table-cell">Email</th>
+                            <th class="min-w-125px d-none d-sm-table-cell">Area</th>
                             <th class="min-w-125px">Status</th>
-                            <th class="min-w-125px">Created Date</th>
+                            <th class="min-w-125px d-none d-lg-table-cell">Created Date</th>
                             <th class="text-end min-w-100px">Actions</th>
                         </tr>
                     </thead>
@@ -304,22 +304,26 @@
                                         <input class="form-check-input" type="checkbox" value="{{ $customer->id }}" />
                                     </div>
                                 </td>
-                                <td>{{ $customer->billing_id ?? 'Pending' }}</td>
+                                <td>
+                                    <span class="fw-bold">{{ $customer->billing_id ?? 'Pending' }}</span>
+                                    <div class="d-block d-md-none text-gray-500 fs-7">{{ $customer->email }}</div>
+                                </td>
                                 <td>
                                     <a href="{{ route('staff.customers.show', $customer) }}" class="text-gray-800 text-hover-primary mb-1">
                                         {{ $customer->first_name }} {{ $customer->surname }}
                                     </a>
+                                    <div class="d-block d-sm-none text-gray-500 fs-7">{{ $customer->area ? $customer->area->name : 'N/A' }}</div>
                                 </td>
-                                <td>
+                                <td class="d-none d-md-table-cell">
                                     <a href="#" class="text-gray-600 text-hover-primary mb-1">{{ $customer->email }}</a>
                                 </td>
-                                <td>{{ $customer->area ? $customer->area->name : 'N/A' }}</td>
+                                <td class="d-none d-sm-table-cell">{{ $customer->area ? $customer->area->name : 'N/A' }}</td>
                                 <td>
                                     <div class="badge badge-light-{{ $customer->status == 'approved' ? 'success' : ($customer->status == 'pending' ? 'warning' : 'danger') }}">
                                         {{ ucfirst($customer->status) }}
                                     </div>
                                 </td>
-                                <td>{{ $customer->created_at->format('d M Y, h:i A') }}</td>
+                                <td class="d-none d-lg-table-cell">{{ $customer->created_at->format('d M Y, h:i A') }}</td>
                                 <td class="text-end">
                                     <a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                         Actions
@@ -383,7 +387,7 @@
                                                 </i>
                                             </div>
                                         </div>
-                                        <div class="modal-body">
+                                        <div class="modal-body text-start">
                                             Are you sure you want to delete {{ $customer->first_name }} {{ $customer->surname }} ({{ $customer->billing_id ?? 'Pending' }})? This action cannot be undone.
                                         </div>
                                         <div class="modal-footer">

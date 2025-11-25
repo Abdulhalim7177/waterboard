@@ -4,7 +4,11 @@
       "Bash(php -i)",
       "WebSearch",
       "WebFetch(domain:preview.keenthemes.com)",
-      "WebFetch(domain:keenthemes.com)"
+      "WebFetch(domain:keenthemes.com)",
+      "Bash(npm run build)",
+      "Bash(rm -rf node_modules)",
+      "Bash(npm install)",
+      "Bash(npm cache clean --force)"
     ],
     "deny": [],
     "ask": []

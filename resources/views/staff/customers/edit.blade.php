@@ -471,9 +471,13 @@
                     }
                 }
 
+                const mapTools = document.getElementById('mapTools');
+
                 toggleMapBtn.addEventListener('click', function () {
                     if (mapContainer.style.display === 'none') {
                         mapContainer.style.display = 'block';
+                        mapTools.classList.remove('d-none');
+                        mapTools.classList.add('d-flex');
                         toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Hide Map';
                         if (!mapInitialized) {
                             const lat = parseFloat(latitudeField.value) || 6.5244;
@@ -483,6 +487,8 @@
                         }
                     } else {
                         mapContainer.style.display = 'none';
+                        mapTools.classList.add('d-none');
+                        mapTools.classList.remove('d-flex');
                         toggleMapBtn.innerHTML = '<i class="ki-duotone ki-map fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> Show Map';
                         if (map) map.remove();
                         mapInitialized = false;
