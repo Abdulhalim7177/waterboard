@@ -61,8 +61,12 @@
                                 </select>
                             </div>
                         </form>
-                        <form method="GET" action="{{ route('customer.bills') }}" id="filter-form">
+                        <form method="GET" action="{{ route('customer.bills') }}" id="filter-form" class="mb-4">
                             <div class="row g-5">
+                                <div class="col-md-4">
+                                    <label for="search" class="form-label fw-semibold text-gray-600 fs-7">Search Bills</label>
+                                    <input type="text" name="search" id="search" class="form-control" value="{{ request('search') }}" placeholder="Search billing ID, tariff...">
+                                </div>
                                 <div class="col-md-4">
                                     <label for="start_date" class="form-label fw-semibold text-gray-600 fs-7">Start Date</label>
                                     <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') }}">
@@ -71,7 +75,7 @@
                                     <label for="end_date" class="form-label fw-semibold text-gray-600 fs-7">End Date</label>
                                     <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
                                 </div>
-                                <div class="col-md-4 align-self-end">
+                                <div class="col-md-12 mt-2">
                                     <button type="submit" class="btn btn-primary me-2">Apply Bill Filters</button>
                                     <a href="{{ route('customer.bills') }}" class="btn btn-outline-secondary">Clear Bill Filters</a>
                                 </div>
@@ -95,13 +99,69 @@
                                             <thead class="border-bottom border-gray-200 fs-7 text-uppercase fw-bold">
                                                 <tr class="text-start text-gray-400">
                                                     <th class="w-50px"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-                                                    <th class="min-w-100px">Billing ID</th>
-                                                    <th class="min-w-100px">Tariff</th>
-                                                    <th class="min-w-100px">Amount</th>
-                                                    <th class="min-w-100px">Balance</th>
-                                                    <th class="min-w-100px">Status</th>
-                                                    <th class="min-w-125px">Billing Date</th>
-                                                    <th class="min-w-125px">Due Date</th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'billing_id', 'direction' => request('direction') == 'asc' && request('sort') == 'billing_id' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Billing ID
+                                                            @if(request('sort') == 'billing_id')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'tariff', 'direction' => request('direction') == 'asc' && request('sort') == 'tariff' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Tariff
+                                                            @if(request('sort') == 'tariff')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'amount', 'direction' => request('direction') == 'asc' && request('sort') == 'amount' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Amount
+                                                            @if(request('sort') == 'amount')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'balance', 'direction' => request('direction') == 'asc' && request('sort') == 'balance' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Balance
+                                                            @if(request('sort') == 'balance')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Status
+                                                            @if(request('sort') == 'status')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-125px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'billing_date', 'direction' => request('direction') == 'asc' && request('sort') == 'billing_date' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Billing Date
+                                                            @if(request('sort') == 'billing_date')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-125px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'due_date', 'direction' => request('direction') == 'asc' && request('sort') == 'due_date' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Due Date
+                                                            @if(request('sort') == 'due_date')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
                                                     <th class="w-100px">Action</th>
                                                     <th class="w-100px">Download</th>
                                                 </tr>
@@ -150,13 +210,69 @@
                                         <table class="table align-middle table-row-dashed fs-6 fw-bold gs-0 gy-4 p-0 m-0">
                                             <thead class="border-bottom border-gray-200 fs-7 text-uppercase fw-bold">
                                                 <tr class="text-start text-gray-400">
-                                                    <th class="min-w-100px">Billing ID</th>
-                                                    <th class="min-w-100px">Tariff</th>
-                                                    <th class="min-w-100px">Amount</th>
-                                                    <th class="min-w-100px">Balance</th>
-                                                    <th class="min-w-100px">Status</th>
-                                                    <th class="min-w-125px">Billing Date</th>
-                                                    <th class="min-w-125px">Due Date</th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'billing_id', 'direction' => request('direction') == 'asc' && request('sort') == 'billing_id' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Billing ID
+                                                            @if(request('sort') == 'billing_id')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'tariff', 'direction' => request('direction') == 'asc' && request('sort') == 'tariff' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Tariff
+                                                            @if(request('sort') == 'tariff')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'amount', 'direction' => request('direction') == 'asc' && request('sort') == 'amount' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Amount
+                                                            @if(request('sort') == 'amount')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'balance', 'direction' => request('direction') == 'asc' && request('sort') == 'balance' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Balance
+                                                            @if(request('sort') == 'balance')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-100px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Status
+                                                            @if(request('sort') == 'status')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-125px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'billing_date', 'direction' => request('direction') == 'asc' && request('sort') == 'billing_date' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Billing Date
+                                                            @if(request('sort') == 'billing_date')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
+                                                    <th class="min-w-125px">
+                                                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'due_date', 'direction' => request('direction') == 'asc' && request('sort') == 'due_date' ? 'desc' : 'asc']) }}"
+                                                           class="text-gray-400 text-decoration-none">
+                                                            Due Date
+                                                            @if(request('sort') == 'due_date')
+                                                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                                            @endif
+                                                        </a>
+                                                    </th>
                                                     <th class="w-100px">Download</th>
                                                 </tr>
                                             </thead>
@@ -183,21 +299,29 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="mt-4">
-                            @if ($bills instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                                {{ $bills->links('pagination::bootstrap-5') }}
-                            @elseif ($bills instanceof \Illuminate\Database\Eloquent\Collection)
-                                <nav>
-                                    <ul class="pagination">
-                                        <li class="page-item disabled" aria-disabled="true">
-                                            <span class="page-link">@lang('pagination.previous')</span>
-                                        </li>
-                                        <li class="page-item disabled" aria-disabled="true">
-                                            <span class="page-link">@lang('pagination.next')</span>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            @endif
+                        <div class="mt-4 d-flex flex-wrap justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    Showing {{ $bills->firstItem() ? $bills->firstItem() : 0 }} to {{ $bills->lastItem() ? $bills->lastItem() : 0 }}
+                                    of {{ $bills->total() }} bills
+                                </small>
+                            </div>
+                            <div>
+                                @if ($bills instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                    {{ $bills->links('pagination::bootstrap-5') }}
+                                @elseif ($bills instanceof \Illuminate\Database\Eloquent\Collection)
+                                    <nav>
+                                        <ul class="pagination">
+                                            <li class="page-item disabled" aria-disabled="true">
+                                                <span class="page-link">@lang('pagination.previous')</span>
+                                            </li>
+                                            <li class="page-item disabled" aria-disabled="true">
+                                                <span class="page-link">@lang('pagination.next')</span>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -392,4 +516,5 @@
         }
     });
 </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 @endsection

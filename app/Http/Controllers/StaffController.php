@@ -12,8 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
-use Spatie\LaravelPdf\Facades\Pdf;
 use App\Services\HrmService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class StaffController extends Controller
 {
@@ -211,15 +211,24 @@ class StaffController extends Controller
      */
     public function exportPdf()
     {
+        // Limit the number of staff that can be exported at once to prevent memory issues
+        $maxStaff = 500; // Adjust this number as needed based on server capacity
+
+        $totalStaff = Staff::count();
+        if ($totalStaff > $maxStaff) {
+            return redirect()->route('hr.staff.index')->with('error', "Too many staff records for PDF export ({$totalStaff}). Maximum allowed: {$maxStaff}.");
+        }
+
         $staffs = Staff::all();
-        
-        $pdf = Pdf::view('pdf.staff', compact('staffs'))
-            ->withBrowsershot(function ($browsershot) {
-                $browsershot->setOption('landscape', true);
-            })
-            ->name('staff-list.pdf');
-            
-        return $pdf;
+
+        // Increase memory limit for PDF generation if needed
+        ini_set('memory_limit', '512M');
+
+        $pdf = Pdf::loadView('pdf.staff', compact('staffs'))
+                  ->setPaper('a4', 'landscape')
+                  ->setOption('defaultFont', 'DejaVu Sans');
+
+        return $pdf->download('staff-list.pdf');
     }
 
     /**

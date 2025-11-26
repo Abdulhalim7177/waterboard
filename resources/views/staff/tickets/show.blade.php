@@ -82,23 +82,50 @@
         <form action="{{ route('staff.tickets.assign', $ticket->id) }}" method="POST">
             @csrf
             <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="staff_id" class="form-label">Assign to Staff</label>
-                        <select name="staff_id" id="staff_id" class="form-select">
-                            <option value="">Unassigned</option>
-                            @foreach ($staff as $staffMember)
-                                <option value="{{ $staffMember->id }}" {{ $ticket->staff_id == $staffMember->id ? 'selected' : '' }}>
-                                    {{ $staffMember->full_name }}
-                                </option>
+                @if(auth()->user()->hasRole('super-admin'))
+                    <div class="col-md-3">
+                        <label for="zone_id" class="form-label">Zone</label>
+                        <select name="zone_id" id="zone_id" class="form-select" data-control="select2">
+                            <option value="">Select Zone</option>
+                            @foreach($assignable['zones'] as $zone)
+                                <option value="{{ $zone->id }}" {{ $ticket->zone_id == $zone->id ? 'selected' : '' }}>{{ $zone->name }}</option>
                             @endforeach
                         </select>
                     </div>
+                @endif
+                @if(auth()->user()->hasRole('super-admin') || (auth()->user()->hasRole('manager') && auth()->user()->zone_id))
+                <div class="col-md-3">
+                    <label for="district_id" class="form-label">District</label>
+                    <select name="district_id" id="district_id" class="form-select" data-control="select2">
+                        <option value="">Select District</option>
+                        @foreach($assignable['districts'] as $district)
+                            <option value="{{ $district->id }}" {{ $ticket->district_id == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="col-md-6">
-                    <button type="submit" class="btn btn-primary mt-8">Assign</button>
+                @endif
+                @if(auth()->user()->hasRole('super-admin') || (auth()->user()->hasRole('manager') && (auth()->user()->zone_id || auth()->user()->district_id)))
+                <div class="col-md-3">
+                    <label for="paypoint_id" class="form-label">Paypoint</label>
+                    <select name="paypoint_id" id="paypoint_id" class="form-select" data-control="select2">
+                        <option value="">Select Paypoint</option>
+                        @foreach($assignable['paypoints'] as $paypoint)
+                            <option value="{{ $paypoint->id }}" {{ $ticket->paypoint_id == $paypoint->id ? 'selected' : '' }}>{{ $paypoint->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+                <div class="col-md-3">
+                    <label for="staff_id" class="form-label">Staff</label>
+                    <select name="staff_id" id="staff_id" class="form-select" data-control="select2">
+                        <option value="">Select Staff</option>
+                        @foreach($assignable['staff'] as $staffMember)
+                            <option value="{{ $staffMember->id }}" {{ $ticket->staff_id == $staffMember->id ? 'selected' : '' }}>{{ $staffMember->full_name }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
+            <button type="submit" class="btn btn-primary mt-4">Assign</button>
         </form>
         @endcan
 

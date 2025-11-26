@@ -1,4 +1,5 @@
 <?php
+
 return [
     'driver' => 'browsershot',
     'options' => [

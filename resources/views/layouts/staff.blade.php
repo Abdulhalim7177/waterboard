@@ -12,6 +12,7 @@
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="{{ asset('css/dashboards.css') }}" rel="stylesheet" type="text/css" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
@@ -643,6 +644,7 @@
     <script src="{{ asset('assets/js/custom/apps/chat/chat.js') }}"></script>
     <script src="{{ asset('assets/js/custom/utilities/modals/users-search.js') }}"></script>
     <script src="{{ asset('js/hrm-sync.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
         /* Enhanced responsive styles */
         @media (max-width: 991.98px) {

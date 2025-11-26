@@ -7,47 +7,41 @@
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
+            margin: 20px;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 20px;
         }
-        
+
         .header h1 {
             margin: 0;
             font-size: 18px;
         }
-        
+
         .header p {
             margin: 5px 0;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            font-size: 11px;
         }
-        
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
+
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -60,7 +54,7 @@
         <h1>Staff List</h1>
         <p>Generated on {{ date('F j, Y') }}</p>
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -89,7 +83,7 @@
             @endforeach
         </tbody>
     </table>
-    
+
     <div class="footer">
         <p>Total Staff: {{ $staffs->count() }}</p>
     </div>

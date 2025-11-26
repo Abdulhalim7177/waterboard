@@ -41,28 +41,38 @@ class GlpiService
         return '';
     }
 
-    public function createTicket(string $title, string $content, array $options = [])
+    public function createTicket(string|array $title, string $content = '', array $options = [])
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to create ticket: Could not get valid GLPI session');
+            return null;
         }
 
-        $ticketData = [
-            'name' => $title,
-            'content' => $content,
-        ];
+        if (is_array($title)) {
+            // Handle array format (from staff ticket controller)
+            $ticketData = $title;
+        } else {
+            // Handle string format (from customer ticket controller)
+            $ticketData = [
+                'name' => $title,
+                'content' => $content,
+            ];
 
-        if (isset($options['itilcategories_id'])) {
-            $ticketData['itilcategories_id'] = $options['itilcategories_id'];
+            if (isset($options['itilcategories_id'])) {
+                $ticketData['itilcategories_id'] = $options['itilcategories_id'];
+            }
+
+            if (isset($options['priority'])) {
+                $ticketData['priority'] = $options['priority'];
+            }
+
+            if (isset($options['urgency'])) {
+                $ticketData['urgency'] = $options['urgency'];
+            }
         }
 
-        if (isset($options['priority'])) {
-            $ticketData['priority'] = $options['priority'];
-        }
-
-        if (isset($options['urgency'])) {
-            $ticketData['urgency'] = $options['urgency'];
-        }
+        // Log ticket data being sent to GLPI for debugging
+        logger()->info('Creating ticket in GLPI', ['ticket_data' => $ticketData]);
 
         try {
             $response = $this->client->withHeaders([
@@ -72,15 +82,21 @@ class GlpiService
             ]);
 
             if ($response->successful()) {
-                return $response->json();
+                $result = $response->json();
+                logger()->info('Successfully created ticket in GLPI', ['result' => $result]);
+                return $result;
             } else {
                 logger()->error('Failed to create ticket in GLPI', [
                     'status' => $response->status(),
                     'response' => $response->body(),
+                    'ticket_data' => $ticketData,
                 ]);
             }
         } catch (\Exception $e) {
-            logger()->error('Failed to create ticket in GLPI: ' . $e->getMessage());
+            logger()->error('Failed to create ticket in GLPI: ' . $e->getMessage(), [
+                'ticket_data' => $ticketData,
+                'exception' => $e->getTraceAsString(),
+            ]);
         }
 
         return null;
@@ -88,11 +104,8 @@ class GlpiService
 
     public function getTicket(int $ticketId)
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get ticket: Could not get valid GLPI session');
             return null;
         }
 
@@ -118,11 +131,8 @@ class GlpiService
 
     public function assignTicket(int $ticketId, int $glpiUserId): bool
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to assign ticket: Could not get valid GLPI session');
             return false;
         }
 
@@ -152,11 +162,8 @@ class GlpiService
 
     public function updateTicketStatus(int $ticketId, int $status): bool
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to update ticket status: Could not get valid GLPI session');
             return false;
         }
 
@@ -186,11 +193,8 @@ class GlpiService
 
     public function addFollowup(int $ticketId, string $content): bool
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to add followup: Could not get valid GLPI session');
             return false;
         }
 
@@ -222,11 +226,8 @@ class GlpiService
 
     public function getGlpiUserIdByEmail(string $email): ?int
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get GLPI user ID by email: Could not get valid GLPI session');
             return null;
         }
 
@@ -259,11 +260,8 @@ class GlpiService
 
     public function getFollowups(int $ticketId): array
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get followups: Could not get valid GLPI session');
             return [];
         }
 
@@ -289,11 +287,8 @@ class GlpiService
 
     public function getITILCategories()
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get ITIL categories: Could not get valid GLPI session');
             return [];
         }
 
@@ -301,6 +296,11 @@ class GlpiService
             $response = $this->client->withHeaders([
                 'Session-Token' => $this->sessionToken,
             ])->get('ITILCategory');
+
+            logger()->info('GLPI getITILCategories response', [
+                'status' => $response->status(),
+                'body' => $response->json()
+            ]);
 
             if ($response->successful()) {
                 return $response->json();
@@ -319,11 +319,8 @@ class GlpiService
 
     public function getAllTickets(): array
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get all tickets: Could not get valid GLPI session');
             return [];
         }
 
@@ -345,6 +342,17 @@ class GlpiService
         }
 
         return [];
+    }
+
+    public function getUrgencyMappings(): array
+    {
+        return [
+            1 => 'Very Low',
+            2 => 'Low',
+            3 => 'Medium',
+            4 => 'High',
+            5 => 'Very High',
+        ];
     }
 
     public function getPriorityMappings(): array
@@ -375,11 +383,9 @@ class GlpiService
 
     public function getUser(int $userId): ?array
     {
-        if (!$this->sessionToken) {
-            $this->initSession();
-        }
-
-        if (empty($this->sessionToken)) {
+        // Check if we have a session token and verify it's still valid
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to get user: Could not get valid GLPI session');
             return null;
         }
 
@@ -401,5 +407,73 @@ class GlpiService
         }
 
         return null;
+    }
+
+    public function createUser(array $userData): ?array
+    {
+        if (!$this->ensureValidSession()) {
+            logger()->error('Failed to create user: Could not get valid GLPI session');
+            return null;
+        }
+
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->post('User', [
+                'input' => $userData,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            } else {
+                logger()->error('Failed to create user in GLPI', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                    'user_data' => $userData,
+                ]);
+            }
+        } catch (\Exception $e) {
+            logger()->error("Failed to create user in GLPI: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    private function ensureValidSession(): bool
+    {
+        // If no session token, initialize
+        if (empty($this->sessionToken)) {
+            $this->initSession();
+            return !empty($this->sessionToken);
+        }
+
+        // Test if the current session token is still valid by making a simple API call
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->get('getFullSession');
+
+            if ($response->successful()) {
+                $data = $response->json();
+                // If we get a valid response, the session is still active
+                if (isset($data['session'])) {
+                    return true;
+                }
+            } else {
+                $body = $response->body();
+                // Check if response indicates session is invalid
+                if (strpos($body, 'ERROR_SESSION_TOKEN_INVALID') !== false) {
+                    logger()->info('Session token is invalid, reinitializing');
+                    $this->initSession();
+                    return !empty($this->sessionToken);
+                }
+            }
+        } catch (\Exception $e) {
+            logger()->info('Session validation failed, attempting reinitialization: ' . $e->getMessage());
+            // If validation fails, try to reinitialize the session
+            $this->initSession();
+        }
+
+        return !empty($this->sessionToken);
     }
 }

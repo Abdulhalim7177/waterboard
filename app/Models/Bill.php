@@ -1,10 +1,10 @@
 <?php
 namespace App\Models;
 use App\Traits\Auditable;
-use Spatie\LaravelPdf\Facades\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Bill extends Model
 {
@@ -60,11 +60,8 @@ class Bill extends Model
             throw new \Exception('Cannot generate PDF for unapproved bill');
         }
 
-        return Pdf::view('pdf.bill', ['bill' => $this])
-            ->format('A4')
-            ->withBrowsershot(function ($browsershot) {
-                $browsershot->setOption('dpi', 96)
-                            ->setOption('defaultFont', 'DejaVu Sans');
-            });
+        return Pdf::loadView('pdf.bill', ['bill' => $this])
+                  ->setPaper('a4')
+                  ->setOption('defaultFont', 'DejaVu Sans');
     }
 }

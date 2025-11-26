@@ -21,26 +21,25 @@ class TicketController extends Controller
     public function index()
     {
         $user = auth('staff')->user();
-        
-        // Super Admin can see all tickets
+        $query = Ticket::with('customer', 'staff', 'paypoint', 'zone', 'district');
+
         if ($user->hasRole('super-admin')) {
-            $tickets = Ticket::with('customer', 'staff', 'paypoint')->get();
-        } 
-        // Manager can see tickets within their assigned paypoint
-        elseif ($user->hasRole('manager')) {
-            $tickets = Ticket::where('paypoint_id', $user->paypoint_id)
-                ->with('customer', 'staff', 'paypoint')
-                ->get();
-        } 
-        // Staff can only see tickets assigned to them
-        elseif ($user->hasRole('staff')) {
-            $tickets = Ticket::where('staff_id', $user->id)
-                ->with('customer', 'staff', 'paypoint')
-                ->get();
-        }
-        else {
+            // No additional filtering needed for super-admin
+        } elseif ($user->hasRole('manager')) {
+            if ($user->zone_id) {
+                $query->where('zone_id', $user->zone_id);
+            } elseif ($user->district_id) {
+                $query->where('district_id', $user->district_id);
+            } elseif ($user->paypoint_id) {
+                $query->where('paypoint_id', $user->paypoint_id);
+            }
+        } elseif ($user->hasRole('staff')) {
+            $query->where('staff_id', $user->id);
+        } else {
             abort(403, 'Unauthorized access to tickets');
         }
+
+        $tickets = $query->get();
 
         // Refresh each ticket from GLPI. Note: This can be slow if there are many tickets.
         foreach ($tickets as $ticket) {
@@ -53,11 +52,9 @@ class TicketController extends Controller
     public function show(Ticket $ticket)
     {
         $user = auth()->user();
-        
+
         // Authorize access to this specific ticket
-        if (!Gate::allows('view', $ticket)) {
-            abort(403, 'Unauthorized access to this ticket');
-        }
+        $this->authorize('view', $ticket);
 
         // Refresh ticket data from GLPI
         $this->refreshTicketFromGlpi($ticket);
@@ -65,80 +62,76 @@ class TicketController extends Controller
         // Fetch followups from GLPI
         $followups = $this->glpiService->getFollowups($ticket->glpi_ticket_id);
 
-        // Only load staff and paypoints for users who can assign tickets
-        $staff = collect();
-        $paypoints = collect();
-        
+        // Data for assignment dropdowns
+        $assignable = [
+            'zones' => collect(),
+            'districts' => collect(),
+            'paypoints' => collect(),
+            'staff' => collect(),
+        ];
+
         if (Gate::allows('assign', $ticket)) {
             if ($user->hasRole('super-admin')) {
-                $staff = \App\Models\Staff::all();
-                $paypoints = \App\Models\Paypoint::all();
+                $assignable['zones'] = \App\Models\Zone::all();
+                $assignable['districts'] = \App\Models\District::all();
+                $assignable['paypoints'] = \App\Models\Paypoint::all();
+                $assignable['staff'] = \App\Models\Staff::whereDoesntHave('roles', fn($q) => $q->where('name', 'super-admin'))->get();
             } elseif ($user->hasRole('manager')) {
-                $paypointQuery = \App\Models\Paypoint::query();
-                if ($user->paypoint && $user->paypoint->zone_id) {
-                    $paypointQuery->where('zone_id', $user->paypoint->zone_id);
-                } elseif ($user->paypoint && $user->paypoint->district_id) {
-                    $paypointQuery->where('district_id', $user->paypoint->district_id);
+                if ($user->zone_id) {
+                    $assignable['districts'] = \App\Models\District::where('zone_id', $user->zone_id)->get();
+                    $assignable['paypoints'] = \App\Models\Paypoint::whereIn('district_id', $assignable['districts']->pluck('id'))->get();
+                } elseif ($user->district_id) {
+                    $assignable['paypoints'] = \App\Models\Paypoint::where('district_id', $user->district_id)->get();
                 }
-                $paypointIds = $paypointQuery->pluck('id');
 
-                $staff = \App\Models\Staff::whereIn('paypoint_id', $paypointIds)
-                    ->whereDoesntHave('roles', function ($query) {
-                        $query->where('name', 'super-admin');
-                    })
-                    ->get();
-                
-                // Get paypoints in the manager's area
-                $paypoints = \App\Models\Paypoint::where(function($query) use ($user) {
-                    if ($user->paypoint && $user->paypoint->zone_id) {
-                        $query->where('zone_id', $user->paypoint->zone_id);
-                    } elseif ($user->paypoint && $user->paypoint->district_id) {
-                        $query->where('district_id', $user->paypoint->district_id);
-                    }
-                })->get();
+                if ($user->paypoint_id) {
+                    $assignable['staff'] = \App\Models\Staff::where('paypoint_id', $user->paypoint_id)
+                        ->whereDoesntHave('roles', fn($q) => $q->whereIn('name', ['super-admin', 'manager']))
+                        ->get();
+                }
             }
         }
 
-        return view('staff.tickets.show', compact('ticket', 'staff', 'paypoints', 'followups'));
+        return view('staff.tickets.show', compact('ticket', 'followups', 'assignable'));
     }
 
     public function assign(Request $request, Ticket $ticket)
     {
-        $user = auth()->user();
-        
-        // Authorize assigning this ticket
-        if (!Gate::allows('assign', $ticket)) {
-            abort(403, 'Unauthorized to assign this ticket');
-        }
+        $this->authorize('assign', $ticket);
 
-        $staff = Staff::find($request->staff_id);
-        if (!$staff) {
-            return redirect()->back()->with('error', 'Selected staff not found.');
-        }
-
-        // Manager can only assign to regular staff
-        if ($user->hasRole('manager') && $staff->hasRole('super-admin')) {
-            return redirect()->back()->with('error', 'Managers can only assign tickets to regular staff.');
-        }
-
-
-
-        // Update the local ticket assignment first
-        $ticket->update([
-            'staff_id' => $request->staff_id,
-            'paypoint_id' => $request->paypoint_id ?? $staff->paypoint_id,
+        $request->validate([
+            'zone_id' => 'nullable|exists:zones,id',
+            'district_id' => 'nullable|exists:districts,id',
+            'paypoint_id' => 'nullable|exists:paypoints,id',
+            'staff_id' => 'nullable|exists:staff,id',
         ]);
 
-        // Now update the GLPI system if possible
-        $glpiUserId = $this->glpiService->getGlpiUserIdByEmail($staff->email);
+        $data = [];
+        if ($request->filled('zone_id')) {
+            $data['zone_id'] = $request->zone_id;
+            $data['district_id'] = null;
+            $data['paypoint_id'] = null;
+            $data['staff_id'] = null;
+        } elseif ($request->filled('district_id')) {
+            $data['district_id'] = $request->district_id;
+            $data['paypoint_id'] = null;
+            $data['staff_id'] = null;
+        } elseif ($request->filled('paypoint_id')) {
+            $data['paypoint_id'] = $request->paypoint_id;
+            $data['staff_id'] = null;
+        } elseif ($request->filled('staff_id')) {
+            $data['staff_id'] = $request->staff_id;
+        }
 
-        if ($glpiUserId) {
-            $success = $this->glpiService->assignTicket($ticket->glpi_ticket_id, $glpiUserId);
-            
-            if (!$success) {
-                // If GLPI assignment fails, at least the local assignment was successful
-                return redirect()->route('staff.tickets.show', $ticket->id)
-                    ->with('warning', 'Ticket assigned locally successfully, but GLPI assignment failed.');
+        $ticket->update($data);
+
+        if ($request->filled('staff_id')) {
+            $staff = Staff::find($request->staff_id);
+            if ($staff && $staff->email) {
+                $glpiUserId = $this->glpiService->getGlpiUserIdByEmail($staff->email);
+                if ($glpiUserId) {
+                    $this->glpiService->assignTicket($ticket->glpi_ticket_id, $glpiUserId);
+                }
             }
         }
 
@@ -148,7 +141,7 @@ class TicketController extends Controller
     public function addFollowup(Request $request, Ticket $ticket)
     {
         $user = auth()->user();
-        
+
         // Authorize adding followup to this ticket
         if (!Gate::allows('view', $ticket)) {
             abort(403, 'Unauthorized to add followup to this ticket');
@@ -170,7 +163,7 @@ class TicketController extends Controller
     public function updateStatus(Request $request, Ticket $ticket)
     {
         $user = auth()->user();
-        
+
         // Authorize updating status for this ticket
         if (!Gate::allows('update', $ticket)) {
             abort(403, 'Unauthorized to update status for this ticket');
@@ -197,9 +190,10 @@ class TicketController extends Controller
         }
 
         $customers = \App\Models\Customer::all();
-        $categories = $this->glpiService->getITILCategories();
+        $urgencyMappings = $this->glpiService->getUrgencyMappings();
+        $priorityMappings = $this->glpiService->getPriorityMappings();
 
-        return view('staff.tickets.create', compact('customers', 'categories'));
+        return view('staff.tickets.create', compact('customers', 'urgencyMappings', 'priorityMappings'));
     }
 
     public function store(Request $request)
@@ -212,31 +206,62 @@ class TicketController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category_id' => 'required|integer',
+            'urgency' => 'required|integer',
+            'priority' => 'required|integer',
         ]);
 
         $customer = \App\Models\Customer::find($request->customer_id);
 
+        // Check if customer exists
+        if (!$customer) {
+            logger()->error('Customer not found', ['customer_id' => $request->customer_id]);
+            return redirect()->back()->with('error', 'Customer not found.');
+        }
+
+        // Try to get the GLPI user ID for the customer
+        $glpiUserId = $this->glpiService->getGlpiUserIdByEmail($customer->email);
+        logger()->info('GLPI user lookup result', ['email' => $customer->email, 'glpi_user_id' => $glpiUserId]);
+
         $ticketData = [
             'name' => $request->title,
             'content' => $request->description,
-            'itilcategories_id' => $request->category_id,
-            '_users_id_requester' => $this->glpiService->getGlpiUserIdByEmail($customer->email),
+            'urgency' => $request->urgency,
+            'priority' => $request->priority,
         ];
+
+        // Add requester only if customer exists in GLPI
+        if ($glpiUserId) {
+            $ticketData['_users_id_requester'] = $glpiUserId;
+        } else {
+            // If customer doesn't exist in GLPI, use the staff member who's creating the ticket as the requester
+            // This ensures ticket creation still works even if the customer isn't in GLPI
+            $currentStaff = auth('staff')->user();
+            $staffGlpiUserId = $this->glpiService->getGlpiUserIdByEmail($currentStaff->email);
+            if ($staffGlpiUserId) {
+                $ticketData['_users_id_requester'] = $staffGlpiUserId;
+                logger()->info('Using staff as requester since customer not in GLPI', ['staff_email' => $currentStaff->email, 'staff_glpi_id' => $staffGlpiUserId]);
+            }
+        }
 
         $glpiTicket = $this->glpiService->createTicket($ticketData);
 
+        logger()->info('Ticket creation result', ['glpi_ticket' => $glpiTicket]);
+
         if (!$glpiTicket || !isset($glpiTicket['id'])) {
-            return redirect()->back()->with('error', 'Failed to create ticket in the support system.');
+            return redirect()->back()->with('error', 'Failed to create ticket in the support system. Please check logs for details.');
         }
 
+        // Create the local ticket record linked to the customer (not the staff member creating it)
         $ticket = Ticket::create([
-            'customer_id' => $customer->id,
-            'staff_id' => auth('staff')->id(),
+            'customer_id' => $customer->id,      // The actual customer the ticket is for
+            'staff_id' => auth('staff')->id(),  // The staff member who created it
             'glpi_ticket_id' => $glpiTicket['id'],
             'title' => $request->title,
             'description' => $request->description,
             'status' => $glpiTicket['status'] ?? 1, // Default to 'New'
+            'priority' => $request->priority,
+            'urgency' => $request->urgency,
+            // Add any other relevant fields that might be needed for ticket routing/permissions
         ]);
 
         return redirect()->route('staff.tickets.show', $ticket->id)->with('success', 'Ticket created successfully.');
@@ -244,7 +269,7 @@ class TicketController extends Controller
     public function myTickets()
     {
         $user = auth()->user();
-        
+
         // For my tickets, only show tickets assigned to the current user
         $tickets = Ticket::where('staff_id', $user->id)
                         ->with('customer', 'staff', 'paypoint')
@@ -252,11 +277,11 @@ class TicketController extends Controller
 
         return view('staff.tickets.my-tickets', compact('tickets'));
     }
-    
+
     public function obtainTicket(Ticket $ticket)
     {
         $user = auth()->user();
-        
+
         // Authorize taking ownership of this ticket
         if (!Gate::allows('takeOwnership', $ticket)) {
             abort(403, 'Unauthorized to obtain this ticket');

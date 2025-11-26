@@ -41,7 +41,16 @@ class TicketController extends Controller
             'urgency' => $request->urgency,
         ];
 
+        // Log the ticket creation attempt
+        logger()->info('Creating customer ticket in GLPI', [
+            'title' => $request->title,
+            'description' => $request->description,
+            'options' => $options
+        ]);
+
         $glpiTicket = $this->glpiService->createTicket($request->title, $request->description, $options);
+
+        logger()->info('Customer ticket creation result', ['glpi_ticket' => $glpiTicket]);
 
         if (isset($glpiTicket['id'])) {
             $customer = auth()->user()->load('ward.district');
@@ -58,18 +67,21 @@ class TicketController extends Controller
             Ticket::create([
                 'glpi_ticket_id' => $glpiTicket['id'],
                 'customer_id' => auth()->id(),
+                'staff_id' => null, // Customer-created tickets don't have a staff creator initially
                 'title' => $request->title,
                 'description' => $request->description,
-                'status' => 'open', // You might want to get the status from GLPI
+                'status' => $glpiTicket['status'] ?? 1, // Use GLPI status instead of hardcoded 'open'
                 'priority' => $request->priority,
                 'urgency' => $request->urgency,
                 'paypoint_id' => $paypointId,
+                'zone_id' => $customer?->ward?->district?->zone_id, // Link to zone through customer's location
+                'district_id' => $customer?->ward?->district_id, // Link to district through customer's location
             ]);
 
             return redirect()->route('customer.tickets.index')->with('success', 'Ticket created successfully.');
         }
 
-        return back()->with('error', 'Failed to create ticket in GLPI.');
+        return back()->with('error', 'Failed to create ticket in GLPI. Please check logs for details.');
     }
 
     public function show(Ticket $ticket)

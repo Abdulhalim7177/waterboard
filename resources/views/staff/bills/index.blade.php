@@ -122,6 +122,11 @@
                     <form method="GET" action="{{ route('staff.bills.index') }}" class="d-flex flex-wrap align-items-end gap-4" id="filter-form">
                         <div class="row g-3">
                             <div class="col-md-4">
+                                <label for="search" class="form-label">Search Bills</label>
+                                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                                       class="form-control form-control-solid w-200px" placeholder="Search bills..." />
+                            </div>
+                            <div class="col-md-4">
                                 <label for="start_date" class="form-label">Start Date</label>
                                 <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
                                        class="form-control form-control-solid w-200px" placeholder="Start Date" />
@@ -243,9 +248,9 @@
             <!-- Bills Table -->
             <div class="table-responsive position-relative">
                 <!-- Table Top Bar -->
-                <div class="d-flex justify-content-end mb-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
                     <!-- Column Toggle Dropdown -->
-                    <div>
+                    <div class="mb-2">
                         <a href="#" class="btn btn-light btn-sm btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                             Select Display Columns
                             <i class="ki-duotone ki-down fs-5 ms-1"></i>
@@ -352,22 +357,126 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Pagination Info -->
+                    <div class="mb-2 text-end">
+                        <small class="text-muted">
+                            Showing {{ $bills->firstItem() ? $bills->firstItem() : 0 }} to {{ $bills->lastItem() ? $bills->lastItem() : 0 }}
+                            of {{ $bills->total() }} bills
+                        </small>
+                    </div>
                 </div>
                 <table class="table align-middle table-row-dashed fs-6 gy-3" id="kt_bills_table">
                     <thead>
                         <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                            <th class="min-w-150px" data-column="customer">Customer</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="billing_id">Billing ID</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="amount">Amount</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="due_date">Due Date</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="status">Status</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="balance">Balance</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="approval_status">Approval Status</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="category">Category</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="tariff">Tariff</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="lga">LGA</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="ward">Ward</th>
-                            <th class="text-end pe-3 min-w-100px" data-column="area">Area</th>
+                            <th class="min-w-150px" data-column="customer">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'customer', 'direction' => request('direction') == 'asc' && request('sort') == 'customer' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Customer
+                                    @if(request('sort') == 'customer')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="billing_id">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'billing_id', 'direction' => request('direction') == 'asc' && request('sort') == 'billing_id' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Billing ID
+                                    @if(request('sort') == 'billing_id')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="amount">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'amount', 'direction' => request('direction') == 'asc' && request('sort') == 'amount' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Amount
+                                    @if(request('sort') == 'amount')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="due_date">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'due_date', 'direction' => request('direction') == 'asc' && request('sort') == 'due_date' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Due Date
+                                    @if(request('sort') == 'due_date')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="status">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' && request('sort') == 'status' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Status
+                                    @if(request('sort') == 'status')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="balance">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'balance', 'direction' => request('direction') == 'asc' && request('sort') == 'balance' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Balance
+                                    @if(request('sort') == 'balance')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="approval_status">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'approval_status', 'direction' => request('direction') == 'asc' && request('sort') == 'approval_status' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Approval Status
+                                    @if(request('sort') == 'approval_status')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="category">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'category', 'direction' => request('direction') == 'asc' && request('sort') == 'category' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Category
+                                    @if(request('sort') == 'category')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="tariff">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'tariff', 'direction' => request('direction') == 'asc' && request('sort') == 'tariff' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Tariff
+                                    @if(request('sort') == 'tariff')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="lga">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'lga', 'direction' => request('direction') == 'asc' && request('sort') == 'lga' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    LGA
+                                    @if(request('sort') == 'lga')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="ward">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'ward', 'direction' => request('direction') == 'asc' && request('sort') == 'ward' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Ward
+                                    @if(request('sort') == 'ward')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="text-end pe-3 min-w-100px" data-column="area">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'area', 'direction' => request('direction') == 'asc' && request('sort') == 'area' ? 'desc' : 'asc']) }}"
+                                   class="text-gray-400 text-decoration-none">
+                                    Area
+                                    @if(request('sort') == 'area')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th class="text-end pe-3 min-w-100px" data-column="actions">Actions</th>
                         </tr>
                     </thead>
@@ -536,6 +645,7 @@
             updateColumnVisibility();
         });
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .pagination .page-item.active .page-link {
             background-color: #007bff;
@@ -588,6 +698,12 @@
         .badge-light-warning {
             background-color: #fff3cd;
             color: #ffc107;
+        }
+        .fa-sort-up::before {
+            content: "\f0de";
+        }
+        .fa-sort-down::before {
+            content: "\f0dd";
         }
     </style>
 @endsection

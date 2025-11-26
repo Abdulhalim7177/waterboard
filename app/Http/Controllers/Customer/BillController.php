@@ -2,11 +2,11 @@
 namespace App\Http\Controllers\Customer;
 use App\Models\Bill;
 use App\Models\Payment;
-use Spatie\LaravelPdf\Facades\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BillController extends Controller
 {
@@ -28,7 +28,37 @@ class BillController extends Controller
             $query->whereDate('billing_date', '<=', $endDate);
         }
 
-        $bills = $query->orderBy('billing_date', 'DESC')->paginate(10)->appends($request->query());
+        // Add search functionality
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('billing_id', 'LIKE', "%{$search}%")
+                  ->orWhereHas('tariff', function($q) use ($search) {
+                      $q->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Handle sorting
+        $sortBy = $request->get('sort', 'billing_date'); // Default sort by billing_date
+        $direction = $request->get('direction', 'DESC'); // Default direction
+
+        // Define valid sort columns to prevent SQL injection
+        $validSortColumns = [
+            'billing_id' => 'billing_id',
+            'amount' => 'amount',
+            'due_date' => 'due_date',
+            'status' => 'status',
+            'balance' => 'balance',
+            'billing_date' => 'billing_date',
+            'tariff' => 'tariff_id'
+        ];
+
+        $sortColumn = $validSortColumns[$sortBy] ?? $validSortColumns['billing_date'];
+
+        $query->orderBy($sortColumn, $direction);
+
+        $bills = $query->paginate(10)->appends($request->query());
 
         return view('customer.bills', compact('bills'));
     }
@@ -107,19 +137,24 @@ class BillController extends Controller
         }
 
         try {
-            return Pdf::view('pdf.bill', ['bill' => $bill])
-                ->format('A4')
-                ->withBrowsershot(function ($browsershot) {
-                    $browsershot->setOption('dpi', 96)
-                                ->setOption('defaultFont', 'DejaVu Sans');
-                })
-                ->download('bill_' . $bill->billing_id . '.pdf');
+            // Increase memory limit for PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('pdf.bill', ['bill' => $bill])
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('bill_' . $bill->billing_id . '.pdf');
         } catch (\Exception $e) {
             Log::error('Failed to generate bill PDF', [
                 'bill_id' => $bill->id,
                 'error' => $e->getMessage(),
             ]);
             return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
         }
     }
+
 }

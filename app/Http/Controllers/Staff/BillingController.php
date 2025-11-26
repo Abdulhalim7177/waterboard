@@ -14,7 +14,7 @@ use App\Services\BreadcrumbService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Spatie\LaravelPdf\Facades\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BillingController extends Controller
 {
@@ -69,11 +69,50 @@ class BillingController extends Controller
             $query->where('customers.id', $customerId);
         }
 
+        // Add search functionality
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('bills.billing_id', 'LIKE', "%{$search}%")
+                  ->orWhere('customers.first_name', 'LIKE', "%{$search}%")
+                  ->orWhere('customers.surname', 'LIKE', "%{$search}%")
+                  ->orWhere('customers.email', 'LIKE', "%{$search}%")
+                  ->orWhereRaw('CONCAT(customers.first_name, " ", customers.surname) LIKE ?', ["%{$search}%"])
+                  ->orWhere('bills.billing_id', 'LIKE', "%{$search}%")
+                  ->orWhereRaw('CONCAT(customers.house_number, " ", customers.street_name) LIKE ?', ["%{$search}%"]);
+            });
+        }
+
+        // Handle sorting
+        $sortBy = $request->get('sort', 'created_at'); // Default sort by created_at
+        $direction = $request->get('direction', 'DESC'); // Default direction
+
+        // Define valid sort columns to prevent SQL injection
+        $validSortColumns = [
+            'customer' => 'customers.first_name',
+            'billing_id' => 'bills.billing_id',
+            'amount' => 'bills.amount',
+            'due_date' => 'bills.due_date',
+            'status' => 'bills.status',
+            'balance' => 'bills.balance',
+            'approval_status' => 'bills.approval_status',
+            'category' => 'customers.category_id',
+            'tariff' => 'customers.tariff_id',
+            'lga' => 'customers.lga_id',
+            'ward' => 'customers.ward_id',
+            'area' => 'customers.area_id',
+            'created_at' => 'bills.created_at'
+        ];
+
+        $sortColumn = $validSortColumns[$sortBy] ?? $validSortColumns['created_at'];
+
+        $query->orderBy($sortColumn, $direction);
+
         $perPage = $request->input('per_page', 10);
         if ($perPage == 'all') {
-            $bills = $query->orderBy('bills.created_at', 'DESC')->get();
+            $bills = $query->get();
         } else {
-            $bills = $query->orderBy('bills.created_at', 'DESC')->paginate($perPage)->appends($request->query());
+            $bills = $query->paginate($perPage)->appends($request->query());
         }
 
         $staff = auth()->guard('staff')->user();
@@ -305,32 +344,19 @@ class BillingController extends Controller
         }
     }
 
-    public function downloadPdf(Bill $bill, Request $request)
-    {
-        $guard = $request->user('customer') ? 'customer' : 'staff';
-        $this->authorize('view-bill', Bill::class);
-
-        try {
-            return Pdf::view('pdf.bill', ['bill' => $bill])
-                ->format('A4')
-                ->download('bill_' . $bill->billing_id . '.pdf');
-        } catch (\Exception $e) {
-            Log::error('Failed to generate bill PDF', [
-                'bill_id' => $bill->id,
-                'error' => $e->getMessage(),
-            ]);
-            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
-        }
-    }
 
     public function downloadBulkPdf(Request $request)
     {
         $this->authorize('view-bill', Bill::class);
 
-        $query = Bill::query()->with(['customer', 'customer.tariff', 'customer.category', 'customer.lga', 'customer.ward', 'customer.area'])
+        // Limit the number of bills that can be downloaded at once to prevent memory issues
+        $maxBills = 100; // Adjust this number as needed based on server capacity
+
+        $query = Bill::query()
             ->join('customers', 'bills.customer_id', '=', 'customers.id')
             ->select('bills.*')
-            ->where('bills.approval_status', 'approved');
+            ->where('bills.approval_status', 'approved')
+            ->with(['customer', 'customer.tariff', 'customer.category', 'customer.lga', 'customer.ward', 'customer.area']);
 
         if ($request->filled('start_date')) {
             $query->whereDate('bills.billing_date', '>=', $request->start_date);
@@ -357,6 +383,13 @@ class BillingController extends Controller
             $query->where('customers.id', $customerId);
         }
 
+        // First, get total count to check if it's within the limit
+        $totalBills = $query->count();
+
+        if ($totalBills > $maxBills) {
+            return redirect()->route('staff.bills.index')->with('error', "Too many bills selected for bulk download ({$totalBills}). Maximum allowed: {$maxBills}.");
+        }
+
         $bills = $query->orderBy('bills.created_at', 'DESC')->get();
 
         if ($bills->isEmpty()) {
@@ -364,19 +397,23 @@ class BillingController extends Controller
         }
 
         try {
-            return Pdf::view('pdf.bulk_bills', ['bills' => $bills])
-                ->format('A4')
-                ->withBrowsershot(function ($browsershot) {
-                    $browsershot->setOption('dpi', 96)
-                                ->setOption('defaultFont', 'DejaVu Sans');
-                })
-                ->download('bulk_bills_' . now()->format('YmdHis') . '.pdf');
+            // Increase memory limit for PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('pdf.bulk_bills', ['bills' => $bills])
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('bulk_bills_' . now()->format('YmdHis') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Failed to generate bulk bill PDF', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return redirect()->route('staff.bills.index')->with('error', 'Failed to generate bulk bill PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
         }
     }
 
@@ -464,15 +501,23 @@ class BillingController extends Controller
         ];
 
         try {
-            return Pdf::view('staff.reports.report', $reportData)
-                ->format('A4')
-                ->download('combined_report_' . now()->format('YmdHis') . '.pdf');
+            // Increase memory limit for report PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('staff.reports.report', $reportData)
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('combined_report_' . now()->format('YmdHis') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Failed to generate combined report PDF', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return redirect()->route('staff.bills.index')->with('error', 'Failed to generate combined report PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
         }
     }
 
@@ -555,15 +600,53 @@ class BillingController extends Controller
         ];
 
         try {
-            return Pdf::view('staff.reports.billing-report', $reportData)
-                ->format('A4')
-                ->download('billing_report_' . now()->format('YmdHis') . '.pdf');
+            // Increase memory limit for report PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('staff.reports.billing-report', $reportData)
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('billing_report_' . now()->format('YmdHis') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Failed to generate billing report PDF', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return redirect()->route('staff.bills.index')->with('error', 'Failed to generate billing report PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
+        }
+    }
+
+    public function downloadPdf(Bill $bill, Request $request)
+    {
+        $guard = $request->user('customer') ? 'customer' : 'staff';
+        $this->authorize('view-bill', Bill::class);
+
+        try {
+            if ($bill->approval_status !== 'approved') {
+                return redirect()->back()->with('error', 'Cannot download PDF for unapproved bill');
+            }
+
+            // Increase memory limit for PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('pdf.bill', ['bill' => $bill])
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('bill_' . $bill->billing_id . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Failed to generate bill PDF', [
+                'bill_id' => $bill->id,
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
         }
     }
 
@@ -647,15 +730,24 @@ class BillingController extends Controller
         ];
 
         try {
-            return Pdf::view('staff.reports.payment-report', $reportData)
-                ->format('A4')
-                ->download('payment_report_' . now()->format('YmdHis') . '.pdf');
+            // Increase memory limit for report PDF generation if needed
+            ini_set('memory_limit', '512M');
+
+            $pdf = Pdf::loadView('staff.reports.payment-report', $reportData)
+                      ->setPaper('a4')
+                      ->setOption('defaultFont', 'DejaVu Sans');
+
+            return $pdf->download('payment_report_' . now()->format('YmdHis') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Failed to generate payment report PDF', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return redirect()->route('staff.bills.index')->with('error', 'Failed to generate payment report PDF: ' . $e->getMessage());
+        } finally {
+            // Reset memory limit to original value after PDF generation
+            ini_set('memory_limit', '256M'); // Adjust to your default
         }
     }
+
 }

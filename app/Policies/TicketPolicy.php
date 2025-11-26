@@ -51,22 +51,21 @@ class TicketPolicy
             return true;
         }
         
-        // Manager can view tickets within their assigned paypoint
+        // Manager can view tickets within their assigned hierarchy
         if ($staff->hasRole('manager')) {
-            if ($ticket->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id) {
+            if ($staff->zone_id && $ticket->zone_id == $staff->zone_id) {
+                return true;
+            }
+            if ($staff->district_id && $ticket->district_id == $staff->district_id) {
+                return true;
+            }
+            if ($staff->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id) {
                 return true;
             }
         }
         
         // Staff can only view tickets assigned to them
-        if ($staff->hasRole('staff')) {
-            // Can view if ticket is assigned to them directly
-            if ($ticket->staff_id == $staff->id) {
-                return true;
-            }
-        }
-        
-        return false;
+        return $ticket->staff_id == $staff->id;
     }
 
     /**
@@ -94,17 +93,39 @@ class TicketPolicy
         if ($staff->hasRole('super-admin')) {
             return true;
         }
-        
-        // Manager can update tickets within their assigned paypoint
+
+        // Manager can update tickets within their assigned hierarchy
         if ($staff->hasRole('manager')) {
-            return $ticket->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id;
+            if ($staff->zone_id && $ticket->zone_id == $staff->zone_id) {
+                return true;
+            }
+            if ($staff->district_id && $ticket->district_id == $staff->district_id) {
+                return true;
+            }
+            if ($staff->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id) {
+                return true;
+            }
         }
-        
-        // Staff can update tickets assigned to them
+
+        // Staff can update tickets they can view (assigned to them or in their hierarchy)
         if ($staff->hasRole('staff')) {
-            return $ticket->staff_id == $staff->id;
+            // Staff can update tickets assigned to them
+            if ($ticket->staff_id == $staff->id) {
+                return true;
+            }
+
+            // Staff can update tickets in their assigned area
+            if ($staff->zone_id && $ticket->zone_id == $staff->zone_id) {
+                return true;
+            }
+            if ($staff->district_id && $ticket->district_id == $staff->district_id) {
+                return true;
+            }
+            if ($staff->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id) {
+                return true;
+            }
         }
-        
+
         return false;
     }
 
@@ -122,13 +143,8 @@ class TicketPolicy
             return true;
         }
         
-        // Manager can assign/reassign within their assigned paypoint
+        // Manager can assign/reassign within their assigned hierarchy
         if ($staff->hasRole('manager')) {
-            if ($ticket) {
-                // For a specific ticket, check if it's within their paypoint
-                return $ticket->paypoint_id && $ticket->paypoint_id == $staff->paypoint_id;
-            }
-            // For general assignment capability
             return true;
         }
         

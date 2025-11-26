@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Observers\CustomerObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schedule;
+use Spatie\Browsershot\Browsershot;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Customer::observe(CustomerObserver::class);
         Schedule::command('bills:generate')->monthlyOn(1, '00:00');
+
+        //
     }
 
 }

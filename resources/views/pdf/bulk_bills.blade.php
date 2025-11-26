@@ -4,149 +4,306 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bulk Bills</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @page {
-            size: A4;
             margin: 10mm;
+            size: A4;
         }
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f1f5f9;
         }
         .page {
-            width: 190mm;
-            min-height: 277mm;
+            width: 100%;
+            min-height: 257mm;
             page-break-after: always;
-        }
-        .bill-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5mm; /* 5mm spacing between bills */
-            height: 277mm;
+            position: relative;
         }
         .bill {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-            height: calc(277mm / 3 - 5mm); /* Each bill takes ~1/3 of page height, minus spacing */
-            box-sizing: border-box;
-            overflow: hidden;
+            border: 1px solid #d1d5db;
+            margin-bottom: 5mm;
+            padding: 4mm;
             page-break-inside: avoid;
+            position: relative;
+            min-height: 80mm;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 0.05;
+            z-index: -1;
+            transform: translate(-50%, -50%);
+        }
+
+        .watermark img {
+            height: 50px;
+            width: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3mm;
+        }
+
+        .company-info {
+            text-align: left;
+        }
+
+        .company-info h1 {
+            color: #1e40af;
+            font-size: 12px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .company-info p {
+            margin: 1px 0;
+            font-size: 8px;
+            color: #4b5563;
+        }
+
+        .logo {
+            height: 15px;
+        }
+
+        .separator {
+            border-top: 1px solid #2563eb;
+            margin: 2mm 0;
+        }
+
+        .main-content {
+            display: flex;
+            font-size: 9px;
+        }
+
+        .left-section {
+            flex: 1;
+            padding-right: 2mm;
+        }
+
+        .right-section {
+            width: 35%;
+            background-color: #f1f5f9;
+            border: 1px dashed #94a3b8;
+            padding: 3mm;
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 2mm;
+        }
+
+        .info-item {
+            margin-bottom: 1.5mm;
+        }
+
+        .info-item strong {
+            color: #374151;
+        }
+
+        .status-approved {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-paid {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .receipt-title {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 3mm;
+            text-transform: uppercase;
+        }
+
+        .receipt-detail {
+            margin-bottom: 1.5mm;
+        }
+
+        .receipt-detail strong {
+            color: #374151;
+        }
+
+        .billing-summary {
+            margin-top: 2mm;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5mm;
+            font-size: 9px;
+        }
+
+        .summary-item strong {
+            color: #374151;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3mm;
+            padding-top: 2mm;
+            border-top: 1px solid #d1d5db;
+            font-size: 7px;
+            color: #6b7280;
         }
     </style>
 </head>
 <body>
-    @foreach($bills->chunk(3) as $billChunk)
-        <div class="page">
-            <div class="bill-container">
-                @foreach($billChunk as $bill)
-                    <div class="bill relative">
-                        <!-- Watermark -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                            <img alt="Watermark" src="{{ asset('assets/media/logos/logo.png') }}" class="h-32 opacity-20" />
-                        </div>
+    @foreach($bills as $index => $bill)
+        @if($index % 3 == 0)
+            <div class="page">
+        @endif
 
-                        <div class="p-2 relative z-10">
-                            <!-- Heading and Top Separator -->
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h1 class="text-base font-bold text-blue-800 tracking-wide">Water Board Inc.</h1>
-                                    <p class="text-slate-600 text-[8px]">123 Water Lane</p>
-                                    <p class="text-slate-600 text-[8px]">City, State, Nigeria</p>
+        <div class="bill">
+            <!-- Watermark -->
+            <div class="watermark">
+                <img src="{{ public_path('assets/media/logos/logo.png') }}" alt="Watermark" />
+            </div>
+
+            <!-- Header -->
+            <div class="header">
+                <div class="company-info">
+                    <h1>Water Board Inc.</h1>
+                    <p>123 Water Lane</p>
+                    <p>City, State, Nigeria</p>
+                </div>
+                <img src="{{ public_path('assets/media/logos/logo.png') }}" alt="Logo" class="logo" />
+            </div>
+
+            <div class="separator"></div>
+
+            <!-- Main Content: Horizontal Layout -->
+            <div class="main-content">
+                <!-- Left: Issued To, Description, Payment Details -->
+                <div class="left-section">
+                    <!-- Issued To and Description in table format -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td width="50%" valign="top">
+                                <div class="recipient-info">
+                                    <div class="section-title">Issued To:</div>
+                                    <div class="info-item"><strong>{{ $bill->customer->first_name }} {{ $bill->customer->surname }}</strong></div>
+                                    <div class="info-item">{{ $bill->customer->house_number }} {{ $bill->customer->street_name }}</div>
+                                    <div class="info-item">{{ $bill->customer->area->name ?? 'N/A' }}, {{ $bill->customer->lga->name ?? 'N/A' }}</div>
                                 </div>
-                                <img alt="Logo" src="{{ asset('assets/media/logos/logo.png') }}" class="h-8 me-1" />
-                            </div>
-                            <div class="border-t-2 border-blue-700 my-1"></div>
+                            </td>
 
-                            <!-- Main Content: Horizontal Layout -->
-                            <div class="flex flex-row gap-3 items-start">
-                                <!-- Left: Issued To, Description, Payment Details -->
-                                <div class="flex-1 space-y-1">
-                                    <!-- Issued To and Description side-by-side -->
-                                    <div class="flex gap-3">
-                                        <!-- Issued To -->
-                                        <div>
-                                            <h2 class="text-[9px] font-semibold text-slate-800 mb-0.5">Issued To:</h2>
-                                            <p class="text-slate-900 font-medium text-[8px]">{{ $bill->customer->first_name }} {{ $bill->customer->surname }}</p>
-                                            <p class="text-slate-600 text-[8px]">{{ $bill->customer->house_number }} {{ $bill->customer->street_name }}</p>
-                                            <p class="text-slate-600 text-[8px]">{{ $bill->customer->area->name ?? 'N/A' }}, {{ $bill->customer->lga->name ?? 'N/A' }}</p>
-                                        </div>
-
-                                        <!-- Description -->
-                                        <div>
-                                            <h2 class="text-[9px] font-semibold text-slate-800 mb-0.5">Description</h2>
-                                            <ul class="list-disc list-inside text-slate-700 text-[8px]">
-                                                <li>{{ $bill->tariff->name ?? 'Water Usage' }}</li>
-                                            </ul>
-                                            <div class="mt-0.5 flex gap-1">
-                                                <span class="bg-{{ $bill->approval_status === 'approved' ? 'green-100' : 'yellow-100' }} text-{{ $bill->approval_status === 'approved' ? 'green-700' : 'yellow-700' }} text-[8px] font-medium px-1 py-0.25 rounded-full">
-                                                    {{ ucfirst($bill->approval_status) }}
-                                                </span>
-                                                <span class="bg-{{ $bill->status === 'paid' ? 'green-100' : ($bill->status === 'overdue' ? 'red-100' : 'yellow-100') }} text-{{ $bill->status === 'paid' ? 'green-700' : ($bill->status === 'overdue' ? 'red-700' : 'yellow-700') }} text-[8px] font-medium px-1 py-0.25 rounded-full">
-                                                    {{ ucfirst($bill->status) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Payment Details -->
-                                    <div class="bg-blue-50 bg-opacity-75 border border-blue-200 px-1 py-0.5 rounded-md">
-                                        <h2 class="text-[9px] font-semibold text-blue-800 mb-0.5">Payment Details</h2>
-                                        <p class="text-slate-700 text-[8px]">Payment Method: NABRoll / Account Balance</p>
-                                        <p class="text-slate-700 text-[8px]">Issued By: Water Board Inc.</p>
+                            <td width="50%" valign="top">
+                                <div class="description-info">
+                                    <div class="section-title">Description</div>
+                                    <div class="info-item">{{ $bill->tariff->name ?? 'Water Usage' }}</div>
+                                    <div style="margin-top: 1.5mm;">
+                                        <span class="status-approved">{{ ucfirst($bill->approval_status) }}</span>
+                                        @if($bill->status === 'paid')
+                                            <span class="status-paid">Paid</span>
+                                        @elseif($bill->status === 'overdue')
+                                            <span class="status-overdue">Overdue</span>
+                                        @else
+                                            <span class="status-pending">Pending</span>
+                                        @endif
                                     </div>
                                 </div>
+                            </td>
+                        </tr>
+                    </table>
 
-                                <!-- Right: Receipt Card -->
-                                <div class="w-[30%] bg-slate-100 border border-dashed border-slate-300 p-1 rounded-md shadow-sm">
-                                    <h2 class="text-base font-bold text-blue-700 mb-0.5 text-center tracking-wide">
-                                        {{ $bill->status === 'paid' ? 'WATER BILL RECEIPT' : 'WATER BILL' }}
-                                    </h2>
-                                    <div class="text-[8px] text-slate-700 space-y-0.25 mb-0.5">
-                                        <p><strong>Bill No:</strong> {{ $bill->billing_id }}</p>
-                                        <p><strong>Issue Date:</strong> {{ $bill->billing_date->format('d M Y') }}</p>
-                                        <p><strong>Due Date:</strong> {{ $bill->due_date->format('d M Y') }}
-                                            @if($bill->status === 'overdue')
-                                                <span class="text-red-600 font-semibold">Overdue</span>
-                                            @elseif($bill->due_date->isFuture())
-                                                <span class="text-yellow-600 font-semibold">Due in {{ $bill->due_date->diffInDays(now()) }} days</span>
-                                            @endif
-                                        </p>
-                                    </div>
+                    <!-- Payment Details -->
+                    <div style="background-color: #dbeafe; border: 1px solid #93c5fd; padding: 2mm; margin-top: 2mm;">
+                        <div class="section-title" style="color: #1e40af; font-size: 9px;">Payment Details</div>
+                        <div class="info-item">Payment Method: NABRoll / Account Balance</div>
+                        <div class="info-item">Issued By: Water Board Inc.</div>
+                    </div>
+                </div>
 
-                                    <h3 class="text-[9px] font-semibold text-slate-800 mb-0.5">Billing Summary</h3>
-                                    <div class="text-[8px] text-slate-700 space-y-0.25">
-                                        <p><strong>Rate:</strong> ₦{{ number_format($bill->tariff->rate ?? 0, 2) }}</p>
-                                        <p><strong>Units Used:</strong> {{ $bill->customer->meter_reading ?? 'N/A' }}</p>
-                                        <p><strong>Payment Term:</strong> 30 days</p>
-                                        <p><strong>Subtotal:</strong> ₦{{ number_format($bill->amount, 2) }}</p>
-                                        <p><strong>VAT (0%):</strong> ₦0.00</p>
-                                        <p><strong>Total Due:</strong> ₦{{ number_format($bill->amount, 2) }}</p>
-                                        <p><strong>Balance:</strong> ₦{{ number_format($bill->balance, 2) }}
-                                            <span class="text-{{ $bill->status === 'paid' ? 'green-600' : 'red-600' }} font-semibold">{{ $bill->status === 'paid' ? 'Paid' : 'Unpaid' }}</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Right: Receipt Card -->
+                <div class="right-section">
+                    <div class="receipt-title">
+                        {{ $bill->status === 'paid' ? 'WATER BILL RECEIPT' : 'WATER BILL' }}
+                    </div>
 
-                        <!-- Footer -->
-                        <div class="text-center text-[8px] text-slate-500 py-0.5 border-t border-slate-200 relative z-10">
-                            &copy; {{ date('Y') }} Powered by PayFlow Systems Ltd. All rights reserved.
+                    <div class="receipt-details">
+                        <div class="receipt-detail"><strong>Bill No:</strong> {{ $bill->billing_id }}</div>
+                        <div class="receipt-detail"><strong>Issue Date:</strong> {{ $bill->billing_date->format('d M Y') }}</div>
+                        <div class="receipt-detail">
+                            <strong>Due Date:</strong> {{ $bill->due_date->format('d M Y') }}
+                            @if($bill->status === 'overdue')
+                                <span style="color: #ef4444; font-weight: bold;">Overdue</span>
+                            @elseif($bill->due_date->isFuture())
+                                <span style="color: #f59e0b; font-weight: bold;">Due in {{ $bill->due_date->diffInDays(now()) }} days</span>
+                            @endif
                         </div>
                     </div>
-                @endforeach
-                @if($billChunk->count() < 3)
-                    @for($i = $billChunk->count(); $i < 3; $i++)
-                        <div class="bill" style="visibility: hidden;"></div>
-                    @endfor
-                @endif
+
+                    <div class="billing-summary">
+                        <div class="section-title">Billing Summary</div>
+                        <div class="summary-item"><strong>Rate:</strong> ₦{{ number_format($bill->tariff->rate ?? 0, 2) }}</div>
+                        <div class="summary-item"><strong>Units Used:</strong> {{ $bill->customer->meter_reading ?? 'N/A' }}</div>
+                        <div class="summary-item"><strong>Payment Term:</strong> 30 days</div>
+                        <div class="summary-item"><strong>Subtotal:</strong> ₦{{ number_format($bill->amount, 2) }}</div>
+                        <div class="summary-item"><strong>VAT (0%):</strong> ₦0.00</div>
+                        <div class="summary-item"><strong>Total Due:</strong> ₦{{ number_format($bill->amount, 2) }}</div>
+                        <div class="summary-item">
+                            <strong>Balance:</strong> ₦{{ number_format($bill->balance, 2) }}
+                            <span style="color: {{ $bill->status === 'paid' ? '#16a34a' : '#dc2626' }}; font-weight: bold;">
+                                {{ $bill->status === 'paid' ? 'Paid' : 'Unpaid' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                &copy; {{ date('Y') }} Powered by PayFlow Systems Ltd. All rights reserved.
             </div>
         </div>
+
+        @if(($index + 1) % 3 == 0 || $index + 1 == count($bills))
+            </div> <!-- Close page div -->
+        @endif
     @endforeach
 </body>
 </html>

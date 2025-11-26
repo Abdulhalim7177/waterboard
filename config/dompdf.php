@@ -20,6 +20,9 @@ return [
      */
     'convert_entities' => true,
 
+    'temporary_files_path' => storage_path('framework/cache/dompdf'),
+    'timeout' => 120,
+
     'options' => [
         /**
          * The location of the DOMPDF font directory
@@ -245,7 +248,7 @@ return [
          *
          * @var bool
          */
-        'enable_javascript' => true,
+        'enable_javascript' => false,
 
         /**
          * Enable remote file access
@@ -267,7 +270,7 @@ return [
          *
          * @var bool
          */
-        'enable_remote' => false,
+        'enable_remote' => true,
 
         /**
          * List of allowed remote hosts
@@ -296,6 +299,11 @@ return [
          * @var bool
          */
         'enable_html5_parser' => true,
+
+        /**
+         * Enable font subsetting to reduce PDF file size
+         */
+        'enable_font_subsetting' => true,
     ],
 
 ];
