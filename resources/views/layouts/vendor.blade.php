@@ -71,9 +71,6 @@
                                         <span class="bullet bullet-dot bg-success me-1"></span>online
                                     </div>
                                     <div class="d-flex flex-column mt-2">
-                                        <div class="menu-item px-0 my-1">
-                                            <a href="#" class="menu-link px-3 py-1 fs-9">Account Settings</a>
-                                        </div>
                                         <div class="menu-item px-0">
                                             <form action="{{ route('vendor.logout') }}" method="POST">
                                                 @csrf
@@ -134,7 +131,7 @@
                             </div>
                             
                             <div class="menu-item">
-                                <a class="menu-link" href="#">
+                                <a class="menu-link" href="{{ route('vendor.profile') }}">
                                     <span class="menu-icon">
                                         <i class="ki-duotone ki-profile-user fs-2">
                                             <span class="path1"></span>
@@ -339,96 +336,321 @@
             .aside-minimize {
                 display: none !important;
             }
-            
+
             .header-brand .fs-2 {
-                font-size: 1.5rem !important;
+                font-size: 1.25rem !important;
             }
-            
+
             .page-title h1 {
-                font-size: 1.5rem !important;
+                font-size: 1.25rem !important;
+                margin-bottom: 0.25rem !important;
             }
-            
+
             .breadcrumb {
-                font-size: 0.8rem !important;
+                font-size: 0.75rem !important;
+                margin-bottom: 0 !important;
             }
-            
+
             .aside-user-info {
-                margin-left: 0.75rem !important;
+                margin-left: 0.5rem !important;
             }
-            
+
             .toolbar .container-xxl {
-                padding-left: 1rem;
-                padding-right: 1rem;
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .header {
+                padding: 0.5rem 0 !important;
+            }
+
+            .content {
+                padding-top: 1rem !important;
             }
         }
-        
+
+        @media (max-width: 768px) {
+            .page-title {
+                text-align: center !important;
+                margin-bottom: 1rem !important;
+                me-5: 0 !important;
+            }
+
+            .toolbar {
+                justify-content: center !important;
+            }
+
+            .toolbar .container-xxl {
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+        }
+
         @media (max-width: 575.98px) {
             .header-brand img {
-                height: 30px !important;
+                height: 28px !important;
             }
-            
+
             .aside-user .symbol {
-                width: 40px !important;
-                height: 40px !important;
+                width: 36px !important;
+                height: 36px !important;
             }
-            
+
             .menu-title {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
-            
+
+            .menu-icon {
+                font-size: 1.25rem !important;
+            }
+
             .footer .container-fluid {
                 flex-direction: column !important;
                 text-align: center;
+                gap: 1rem;
             }
-            
+
             .footer .menu {
-                margin-top: 1rem;
+                margin-top: 0.5rem;
+                justify-content: center;
+            }
+
+            .aside-user {
+                padding: 0.5rem 0.75rem !important;
+            }
+
+            .aside-user-info .fw-bold {
+                font-size: 0.9rem !important;
+            }
+
+            .aside-user-info .text-muted {
+                font-size: 0.8rem !important;
             }
         }
-        
-        /* Menu hover effects */
-        .menu-link:hover {
-            background-color: rgba(var(--bs-primary-rgb), 0.1);
-            border-radius: 0.475rem;
-            transition: all 0.2s ease;
+
+        /* Modern menu hover effects */
+        .menu-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.5rem;
+            margin: 0.25rem 0.5rem;
         }
-        
+
+        .menu-link:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.08);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-link.active {
+            background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.15), rgba(var(--bs-primary-rgb), 0.05));
+            border-left: 3px solid rgba(var(--bs-primary-rgb), 0.8);
+        }
+
         /* Improved scrollbar for aside menu */
         .hover-scroll-overlay-y::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-track {
             background: transparent;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
+            background: rgba(var(--bs-primary-rgb), 0.3);
+            border-radius: 8px;
         }
-        
+
         .hover-scroll-overlay-y::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.3);
+            background: rgba(var(--bs-primary-rgb), 0.5);
         }
-        
+
         /* Mobile profile section improvements */
         @media (max-width: 991.98px) {
             .aside-user .symbol-50px,
             .aside-user .text-success {
                 display: none !important;
             }
-            
+
             .aside-user {
-                padding: 0.75rem 1rem !important;
+                padding: 0.5rem 0.75rem !important;
                 align-items: center !important;
+                border-bottom: 1px solid rgba(0,0,0,0.08);
             }
-            
+
             .aside-user-info {
                 margin-left: 0 !important;
             }
-            
+
             .aside-user-info .d-flex {
                 align-items: flex-start !important;
+            }
+
+            .aside-user-info .menu-link {
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
+        /* Card hover effects */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: all 0.2s ease;
+            border-radius: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Table responsive improvements */
+        .table-responsive {
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Form improvements */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: rgba(var(--bs-primary-rgb), 0.5);
+            box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
+        }
+
+        /* Alert improvements */
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            .table-responsive {
+                border-radius: 0.75rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                font-size: 0.875rem;
+            }
+
+            .table th, .table td {
+                padding: 0.75rem 0.5rem;
+                vertical-align: middle;
+            }
+
+            .badge {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.65rem;
+            }
+
+            .btn-sm {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .form-control, .form-select {
+                font-size: 0.875rem;
+                padding: 0.75rem;
+            }
+
+            .input-group-text {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+
+            .table th, .table td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.75rem;
+            }
+
+            .fs-3x {
+                font-size: 2rem !important;
+            }
+
+            .symbol-45px, .symbol-50px {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .card-header {
+                padding: 1rem 0.75rem !important;
+            }
+
+            .card-body {
+                padding: 1rem 0.75rem !important;
+            }
+
+            .card-footer {
+                padding: 0.75rem !important;
+            }
+
+            .g-4 > * {
+                margin-bottom: 1rem !important;
+            }
+        }
+
+        /* Custom gradient backgrounds for cards */
+        .bg-gradient-start {
+            background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.05), rgba(var(--bs-primary-rgb), 0.02));
+        }
+
+        .bg-gradient-end {
+            background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.05), rgba(var(--bs-success-rgb), 0.02));
+        }
+
+        .bg-gradient-middle {
+            background: linear-gradient(135deg, rgba(var(--bs-info-rgb), 0.05), rgba(var(--bs-info-rgb), 0.02));
+        }
+
+        /* Space utility for customer info */
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
+
+        /* Improved filter collapse animation */
+        .rotate-180 {
+            transform: rotate(180deg);
+            transition: transform 0.3s ease;
+        }
+
+        .collapse.show + .rotate-180 {
+            transform: rotate(0deg);
+        }
+
+        /* Better mobile table overflow */
+        @media (max-width: 768px) {
+            .table-responsive::-webkit-scrollbar {
+                height: 6px;
+            }
+
+            .table-responsive::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            .table-responsive::-webkit-scrollbar-thumb {
+                background: rgba(var(--bs-primary-rgb), 0.5);
+                border-radius: 10px;
+            }
+
+            .table-responsive::-webkit-scrollbar-thumb:hover {
+                background: rgba(var(--bs-primary-rgb), 0.7);
             }
         }
     </style>

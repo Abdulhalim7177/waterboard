@@ -31,10 +31,10 @@ class CustomerCreationController extends Controller
 
         $staff = auth()->guard('staff')->user();
         $accessibleWardIds = $staff->getAccessibleWardIds();
-        
+
         // Stats should also be filtered by accessible wards if applicable
         $baseQuery = empty($accessibleWardIds) ? Customer::query() : Customer::whereIn('ward_id', $accessibleWardIds);
-        
+
         $stats = [
             'total' => $baseQuery->count(),
             'pending' => $baseQuery->where('status', 'pending')->count(),
@@ -50,13 +50,13 @@ class CustomerCreationController extends Controller
         })->when($request->status_filter, function ($query, $status) {
             return $query->where('status', $status);
         });
-        
+
         // If staff has restricted access based on paypoint, filter by accessible wards
         if (!empty($accessibleWardIds)) {
             $customersQuery->whereIn('ward_id', $accessibleWardIds);
         }
         $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
-        
+
         $customersQuery = Customer::when($request->search_customer, function ($query, $search) {
             return $query->where('first_name', 'like', "%{$search}%")
                         ->orWhere('surname', 'like', "%{$search}%")
@@ -65,12 +65,12 @@ class CustomerCreationController extends Controller
         })->when($request->status_filter, function ($query, $status) {
             return $query->where('status', $status);
         });
-        
+
         // If staff has restricted access based on paypoint, filter by accessible wards
         if (!empty($accessibleWardIds)) {
             $customersQuery->whereIn('ward_id', $accessibleWardIds);
         }
-        
+
         $perPage = $request->input('per_page', 10);
         if ($perPage == 'all') {
             $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->get();
@@ -259,7 +259,7 @@ class CustomerCreationController extends Controller
                 'area' => $request->input('area_filter'),
                 'category' => $request->input('category_filter'),
                 'tariff' => $request->input('tariff_filter'),
-                'search' => $request->input('search_customer'), 
+                'search' => $request->input('search_customer'),
             ];
 
             $format = $request->input('format', 'csv');
@@ -356,7 +356,7 @@ class CustomerCreationController extends Controller
                 $lgaQuery = Lga::where('status', 'approved');
                 $wardQuery = Ward::where('status', 'approved');
                 $areaQuery = Area::where('status', 'approved');
-                
+
                 if (!empty($accessibleLgaIds)) {
                     $lgaQuery->whereIn('id', $accessibleLgaIds);
                 }
@@ -366,7 +366,7 @@ class CustomerCreationController extends Controller
                 if (!empty($accessibleAreaIds)) {
                     $areaQuery->whereIn('id', $accessibleAreaIds);
                 }
-                
+
                 $lgas = $lgaQuery->get();
                 $wards = $wardQuery->get();
                 $areas = $areaQuery->get();
@@ -521,7 +521,7 @@ class CustomerCreationController extends Controller
         $lgaQuery = Lga::where('status', 'approved');
         $wardQuery = Ward::where('status', 'approved');
         $areaQuery = Area::where('status', 'approved');
-        
+
         if (!empty($accessibleLgaIds)) {
             $lgaQuery->whereIn('id', $accessibleLgaIds);
         }
@@ -531,7 +531,7 @@ class CustomerCreationController extends Controller
         if (!empty($accessibleAreaIds)) {
             $areaQuery->whereIn('id', $accessibleAreaIds);
         }
-        
+
         $lgas = $lgaQuery->get();
         $wards = $wardQuery->get();
         $areas = $areaQuery->get();
@@ -578,7 +578,7 @@ class CustomerCreationController extends Controller
             $lgaQuery = Lga::where('status', 'approved');
             $wardQuery = Ward::where('status', 'approved');
             $areaQuery = Area::where('status', 'approved');
-            
+
             if (!empty($accessibleLgaIds)) {
                 $lgaQuery->whereIn('id', $accessibleLgaIds);
             }
@@ -588,7 +588,7 @@ class CustomerCreationController extends Controller
             if (!empty($accessibleAreaIds)) {
                 $areaQuery->whereIn('id', $accessibleAreaIds);
             }
-            
+
             $lgas = $lgaQuery->get();
             $wards = $wardQuery->get();
             $areas = $areaQuery->get();
@@ -703,7 +703,7 @@ class CustomerCreationController extends Controller
         }
     }
 
-    
+
 
     public function filterTariffsForCreate(Request $request)
     {
@@ -906,7 +906,7 @@ class CustomerCreationController extends Controller
             $lgaQuery = Lga::where('status', 'approved');
             $wardQuery = Ward::where('status', 'approved');
             $areaQuery = Area::where('status', 'approved');
-            
+
             if (!empty($accessibleLgaIds)) {
                 $lgaQuery->whereIn('id', $accessibleLgaIds);
             }
@@ -916,7 +916,7 @@ class CustomerCreationController extends Controller
             if (!empty($accessibleAreaIds)) {
                 $areaQuery->whereIn('id', $accessibleAreaIds);
             }
-            
+
             $lgas = $lgaQuery->get();
             $wards = $wardQuery->get();
             $areas = $areaQuery->get();
@@ -1162,39 +1162,39 @@ class CustomerCreationController extends Controller
             ]);
 
             $customer = Customer::findOrFail($request->customer_id);
-            
+
             // Check if the staff can access this customer
             $staff = auth()->guard('staff')->user();
             $accessibleWardIds = $staff->getAccessibleWardIds();
-            
+
             if (!empty($accessibleWardIds) && !in_array($customer->ward_id, $accessibleWardIds)) {
                 return response()->json(['error' => 'You are not authorized to edit this customer.'], 403);
             }
-            
+
             $selectedLgaId = $request->lga_id;
-            
+
             // Check if the selected LGA is accessible to the staff
             $accessibleLgaIds = $staff->getAccessibleLgaIds();
             $lgaQuery = Lga::where('status', 'approved');
-            
+
             if (!empty($accessibleLgaIds)) {
                 $lgaQuery->whereIn('id', $accessibleLgaIds);
             }
-            
+
             $lgas = $lgaQuery->get();
-            
+
             // Check if the selectedLgaId is accessible
             if (!empty($accessibleLgaIds) && !in_array($selectedLgaId, $accessibleLgaIds)) {
                 return response()->json(['error' => 'You are not authorized to access this LGA.'], 403);
             }
-            
+
             // Get wards for the selected LGA
             $wardQuery = Ward::where('lga_id', $selectedLgaId)->where('status', 'approved');
-            
+
             if (!empty($accessibleWardIds)) {
                 $wardQuery->whereIn('id', $accessibleWardIds);
             }
-            
+
             $wards = $wardQuery->get();
             $areas = collect();
             $selectedWardId = null;
@@ -1210,7 +1210,7 @@ class CustomerCreationController extends Controller
         }
     }
 
-   
+
     public function filterAreas(Request $request)
     {
         try {
@@ -1357,9 +1357,11 @@ class CustomerCreationController extends Controller
             }
 
             $customer->update([$field => $newValue]);
-            $update->update(['status' => 'approved']);
 
-            Log::info('Pending update approved', ['customer_id' => $customer->id, 'field' => $field, 'staff_id' => Auth::guard('staff')->id()]);
+            // Delete the pending update record after applying the changes
+            $update->delete();
+
+            Log::info('Pending update approved and removed', ['customer_id' => $customer->id, 'field' => $field, 'staff_id' => Auth::guard('staff')->id()]);
             return redirect()->route('staff.customers.pending')->with('success', 'Update approved successfully.');
         } catch (AuthorizationException $e) {
             Log::warning('Unauthorized attempt to approve update', ['user_id' => Auth::guard('staff')->id(), 'update_id' => $update->id]);
@@ -1374,10 +1376,22 @@ class CustomerCreationController extends Controller
     {
         try {
             $this->authorize('reject-customer', Customer::class);
-            $update->update(['status' => 'rejected']);
+            $customer = $update->customer;
+            $field = $update->field;
+            $oldValue = $update->old_value;
 
-            Log::info('Pending update rejected', ['update_id' => $update->id, 'staff_id' => Auth::guard('staff')->id()]);
-            return redirect()->route('staff.customers.pending')->with('success', 'Update rejected.');
+            // Restore the old value to the customer record
+            if (in_array($field, ['polygon_coordinates', 'pipe_path']) && $oldValue) {
+                $oldValue = json_decode($oldValue, true);
+            }
+
+            $customer->update([$field => $oldValue]);
+
+            // Delete the pending update record after restoring the old value
+            $update->delete();
+
+            Log::info('Pending update rejected and old value restored', ['customer_id' => $customer->id, 'field' => $field, 'staff_id' => Auth::guard('staff')->id()]);
+            return redirect()->route('staff.customers.pending')->with('success', 'Update rejected and old value restored.');
         } catch (AuthorizationException $e) {
             Log::warning('Unauthorized attempt to reject pending update', ['user_id' => Auth::guard('staff')->id(), 'update_id' => $update->id]);
             return redirect()->route('staff.dashboard')->with('error', 'You are not authorized to reject updates.');
@@ -1551,7 +1565,7 @@ class CustomerCreationController extends Controller
                     if (!$area) {
                         return ['error' => ['area_id' => 'Selected area does not belong to the chosen ward.']];
                     }
-                    
+
                     return null;
                 },
             ],

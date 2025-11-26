@@ -5,70 +5,118 @@
 @section('breadcrumb', 'Dashboard')
 
 @section('content')
-<!--begin::Row-->
-<div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-    <!--begin::Col-->
-    <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
-        <div class="card card-flush h-md-50 mb-5 mb-xl-10">
-            <div class="card-header pt-5">
-                <div class="card-title d-flex flex-column">
-                    <div class="d-flex align-items-center">
-                        <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">₦{{ number_format(Auth::guard('vendor')->user()->account_balance, 2) }}</span>
+<!--begin::Row - Dashboard Stats-->
+<div class="row g-4 g-xl-8 mb-6 mb-xl-8">
+    <!--begin::Col - Account Balance Card-->
+    <div class="col-12 col-sm-6 col-lg-6 col-xl-4 col-xxl-4 mb-4 mb-xl-6">
+        <div class="card card-flush h-100 bg-gradient-start">
+            <div class="card-header border-0 pt-6 pb-4">
+                <div class="card-title">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="symbol symbol-50px symbol-light-primary me-4">
+                                <span class="symbol-label">
+                                    <i class="ki-duotone ki-wallet fs-2 text-primary">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fs-3x fw-bold text-gray-800 d-block">₦{{ number_format(Auth::guard('vendor')->user()->account_balance, 2) }}</span>
+                            <span class="text-gray-500 fw-semibold fs-6">Available Balance</span>
+                        </div>
                     </div>
-                    <span class="text-gray-400 pt-1 fw-semibold fs-6">Account Balance</span>
                 </div>
             </div>
-            <div class="card-body pt-2 pb-4 d-flex flex-wrap align-items-center">
-                <div class="d-flex flex-center me-5 pt-2">
-                    <div id="kt_card_widget_17_chart" style="min-width: 70px; min-height: 70px" data-kt-size="70" data-kt-line="11"></div>
-                </div>
-                <div class="d-flex flex-column content-justify-center flex-row-fluid">
-                    <div class="d-flex fw-semibold align-items-center">
-                        <div class="bullet w-8px h-3px rounded-2 bg-success me-3"></div>
-                        <div class="text-gray-500 flex-grow-1 me-4">Available funds</div>
-                    </div>
-                    <div class="d-flex fw-semibold align-items-center my-3">
-                        <div class="bullet w-8px h-3px rounded-2 bg-primary me-3"></div>
-                        <div class="text-gray-500 flex-grow-1 me-4">For customer payments</div>
-                    </div>
+            <div class="card-body pt-0">
+                <div class="d-flex align-items-center">
+                    <div class="bullet w-8px h-3px rounded-2 bg-success me-3"></div>
+                    <div class="text-gray-600 fs-7">Ready for transactions</div>
                 </div>
             </div>
         </div>
     </div>
     <!--end::Col-->
-    
-    <!--begin::Col-->
-    <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
-        <div class="card card-flush h-md-50 mb-5 mb-xl-10">
-            <div class="card-header pt-5">
-                <div class="card-title d-flex flex-column">
-                    <div class="d-flex align-items-center">
-                        <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">Actions</span>
+
+    <!--begin::Col - Quick Actions Card-->
+    <div class="col-12 col-sm-6 col-lg-6 col-xl-4 col-xxl-4 mb-4 mb-xl-6">
+        <div class="card card-flush h-100 bg-gradient-end">
+            <div class="card-header border-0 pt-6 pb-4">
+                <div class="card-title">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="symbol symbol-50px symbol-light-success me-4">
+                                <span class="symbol-label">
+                                    <i class="ki-duotone ki-abstract-23 fs-2 text-success">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fs-3x fw-bold text-gray-800 d-block">Actions</span>
+                            <span class="text-gray-500 fw-semibold fs-6">Quick Tasks</span>
+                        </div>
                     </div>
-                    <span class="text-gray-400 pt-1 fw-semibold fs-6">Manage Account</span>
                 </div>
             </div>
-            <div class="card-body pt-2 pb-4 d-flex flex-wrap align-items-center">
-                <div class="d-flex flex-center me-5 pt-2">
-                    <div id="kt_card_widget_18_chart" style="min-width: 70px; min-height: 70px" data-kt-size="70" data-kt-line="11"></div>
+            <div class="card-body pt-0">
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary btn-sm w-100" id="showFundAccountBtn">
+                        <i class="ki-duotone ki-plus-circle fs-4 me-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Fund Account
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm w-100" id="showPaymentBtn">
+                        <i class="ki-duotone ki-dollar fs-4 me-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                        Make Payment
+                    </button>
                 </div>
-                <div class="d-flex flex-column content-justify-center flex-row-fluid">
-                    <div class="d-flex fw-semibold align-items-center">
-                        <div class="bullet w-8px h-3px rounded-2 bg-success me-3"></div>
-                        <div class="text-gray-500 flex-grow-1 me-4">
-                            <button type="button" class="btn btn-primary" id="showFundAccountBtn">
-                                Fund Account
-                            </button>
+            </div>
+        </div>
+    </div>
+    <!--end::Col-->
+
+    <!--begin::Col - Status Card-->
+    <div class="col-12 col-sm-12 col-lg-12 col-xl-4 col-xxl-4 mb-4 mb-xl-6">
+        <div class="card card-flush h-100 bg-gradient-middle">
+            <div class="card-header border-0 pt-6 pb-4">
+                <div class="card-title">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="symbol symbol-50px symbol-light-info me-4">
+                                <span class="symbol-label">
+                                    <i class="ki-duotone ki-clipboard-check fs-2 text-info">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                        <span class="path4"></span>
+                                    </i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fs-3x fw-bold text-gray-800 d-block">Active</span>
+                            <span class="text-gray-500 fw-semibold fs-6">Account Status</span>
                         </div>
                     </div>
-                    <div class="d-flex fw-semibold align-items-center my-3">
-                        <div class="bullet w-8px h-3px rounded-2 bg-primary me-3"></div>
-                        <div class="text-gray-500 flex-grow-1 me-4">
-                            <button type="button" class="btn btn-success" id="showPaymentBtn">
-                                Make Payment
-                            </button>
-                        </div>
-                    </div>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                <div class="d-flex align-items-center">
+                    <div class="bullet w-8px h-3px rounded-2 bg-info me-3"></div>
+                    <div class="text-gray-600 fs-7">Fully operational</div>
                 </div>
             </div>
         </div>
@@ -76,57 +124,118 @@
     <!--end::Col-->
 </div>
 <!--end::Row-->
+<!--end::Row-->
 
-<!--begin::Row-->
-<div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-    <div class="col-xxl-12">
+<!--begin::Row - Alerts Section-->
+<div class="row g-4 mb-6">
+    <div class="col-12">
         <!-- Alerts for messages -->
         @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="ki-duotone ki-information-5 fs-2 me-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <div class="flex-grow-1">
+                    <strong>Error!</strong> Please review the following:
+                    <ul class="mb-0 mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="ki-duotone ki-check-circle fs-2 me-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                </i>
+                <div class="flex-grow-1">
+                    {{ session('success') }}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if (session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="ki-duotone ki-cross-circle fs-2 me-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                </i>
+                <div class="flex-grow-1">
+                    {{ session('error') }}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
     </div>
 </div>
 <!--end::Row-->
+<!--end::Row-->
 
 <!-- Fund Account Form (Hidden by default) -->
-<div class="row g-5 g-xl-10 mb-5 mb-xl-10" id="fundAccountSection" style="display: none;">
-    <div class="col-xxl-12">
-        <div class="card card-xxl-stretch mb-5 mb-xl-10">
-            <div class="card-header border-0 pt-5">
-                <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold fs-3 mb-1">Fund Account</span>
-                    <span class="text-muted mt-1 fw-semibold fs-7">Add funds to your vendor account</span>
-                </h3>
+<div class="row g-4 mb-6" id="fundAccountSection" style="display: none;">
+    <div class="col-12">
+        <div class="card card-flush border border-primary border-dashed">
+            <div class="card-header bg-light-primary border-0 py-4">
+                <div class="card-title d-flex align-items-center">
+                    <div class="symbol symbol-40px bg-primary me-3">
+                        <span class="symbol-label">
+                            <i class="ki-duotone ki-wallet text-white fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="card-label fw-bold fs-4 text-dark">Fund Account</span>
+                        <div class="text-muted fw-semibold fs-7">Add funds to your vendor account</div>
+                    </div>
+                </div>
                 <div class="card-toolbar">
-                    <button type="button" class="btn btn-sm btn-light" id="hideFundAccountBtn">Hide</button>
+                    <button type="button" class="btn btn-sm btn-light-danger" id="hideFundAccountBtn">
+                        <i class="ki-duotone ki-cross fs-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Close
+                    </button>
                 </div>
             </div>
-            <div class="card-body py-3">
-                <form method="POST" action="{{ route('vendor.payments.fund') }}">
+            <div class="card-body py-6">
+                <form method="POST" action="{{ route('vendor.payments.fund') }}" class="form">
                     @csrf
-                    <div class="form-group mb-5">
-                        <label class="form-label">Amount to Fund</label>
-                        <input type="number" name="amount" class="form-control" step="0.01" min="0.01" placeholder="Enter amount" required>
+                    <div class="row">
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="fv-row mb-6">
+                                <label class="form-label fw-semibold fs-6">Amount to Fund</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₦</span>
+                                    <input type="number" name="amount" class="form-control form-control-solid" step="0.01" min="0.01" placeholder="0.00" required>
+                                </div>
+                                <div class="form-text">Enter amount to add to your account</div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Fund Account</button>
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <button type="submit" class="btn btn-primary flex-fill flex-sm-grow-0">
+                            <i class="ki-duotone ki-plus-circle fs-3 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Fund Account
+                        </button>
+                        <button type="button" class="btn btn-light" id="hideFundAccountBtn2">
+                            Cancel
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -134,46 +243,113 @@
 </div>
 
 <!-- Make Payment Form (Hidden by default) -->
-<div class="row g-5 g-xl-10 mb-5 mb-xl-10" id="paymentSection" style="display: none;">
-    <div class="col-xxl-12">
-        <div class="card card-xxl-stretch mb-5 mb-xl-10">
-            <div class="card-header border-0 pt-5">
-                <h3 class="card-title align-items-start flex-column">
-                    <span class="card-label fw-bold fs-3 mb-1">Process Payment</span>
-                    <span class="text-muted mt-1 fw-semibold fs-7">Make payment for customer using billing ID</span>
-                </h3>
+<div class="row g-4 mb-6" id="paymentSection" style="display: none;">
+    <div class="col-12">
+        <div class="card card-flush border border-success border-dashed">
+            <div class="card-header bg-light-success border-0 py-4">
+                <div class="card-title d-flex align-items-center">
+                    <div class="symbol symbol-40px bg-success me-3">
+                        <span class="symbol-label">
+                            <i class="ki-duotone ki-dollar text-white fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="card-label fw-bold fs-4 text-dark">Process Payment</span>
+                        <div class="text-muted fw-semibold fs-7">Make payment for customer using billing ID</div>
+                    </div>
+                </div>
                 <div class="card-toolbar">
-                    <button type="button" class="btn btn-sm btn-light" id="hidePaymentBtn">Hide</button>
+                    <button type="button" class="btn btn-sm btn-light-danger" id="hidePaymentBtn">
+                        <i class="ki-duotone ki-cross fs-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Close
+                    </button>
                 </div>
             </div>
-            <div class="card-body py-3">
+            <div class="card-body py-6">
                 <div class="row">
-                    <div class="col-lg-6">
-                        <form method="POST" action="{{ route('vendor.payments.initiate') }}" id="paymentForm">
+                    <div class="col-12 col-lg-7">
+                        <form method="POST" action="{{ route('vendor.payments.initiate') }}" id="paymentForm" class="form">
                             @csrf
-                            <div class="form-group mb-5">
-                                <label class="form-label">Customer Billing ID</label>
-                                <input type="text" name="billing_id" id="billing_id" class="form-control" placeholder="Enter billing ID" value="{{ old('billing_id') }}" required>
-                                <div class="form-text">Enter the customer's billing ID to verify their details</div>
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <div class="fv-row">
+                                        <label class="form-label fw-semibold fs-6">Customer Billing ID</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="ki-duotone ki-identification fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                            </span>
+                                            <input type="text" name="billing_id" id="billing_id" class="form-control form-control-solid" placeholder="Enter billing ID" value="{{ old('billing_id') }}" required>
+                                        </div>
+                                        <div class="form-text">Enter the customer's billing ID to verify their details</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="fv-row">
+                                        <label class="form-label fw-semibold fs-6">Amount</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₦</span>
+                                            <input type="number" name="amount" class="form-control form-control-solid" step="0.01" min="0.01" placeholder="0.00" value="{{ old('amount') }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="fv-row">
+                                        <label class="form-label fw-semibold fs-6">Payment Method</label>
+                                        <select name="payment_type" class="form-select form-select-solid" required>
+                                            <option value="">Select Method</option>
+                                            <option value="online" {{ old('payment_type') == 'online' ? 'selected' : '' }}>
+                                                <i class="ki-duotone ki-credit-card"></i> Pay Online (NABRoll)
+                                            </option>
+                                            <option value="account" {{ old('payment_type') == 'account' ? 'selected' : '' }}>
+                                                <i class="ki-duotone ki-wallet"></i> Pay from Account Balance
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group mb-5">
-                                <label class="form-label">Amount</label>
-                                <input type="number" name="amount" class="form-control" step="0.01" min="0.01" placeholder="Enter amount" value="{{ old('amount') }}" required>
+                            <div class="d-flex flex-column flex-sm-row gap-3 mt-6">
+                                <button type="submit" class="btn btn-success flex-fill flex-sm-grow-0">
+                                    <i class="ki-duotone ki-credit-card fs-3 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    Process Payment
+                                </button>
+                                <button type="button" class="btn btn-light" id="hidePaymentBtn2">
+                                    Cancel
+                                </button>
                             </div>
-                            <div class="form-group mb-5">
-                                <label class="form-label">Payment Method</label>
-                                <select name="payment_type" class="form-select" required>
-                                    <option value="">Select Payment Method</option>
-                                    <option value="online" {{ old('payment_type') == 'online' ? 'selected' : '' }}>Pay Online (NABRoll)</option>
-                                    <option value="account" {{ old('payment_type') == 'account' ? 'selected' : '' }}>Pay from Account Balance</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Process Payment</button>
                         </form>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="bg-light rounded p-5" id="customerInfoSection" style="display: none;">
-                            <h4>Customer Information</h4>
+                    <div class="col-12 col-lg-5 mt-4 mt-lg-0">
+                        <div class="bg-light-primary rounded p-4 p-lg-6" id="customerInfoSection" style="display: none;">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="symbol symbol-40px bg-primary me-3">
+                                    <span class="symbol-label">
+                                        <i class="ki-duotone ki-user text-white fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h4 class="mb-0">Customer Information</h4>
+                                    <div class="text-muted fs-7">Verified details will appear here</div>
+                                </div>
+                            </div>
                             <div id="customerInfoContent">
                                 <!-- Customer info will be loaded here -->
                             </div>
@@ -191,24 +367,54 @@
     // Show/hide fund account section
     document.getElementById('showFundAccountBtn').addEventListener('click', function() {
         document.getElementById('fundAccountSection').style.display = 'block';
-        // Scroll to the section
-        document.getElementById('fundAccountSection').scrollIntoView({behavior: 'smooth'});
+        // Scroll to the section with offset for mobile
+        const element = document.getElementById('fundAccountSection');
+        const offset = 80; // Header offset
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
     });
-    
+
+    // Hide fund account section (both buttons)
     document.getElementById('hideFundAccountBtn').addEventListener('click', function() {
         document.getElementById('fundAccountSection').style.display = 'none';
     });
-    
+
+    if (document.getElementById('hideFundAccountBtn2')) {
+        document.getElementById('hideFundAccountBtn2').addEventListener('click', function() {
+            document.getElementById('fundAccountSection').style.display = 'none';
+        });
+    }
+
     // Show/hide payment section
     document.getElementById('showPaymentBtn').addEventListener('click', function() {
         document.getElementById('paymentSection').style.display = 'block';
-        // Scroll to the section
-        document.getElementById('paymentSection').scrollIntoView({behavior: 'smooth'});
+        // Scroll to the section with offset for mobile
+        const element = document.getElementById('paymentSection');
+        const offset = 80; // Header offset
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
     });
-    
+
+    // Hide payment section (both buttons)
     document.getElementById('hidePaymentBtn').addEventListener('click', function() {
         document.getElementById('paymentSection').style.display = 'none';
     });
+
+    if (document.getElementById('hidePaymentBtn2')) {
+        document.getElementById('hidePaymentBtn2').addEventListener('click', function() {
+            document.getElementById('paymentSection').style.display = 'none';
+        });
+    }
     
     // Fetch customer information when billing ID is entered
     document.getElementById('billing_id').addEventListener('blur', function() {
@@ -241,23 +447,53 @@
                 .then(data => {
                     if (data.success) {
                         customerInfoContent.innerHTML = `
-                            <table class="table table-borderless table-sm">
-                                <tr>
-                                    <td><strong>Name:</strong></td>
-                                    <td>${data.data.first_name} ${data.data.surname}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tariff:</strong></td>
-                                    <td>${data.data.tariff}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Category:</strong></td>
-                                    <td>${data.data.category}</td>
-                                </tr>
-                            </table>
+                            <div class="space-y-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-user fs-3 text-primary me-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <div>
+                                        <div class="text-muted fs-8">Customer Name</div>
+                                        <div class="fw-bold fs-6">${data.data.first_name} ${data.data.surname}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-abstract-26 fs-3 text-info me-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <div>
+                                        <div class="text-muted fs-8">Tariff Plan</div>
+                                        <div class="fw-bold fs-6">${data.data.tariff}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="ki-duotone ki-category fs-3 text-success me-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <div>
+                                        <div class="text-muted fs-8">Category</div>
+                                        <div class="fw-bold fs-6">${data.data.category}</div>
+                                    </div>
+                                </div>
+                            </div>
                         `;
                     } else {
-                        customerInfoContent.innerHTML = `<div class="alert alert-warning">${data.message || 'Customer not found'}</div>`;
+                        customerInfoContent.innerHTML = `
+                            <div class="alert alert-warning d-flex align-items-center">
+                                <i class="ki-duotone ki-information-5 fs-3 me-3">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>
+                                <div>${data.message || 'Customer not found'}</div>
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {

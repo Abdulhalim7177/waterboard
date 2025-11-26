@@ -253,6 +253,7 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::resource('reservoirs', ReservoirController::class);
 
     Route::get('/account/overview', [AccountController::class, 'overview'])->name('account.overview');
+    Route::post('/account/change-password', [AccountController::class, 'changePassword'])->name('account.change-password');
     Route::post('/logout', [LoginController::class, 'staffLogout'])->name('logout');
     Route::get('/audits', [StaffController::class, 'auditTrail'])->name('audits.index');
     Route::get('approvals', [\App\Http\Controllers\Staff\ApprovalsController::class, 'index'])->name('approvals.index');
@@ -277,6 +278,7 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
     Route::get('/profile', [CustomerController::class, 'profile'])->name('customer.profile');
     Route::put('/profile', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
+    Route::post('/password', [CustomerController::class, 'changePassword'])->name('customer.password.change');
 
 
 
@@ -305,6 +307,9 @@ Route::prefix('vendor')->middleware(['auth:vendor', 'restrict.login'])->group(fu
     Route::get('/payments/callback', [VendorPaymentController::class, 'callback'])->name('vendor.payments.callback');
     Route::get('/payments', [VendorPaymentController::class, 'index'])->name('vendor.payments.index');
     Route::get('/payments/funding', [VendorPaymentController::class, 'fundingHistory'])->name('vendor.payments.funding');
+    Route::get('/profile', [VendorController::class, 'profile'])->name('vendor.profile');
+    Route::put('/profile', [VendorController::class, 'updateProfile'])->name('vendor.profile.update');
+    Route::post('/password', [VendorController::class, 'changePassword'])->name('vendor.password.change');
     Route::post('/logout', [LoginController::class, 'vendorLogout'])->name('vendor.logout');
 });
 

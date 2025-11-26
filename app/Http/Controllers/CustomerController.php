@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -42,15 +44,37 @@ class CustomerController extends Controller
     {
         $customer = Auth::guard('customer')->user();
         $validated = $request->validate([
-            'first_name' => 'required',
-            'surname' => 'required',
             'email' => 'required|email|unique:customers,email,' . $customer->id,
-            'phone_number' => 'required|unique:customers,phone_number,' . $customer->id,
-            'alternate_phone_number' => 'nullable',
         ]);
 
         $customer->update($validated);
-        return redirect()->route('customer.profile')->with('success', 'Profile updated');
+        return redirect()->route('customer.profile')->with('success', 'Email updated successfully.');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $request->validate([
+            'current_password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($customer) {
+                    if (!Hash::check($value, $customer->password)) {
+                        $fail('The provided password does not match your current password.');
+                    }
+                },
+            ],
+            'new_password' => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->numbers(),
+            ],
+        ]);
+
+        $customer->password = Hash::make($request->new_password);
+        $customer->save();
+
+        return redirect()->route('customer.profile')->with('success', 'Your password has been changed successfully.');
     }
 
     public function bills(Request $request)

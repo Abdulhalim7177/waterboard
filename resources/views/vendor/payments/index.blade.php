@@ -6,44 +6,83 @@
 
 @section('content')
 <!--begin::Card-->
-<div class="card card-xxl-stretch mb-5">
-    <div class="card-header border-0 pt-5">
-        <h3 class="card-title align-items-start flex-column">
-            <span class="card-label fw-bold fs-3 mb-1">Payment History</span>
-            <span class="text-muted mt-1 fw-semibold fs-7">View all payments processed through your vendor account</span>
-        </h3>
+<div class="card card-flush mb-5">
+    <div class="card-header border-0 pt-6">
+        <div class="card-title">
+            <div class="d-flex align-items-center">
+                <div class="symbol symbol-45px symbol-light-primary me-4">
+                    <span class="symbol-label">
+                        <i class="ki-duotone ki-clipboard-text fs-2 text-primary">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                            <span class="path4"></span>
+                        </i>
+                    </span>
+                </div>
+                <div>
+                    <span class="card-label fw-bold fs-3 text-dark">Payment History</span>
+                    <div class="text-muted fw-semibold fs-7">View all payments processed through your vendor account</div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="card-body py-3">
         <!--begin::Filter Form-->
-        <form method="GET" action="{{ route('vendor.payments.index') }}" class="mb-7">
+        <form method="GET" action="{{ route('vendor.payments.index') }}" class="mb-6">
             <div class="card card-flush border rounded mb-5">
-                <div class="card-header cursor-pointer py-5" data-bs-toggle="collapse" data-bs-target="#filter_collapse">
-                    <h3 class="card-title fw-bold">Filters</h3>
-                    <div class="card-toolbar">
-                        <span class="btn btn-sm btn-icon btn-light-dark">
-                            <i class="ki-duotone ki-down fs-1"></i>
-                        </span>
+                <div class="card-header cursor-pointer py-4" data-bs-toggle="collapse" data-bs-target="#filter_collapse">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h3 class="card-title fw-bold d-flex align-items-center">
+                            <i class="ki-duotone ki-filter fs-3 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            Filters
+                        </h3>
+                        <div class="card-toolbar">
+                            <span class="btn btn-sm btn-icon btn-light-dark rotate-180" id="filterToggleIcon">
+                                <i class="ki-duotone ki-down fs-1"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div id="filter_collapse" class="collapse">
+                <div id="filter_collapse" class="collapse show">
                     <div class="card-body pt-0">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Start Date</label>
-                                    <input type="date" class="form-control" name="start_date" value="{{ request('start_date') }}" />
+                        <div class="row g-4">
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">Start Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="ki-duotone ki-calendar fs-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </span>
+                                        <input type="date" class="form-control form-control-solid" name="start_date" value="{{ request('start_date') }}" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">End Date</label>
-                                    <input type="date" class="form-control" name="end_date" value="{{ request('end_date') }}" />
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">End Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="ki-duotone ki-calendar fs-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </span>
+                                        <input type="date" class="form-control form-control-solid" name="end_date" value="{{ request('end_date') }}" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Customer Name</label>
-                                    <select name="customer_id" class="form-select" data-control="select2" data-placeholder="Select customer">
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">Customer Name</label>
+                                    <select name="customer_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Select customer">
                                         <option value=""></option>
                                         @foreach($customers as $customer)
                                             <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -53,10 +92,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Payment Status</label>
-                                    <select name="status" class="form-select">
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">Payment Status</label>
+                                    <select name="status" class="form-select form-select-solid">
                                         <option value="">All Statuses</option>
                                         <option value="SUCCESSFUL" {{ request('status') == 'SUCCESSFUL' ? 'selected' : '' }}>Successful</option>
                                         <option value="FAILED" {{ request('status') == 'FAILED' ? 'selected' : '' }}>Failed</option>
@@ -64,25 +103,42 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Minimum Payment Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="min_amount" placeholder="0.00" value="{{ request('min_amount') }}" />
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">Min Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₦</span>
+                                        <input type="number" step="0.01" class="form-control form-control-solid" name="min_amount" placeholder="0.00" value="{{ request('min_amount') }}" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="fv-row mb-5">
-                                    <label class="fs-6 fw-semibold mb-2">Maximum Payment Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="max_amount" placeholder="0.00" value="{{ request('max_amount') }}" />
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="fv-row">
+                                    <label class="form-label fw-semibold fs-6">Max Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₦</span>
+                                        <input type="number" step="0.01" class="form-control form-control-solid" name="max_amount" placeholder="0.00" value="{{ request('max_amount') }}" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-end py-6 px-9">
-                        <a href="{{ route('vendor.payments.index') }}" class="btn btn-light me-3">Reset</a>
-                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <div class="card-footer d-flex justify-content-end py-4 px-6">
+                        <a href="{{ route('vendor.payments.index') }}" class="btn btn-light me-3">
+                            <i class="ki-duotone ki-refresh fs-3 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Reset
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ki-duotone ki-filter fs-3 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            Apply Filters
+                        </button>
                     </div>
                 </div>
             </div>

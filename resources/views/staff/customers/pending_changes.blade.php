@@ -93,20 +93,12 @@
                                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
                                             <!--begin::Menu item-->
                                             <div class="menu-item px-3">
-                                                <a href="#" class="menu-link px-3" onclick="event.preventDefault(); document.getElementById('approve-update-{{ $update->id }}').submit();">Approve</a>
-                                                <form id="approve-update-{{ $update->id }}" action="{{ route('staff.customers.pending.approve', $update->id) }}" method="POST" style="display: none;">
-                                                    @csrf
-                                                    @method('POST')
-                                                </form>
+                                                <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#approveModal{{ $update->id }}">Approve</a>
                                             </div>
                                             <!--end::Menu item-->
                                             <!--begin::Menu item-->
                                             <div class="menu-item px-3">
-                                                <a href="#" class="menu-link px-3" onclick="event.preventDefault(); if(confirm('Are you sure you want to reject this update?')) document.getElementById('reject-update-{{ $update->id }}').submit();">Reject</a>
-                                                <form id="reject-update-{{ $update->id }}" action="{{ route('staff.customers.pending.reject', $update->id) }}" method="POST" style="display: none;">
-                                                    @csrf
-                                                    @method('PUT')
-                                                </form>
+                                                <a href="#" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $update->id }}">Reject</a>
                                             </div>
                                             <!--end::Menu item-->
                                         </div>
@@ -124,5 +116,65 @@
         <!--end::Card body-->
     </div>
     <!--end::Card-->
+
+    <!--begin::Modals for Reject Confirmation-->
+    @foreach ($pendingUpdates as $update)
+    <div class="modal fade" id="rejectModal{{ $update->id }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ $update->id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel{{ $update->id }}">Confirm Rejection</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to reject this update?</p>
+                    <p><strong>Customer:</strong> {{ $update->customer->first_name }} {{ $update->customer->surname }}</p>
+                    <p><strong>Field:</strong> {{ $update->field }}</p>
+                    <p><strong>Old Value:</strong> {{ $update->old_value ?? 'N/A' }}</p>
+                    <p><strong>New Value:</strong> {{ $update->new_value }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="reject-update-{{ $update->id }}" action="{{ route('staff.customers.pending.reject', $update->id) }}" method="POST" style="display: inline;">
+                        @csrf
+                        @method('POST') <!-- Changed from PUT to POST -->
+                        <button type="submit" class="btn btn-danger">Reject Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    <!--end::Modals for Reject Confirmation-->
+
+    <!--begin::Modals for Approve Confirmation-->
+    @foreach ($pendingUpdates as $update)
+    <div class="modal fade" id="approveModal{{ $update->id }}" tabindex="-1" aria-labelledby="approveModalLabel{{ $update->id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approveModalLabel{{ $update->id }}">Confirm Approval</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to approve this update?</p>
+                    <p><strong>Customer:</strong> {{ $update->customer->first_name }} {{ $update->customer->surname }}</p>
+                    <p><strong>Field:</strong> {{ $update->field }}</p>
+                    <p><strong>Old Value:</strong> {{ $update->old_value ?? 'N/A' }}</p>
+                    <p><strong>New Value:</strong> {{ $update->new_value }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="approve-update-{{ $update->id }}" action="{{ route('staff.customers.pending.approve', $update->id) }}" method="POST" style="display: inline;">
+                        @csrf
+                        @method('POST')
+                        <button type="submit" class="btn btn-success">Approve Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    <!--end::Modals for Approve Confirmation-->
 </div>
 @endsection

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Models\Bill;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class VendorController extends Controller
 {
@@ -19,6 +21,49 @@ class VendorController extends Controller
     {
         $vendor = Auth::guard('vendor')->user();
         return view('vendor.dashboard', compact('vendor'));
+    }
+
+    public function profile()
+    {
+        $vendor = Auth::guard('vendor')->user();
+        return view('vendor.profile', compact('vendor'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $vendor = Auth::guard('vendor')->user();
+        $validated = $request->validate([
+            'email' => 'required|email|unique:vendors,email,' . $vendor->id,
+        ]);
+
+        $vendor->update($validated);
+        return redirect()->route('vendor.profile')->with('success', 'Email updated successfully.');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $vendor = Auth::guard('vendor')->user();
+
+        $request->validate([
+            'current_password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($vendor) {
+                    if (!Hash::check($value, $vendor->password)) {
+                        $fail('The provided password does not match your current password.');
+                    }
+                },
+            ],
+            'new_password' => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->numbers(),
+            ],
+        ]);
+
+        $vendor->password = Hash::make($request->new_password);
+        $vendor->save();
+
+        return redirect()->route('vendor.profile')->with('success', 'Your password has been changed successfully.');
     }
 
     public function getCustomerInfo($billingId)
