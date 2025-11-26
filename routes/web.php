@@ -28,6 +28,7 @@ Route::get('/', function () {
 
 Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 'restrict.login'])->group(function () {
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard/reporting', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard.reporting');
 
     // Analytics Routes
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
@@ -236,6 +237,8 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     // Ticket Management
     Route::get('tickets', [\App\Http\Controllers\Staff\TicketController::class, 'index'])->name('tickets.index');
+    Route::get('tickets/create', [\App\Http\Controllers\Staff\TicketController::class, 'create'])->name('tickets.create');
+    Route::post('tickets', [\App\Http\Controllers\Staff\TicketController::class, 'store'])->name('tickets.store');
     Route::get('tickets/my-tickets', [\App\Http\Controllers\Staff\TicketController::class, 'myTickets'])->name('tickets.my-tickets');
     Route::get('tickets/{ticket}', [\App\Http\Controllers\Staff\TicketController::class, 'show'])->name('tickets.show');
     Route::post('tickets/{ticket}/assign', [\App\Http\Controllers\Staff\TicketController::class, 'assign'])->name('tickets.assign');
@@ -317,8 +320,6 @@ Route::get('/display-customers', function () {
     $customers = \App\Models\Customer::all();
     return view('display-customers', ['customers' => $customers]);
 });
-
-
 
 Route::get('customer/login', [LoginController::class, 'showCustomerLoginForm'])->name('customer.login')->middleware('restrict.login');
 Route::post('customer/login', [LoginController::class, 'customerLogin'])->name('customer.login.submit')->middleware('restrict.login');

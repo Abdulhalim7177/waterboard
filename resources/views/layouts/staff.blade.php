@@ -267,6 +267,14 @@
                                             <span class="menu-title">All Tickets</span>
                                         </a>
                                     </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link" href="{{ route('staff.dashboard.reporting') }}">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot"></span>
+                                            </span>
+                                            <span class="menu-title">Reports</span>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             @endcan

@@ -62,6 +62,9 @@ class TicketController extends Controller
         // Refresh ticket data from GLPI
         $this->refreshTicketFromGlpi($ticket);
 
+        // Fetch followups from GLPI
+        $followups = $this->glpiService->getFollowups($ticket->glpi_ticket_id);
+
         // Only load staff and paypoints for users who can assign tickets
         $staff = collect();
         $paypoints = collect();
@@ -96,7 +99,7 @@ class TicketController extends Controller
             }
         }
 
-        return view('staff.tickets.show', compact('ticket', 'staff', 'paypoints'));
+        return view('staff.tickets.show', compact('ticket', 'staff', 'paypoints', 'followups'));
     }
 
     public function assign(Request $request, Ticket $ticket)
@@ -187,6 +190,57 @@ class TicketController extends Controller
         return redirect()->back()->with('error', 'Failed to update ticket status in the support system.');
     }
 
+    public function create()
+    {
+        if (!Gate::allows('create', Ticket::class)) {
+            abort(403, 'Unauthorized to create a ticket');
+        }
+
+        $customers = \App\Models\Customer::all();
+        $categories = $this->glpiService->getITILCategories();
+
+        return view('staff.tickets.create', compact('customers', 'categories'));
+    }
+
+    public function store(Request $request)
+    {
+        if (!Gate::allows('create', Ticket::class)) {
+            abort(403, 'Unauthorized to create a ticket');
+        }
+
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|integer',
+        ]);
+
+        $customer = \App\Models\Customer::find($request->customer_id);
+
+        $ticketData = [
+            'name' => $request->title,
+            'content' => $request->description,
+            'itilcategories_id' => $request->category_id,
+            '_users_id_requester' => $this->glpiService->getGlpiUserIdByEmail($customer->email),
+        ];
+
+        $glpiTicket = $this->glpiService->createTicket($ticketData);
+
+        if (!$glpiTicket || !isset($glpiTicket['id'])) {
+            return redirect()->back()->with('error', 'Failed to create ticket in the support system.');
+        }
+
+        $ticket = Ticket::create([
+            'customer_id' => $customer->id,
+            'staff_id' => auth('staff')->id(),
+            'glpi_ticket_id' => $glpiTicket['id'],
+            'title' => $request->title,
+            'description' => $request->description,
+            'status' => $glpiTicket['status'] ?? 1, // Default to 'New'
+        ]);
+
+        return redirect()->route('staff.tickets.show', $ticket->id)->with('success', 'Ticket created successfully.');
+    }
     public function myTickets()
     {
         $user = auth()->user();
@@ -220,8 +274,16 @@ class TicketController extends Controller
     {
         $glpiTicket = $this->glpiService->getTicket($ticket->glpi_ticket_id);
 
-        if ($glpiTicket && isset($glpiTicket['status'])) {
-            $ticket->update(['status' => $glpiTicket['status']]);
+        if ($glpiTicket) {
+            $ticket->glpiTicket = (object)$glpiTicket;
+            if (isset($glpiTicket['status'])) {
+                $ticket->update(['status' => $glpiTicket['status']]);
+            }
+
+            // Fetch assigned user details
+            if (!empty($glpiTicket['_users_id_assign'])) {
+                $ticket->glpiTicket->assigned_user = $this->glpiService->getUser($glpiTicket['_users_id_assign']);
+            }
         }
     }
 }

@@ -286,4 +286,120 @@ class GlpiService
 
         return [];
     }
+
+    public function getITILCategories()
+    {
+        if (!$this->sessionToken) {
+            $this->initSession();
+        }
+
+        if (empty($this->sessionToken)) {
+            return [];
+        }
+
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->get('ITILCategory');
+
+            if ($response->successful()) {
+                return $response->json();
+            } else {
+                logger()->error('Failed to get ITIL categories from GLPI', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            logger()->error("Failed to get ITIL categories from GLPI: " . $e->getMessage());
+        }
+
+        return [];
+    }
+
+    public function getAllTickets(): array
+    {
+        if (!$this->sessionToken) {
+            $this->initSession();
+        }
+
+        if (empty($this->sessionToken)) {
+            return [];
+        }
+
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->get('Ticket');
+
+            if ($response->successful()) {
+                return $response->json();
+            } else {
+                logger()->error('Failed to get all tickets from GLPI', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            logger()->error("Failed to get all tickets from GLPI: " . $e->getMessage());
+        }
+
+        return [];
+    }
+
+    public function getPriorityMappings(): array
+    {
+        // These are default GLPI priority levels. Adjust if customized.
+        return [
+            1 => 'Very Low',
+            2 => 'Low',
+            3 => 'Medium',
+            4 => 'High',
+            5 => 'Very High',
+            6 => 'Major',
+        ];
+    }
+
+    public function getStatusMappings(): array
+    {
+        // These are default GLPI status levels. Adjust if customized.
+        return [
+            1 => 'New',
+            2 => 'Processing (assigned)',
+            3 => 'Processing (planned)',
+            4 => 'Pending',
+            5 => 'Solved',
+            6 => 'Closed',
+        ];
+    }
+
+    public function getUser(int $userId): ?array
+    {
+        if (!$this->sessionToken) {
+            $this->initSession();
+        }
+
+        if (empty($this->sessionToken)) {
+            return null;
+        }
+
+        try {
+            $response = $this->client->withHeaders([
+                'Session-Token' => $this->sessionToken,
+            ])->get("User/{$userId}");
+
+            if ($response->successful()) {
+                return $response->json();
+            } else {
+                logger()->error("Failed to get user {$userId} from GLPI", [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            logger()->error("Failed to get user {$userId} from GLPI: " . $e->getMessage());
+        }
+
+        return null;
+    }
 }
