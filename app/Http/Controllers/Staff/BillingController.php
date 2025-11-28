@@ -20,7 +20,11 @@ class BillingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:staff');
+        $this->middleware(['auth:staff', 'permission:manage-billing'])->only(['index', 'show']);
+        $this->middleware(['auth:staff', 'permission:generate-bills'])->only(['create', 'store', 'generateBills']);
+        $this->middleware(['auth:staff', 'permission:edit-bill-status'])->only(['update', 'approve', 'reject']);
+        $this->middleware(['auth:staff', 'permission:print-bill'])->only(['print']);
+        $this->middleware(['auth:staff', 'permission:view-bills'])->only(['index', 'show', 'viewBill']);
     }
 
     public function index(Request $request)
@@ -264,16 +268,16 @@ class BillingController extends Controller
         }
 
         if ($request->filled('start_date')) {
-            $query->whereDate('payments.payment_date', '>=', $request->start_date);
+            $query->where('payments.payment_date', '>=', $request->start_date . ' 00:00:00');
         }
         if ($request->filled('end_date')) {
-            $query->whereDate('payments.payment_date', '<=', $request->end_date);
+            $query->where('payments.payment_date', '<=', $request->end_date . ' 23:59:59');
         }
         if ($customerId = $request->input('customer_id')) {
             $query->where('customers.id', $customerId);
         }
         if ($status = $request->input('status')) {
-            $query->where('payments.status', $status);
+            $query->where('payments.payment_status', $status);
         }
         if ($categoryId = $request->input('category_id')) {
             $query->where('customers.category_id', $categoryId);
@@ -289,6 +293,9 @@ class BillingController extends Controller
         }
         if ($areaId = $request->input('area_id')) {
             $query->where('customers.area_id', $areaId);
+        }
+        if ($method = $request->input('method')) {
+            $query->where('payments.method', $method);
         }
 
         $perPage = $request->input('per_page', 10);
@@ -307,14 +314,14 @@ class BillingController extends Controller
         }
         $customers = $customerQuery->get(['id', 'first_name', 'surname', 'email']);
         
-        $statuses = ['pending', 'SUCCESSFUL', 'FAILED'];
+        $statuses = ['pending', 'successful', 'failed'];
         
         $categoryQuery = Category::where('status', 'approved');
         $tariffQuery = Tariff::where('status', 'approved');
         $lgaQuery = Lga::where('status', 'approved');
         $wardQuery = Ward::where('status', 'approved');
         $areaQuery = Area::where('status', 'approved');
-        
+
         if (!empty($accessibleWardIds)) {
             $wardQuery->whereIn('id', $accessibleWardIds);
             $lgaQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('lga_id')->unique()->toArray());
@@ -322,6 +329,16 @@ class BillingController extends Controller
             $categoryQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('category_id')->unique()->toArray());
             $tariffQuery->whereIn('id', Customer::whereIn('ward_id', $accessibleWardIds)->pluck('tariff_id')->unique()->toArray());
         }
+
+        // Further filter to only show locations that have customers with payments
+        $customerIdsWithPayments = Payment::pluck('customer_id')->unique();
+        $wardsWithPayments = Customer::whereIn('id', $customerIdsWithPayments)->pluck('ward_id')->unique()->toArray();
+        $lgasWithPayments = Customer::whereIn('id', $customerIdsWithPayments)->pluck('lga_id')->unique()->toArray();
+        $areasWithPayments = Customer::whereIn('id', $customerIdsWithPayments)->pluck('area_id')->unique()->toArray();
+
+        $wardQuery->whereIn('id', $wardsWithPayments);
+        $lgaQuery->whereIn('id', $lgasWithPayments);
+        $areaQuery->whereIn('id', $areasWithPayments);
         
         $categories = $categoryQuery->get(['id', 'name']);
         $tariffs = $tariffQuery->get(['id', 'name']);

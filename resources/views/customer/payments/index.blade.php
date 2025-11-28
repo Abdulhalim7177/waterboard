@@ -13,7 +13,7 @@
                 <!--end::Title-->
                 <!--begin::Actions-->
                 <div class="card-toolbar">
-                    <form action="{{ route('customer.payments') }}" method="GET" class="d-flex align-items-center">
+                    <form id="payment_filter_form" action="{{ route('customer.payments') }}" method="GET" class="d-flex align-items-center">
                         <div class="d-flex align-items-center fw-bold">
                             <div class="text-muted fs-7 me-2">Show</div>
                             <select name="per_page" class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" onchange="this.form.submit()">
@@ -25,15 +25,14 @@
                             </select>
                         </div>
                     </form>
-                    <div class="d-flex flex-stack flex-wrap gap-4">
+                    <form id="customer_payment_filters" method="GET" class="d-flex flex-stack flex-wrap gap-4 ms-4">
                         <!--begin::Method Filter-->
                         <div class="d-flex align-items-center fw-bold">
                             <div class="text-muted fs-7 me-2">Payment Method</div>
-                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select an option">
-                                <option></option>
-                                <option value="Show All" selected>Show All</option>
-                                @foreach ($payments->pluck('method')->unique() as $method)
-                                    <option value="{{ $method }}">{{ $method }}</option>
+                            <select name="method" id="method_filter" class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="All Methods">
+                                <option value="">All Methods</option>
+                                @foreach ($payments->pluck('method')->unique()->filter() as $method)
+                                    <option value="{{ $method }}" {{ request('method') == $method ? 'selected' : '' }}>{{ $method }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -41,16 +40,18 @@
                         <!--begin::Status Filter-->
                         <div class="d-flex align-items-center fw-bold">
                             <div class="text-muted fs-7 me-2">Payment Status</div>
-                            <select class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="Select an option" data-kt-table-widget-5="filter_status">
-                                <option></option>
-                                <option value="Show All" selected>Show All</option>
-                                <option value="SUCCESSFUL">Successful</option>
-                                <option value="FAILED">Failed</option>
-                                <option value="PENDING">Pending</option>
+                            <select name="status" id="status_filter" class="form-select form-select-transparent text-dark fs-7 lh-1 fw-bold py-0 ps-3 w-auto" data-control="select2" data-hide-search="true" data-dropdown-css-class="w-150px" data-placeholder="All Statuses" data-kt-table-widget-5="filter_status">
+                                <option value="">All Statuses</option>
+                                <option value="successful" {{ request('status') == 'successful' ? 'selected' : '' }}>Successful</option>
+                                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                             </select>
                         </div>
                         <!--end::Status Filter-->
-                    </div>
+                        <div class="d-flex align-items-center">
+                            <a href="{{ route('customer.payments') }}" class="btn btn-sm btn-light ms-2">Reset</a>
+                        </div>
+                    </form>
                 </div>
                 <!--end::Actions-->
             </div>
@@ -90,9 +91,9 @@
                                 <td class="text-end">{{ $payment->method }}</td>
                                 <td class="text-end">
                                     <span class="badge py-3 px-4 fs-7
-                                        {{ $payment->payment_status === 'SUCCESSFUL' ? 'badge-light-primary' :
-                                           ($payment->payment_status === 'FAILED' ? 'badge-light-danger' : 'badge-light-warning') }}">
-                                        {{ $payment->payment_status }}
+                                        {{ $payment->payment_status === 'successful' ? 'badge-light-primary' :
+                                           ($payment->payment_status === 'failed' ? 'badge-light-danger' : 'badge-light-warning') }}">
+                                        {{ ucfirst($payment->payment_status) }}
                                     </span>
                                 </td>
                                 <td class="text-end">{{ $payment->transaction_ref ?? 'N/A' }}</td>
@@ -131,4 +132,64 @@
         </div>
         <!--end::Card-->
     </div>
+
+    <!-- Add JavaScript for customer payment filters -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Select2 for payment filters
+            const methodSelect = document.getElementById('method_filter');
+            const statusSelect = document.getElementById('status_filter');
+
+            if (methodSelect) {
+                $(methodSelect).select2({
+                    placeholder: methodSelect.options[0].text,
+                    allowClear: true,
+                    minimumResultsForSearch: 10
+                });
+            }
+
+            if (statusSelect) {
+                $(statusSelect).select2({
+                    placeholder: statusSelect.options[0].text,
+                    allowClear: true,
+                    minimumResultsForSearch: 10
+                });
+            }
+
+            // Debounced filter handling for customer payments
+            let customerPaymentFilterTimeout;
+
+            function updateCustomerPaymentFilters() {
+                const method = document.getElementById('method_filter').value;
+                const status = document.getElementById('status_filter').value;
+                const perPage = document.querySelector('select[name="per_page"]').value;
+
+                const url = new URL('{{ route("customer.payments") }}');
+
+                // Only add parameters if they have values
+                if (method) url.searchParams.set('method', method);
+                if (status) url.searchParams.set('status', status);
+                if (perPage && perPage !== '10') url.searchParams.set('per_page', perPage);
+
+                window.location.href = url.toString();
+            }
+
+            function handleCustomerPaymentInput() {
+                clearTimeout(customerPaymentFilterTimeout);
+                customerPaymentFilterTimeout = setTimeout(updateCustomerPaymentFilters, 500);
+            }
+
+            // Add event listeners for customer payment filters
+            if (methodSelect) methodSelect.addEventListener('change', handleCustomerPaymentInput);
+            if (statusSelect) statusSelect.addEventListener('change', handleCustomerPaymentInput);
+
+            // Prevent Select2 keypress events from bubbling
+            document.addEventListener('keydown', function (event) {
+                if (event.target.classList.contains('select2-search__field')) {
+                    event.stopPropagation();
+                }
+            });
+        });
+    </script>
 @endsection

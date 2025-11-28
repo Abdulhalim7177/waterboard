@@ -297,7 +297,7 @@
 
             <!-- Footer -->
             <div class="footer">
-                &copy; {{ date('Y') }} Powered by PayFlow Systems Ltd. All rights reserved.
+                &copy; {{ date('Y') }} Powered by SteadFast Technologies Ltd. All rights reserved.
             </div>
         </div>
 

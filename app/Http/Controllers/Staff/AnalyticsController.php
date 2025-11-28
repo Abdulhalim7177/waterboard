@@ -299,6 +299,7 @@ class AnalyticsController extends Controller
         $lgaId = $request->input('lga_id');
         $wardId = $request->input('ward_id');
         $areaId = $request->input('area_id');
+        $methodFilter = $request->input('method_filter'); // For payment method filter
         $drilldown = $request->input('drilldown'); // For chart drill-down functionality
         $categoryFilter = $request->input('category_filter'); // For category drill-down
         $tariffFilter = $request->input('tariff_filter'); // For tariff drill-down
@@ -314,17 +315,47 @@ class AnalyticsController extends Controller
         }
 
         // Basic stats with filters
+        // Get only LGAs that have customers
         $lgas = Lga::when($startDate && $endDate, function ($query) use ($start, $end) {
             return $query->whereBetween('created_at', [$start, $end]);
-        })->get();
-        
+        })
+        ->whereHas('customers', function($query) use ($startDate, $endDate, $statusFilter) {
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$start, $end]);
+            }
+            if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
+                $query->where('status', $statusFilter);
+            }
+        })
+        ->get();
+
+        // Get only Wards that have customers
         $wards = Ward::when($startDate && $endDate, function ($query) use ($start, $end) {
             return $query->whereBetween('created_at', [$start, $end]);
-        })->get();
-        
+        })
+        ->whereHas('customers', function($query) use ($startDate, $endDate, $statusFilter) {
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$start, $end]);
+            }
+            if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
+                $query->where('status', $statusFilter);
+            }
+        })
+        ->get();
+
+        // Get only Areas that have customers
         $areas = Area::when($startDate && $endDate, function ($query) use ($start, $end) {
             return $query->whereBetween('created_at', [$start, $end]);
-        })->get();
+        })
+        ->whereHas('customers', function($query) use ($startDate, $endDate, $statusFilter) {
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$start, $end]);
+            }
+            if ($statusFilter && in_array($statusFilter, ['approved', 'pending', 'rejected'])) {
+                $query->where('status', $statusFilter);
+            }
+        })
+        ->get();
 
         $stats = [
             'staff' => [
@@ -594,6 +625,9 @@ class AnalyticsController extends Controller
                         $q->where('area_id', $areaId);
                     });
                 })
+                ->when($methodFilter, function ($query) use ($methodFilter) {
+                    return $query->where('method', $methodFilter);
+                })
                 ->when($categoryFilter, function ($query) use ($categoryFilter) {
                     return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {
                         $q->where('name', $categoryFilter);
@@ -623,6 +657,9 @@ class AnalyticsController extends Controller
                         return $query->whereHas('customer', function ($q) use ($areaId) {
                             $q->where('area_id', $areaId);
                         });
+                    })
+                    ->when($methodFilter, function ($query) use ($methodFilter) {
+                        return $query->where('method', $methodFilter);
                     })
                     ->when($categoryFilter, function ($query) use ($categoryFilter) {
                         return $query->whereHas('customer.category', function ($q) use ($categoryFilter) {

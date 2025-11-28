@@ -54,7 +54,7 @@
                             <select name="status" id="status" class="form-control form-control-solid w-200px" data-control="select2">
                                 <option value="">All Statuses</option>
                                 @foreach ($statuses as $status)
-                                    <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                    <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -123,8 +123,20 @@
                             <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
                                    class="form-control form-control-solid w-200px" placeholder="End Date" />
                         </div>
+                        <div class="col-md-4">
+                            <label for="method" class="form-label">Payment Method</label>
+                            <select name="method" id="method" class="form-control form-control-solid w-200px" data-control="select2">
+                                <option value="">All Methods</option>
+                                @foreach ($payments->pluck('method')->unique()->filter() as $method)
+                                    <option value="{{ $method }}" {{ request('method') == $method ? 'selected' : '' }}>{{ $method }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                        <a href="{{ route('staff.payments.index') }}" class="btn btn-light btn-sm">Reset</a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -153,8 +165,8 @@
                             <td class="text-end">{{ number_format($payment->amount, 2) }}</td>
                             <td class="text-end">{{ $payment->method }}</td>
                             <td class="text-end">
-                                <span class="badge py-3 px-4 fs-7 badge-light-{{ $payment->payment_status === 'SUCCESSFUL' ? 'success' : ($payment->payment_status === 'FAILED' ? 'danger' : 'warning') }}">
-                                    {{ $payment->payment_status }}
+                                <span class="badge py-3 px-4 fs-7 badge-light-{{ $payment->payment_status === 'successful' ? 'success' : ($payment->payment_status === 'failed' ? 'danger' : 'warning') }}">
+                                    {{ ucfirst($payment->payment_status) }}
                                 </span>
                             </td>
                             <td class="text-end">{{ $payment->transaction_ref ?? 'N/A' }}</td>
@@ -211,6 +223,7 @@
             const lgaSelect = document.getElementById('lga_id');
             const wardSelect = document.getElementById('ward_id');
             const areaSelect = document.getElementById('area_id');
+            const methodSelect = document.getElementById('method');
             const startDateInput = document.getElementById('start_date');
             const endDateInput = document.getElementById('end_date');
             const perPageSelect = document.getElementById('per_page');
@@ -224,9 +237,13 @@
                 const lga = lgaSelect.value;
                 const ward = wardSelect.value;
                 const area = areaSelect.value;
+                const method = methodSelect.value;
                 const startDate = startDateInput.value;
                 const endDate = endDateInput.value;
+                const perPage = perPageSelect.value;
                 const url = new URL('{{ route("staff.payments.index") }}');
+
+                // Only add parameters if they have values
                 if (customer) url.searchParams.set('customer_id', customer);
                 if (status) url.searchParams.set('status', status);
                 if (category) url.searchParams.set('category_id', category);
@@ -234,10 +251,19 @@
                 if (lga) url.searchParams.set('lga_id', lga);
                 if (ward) url.searchParams.set('ward_id', ward);
                 if (area) url.searchParams.set('area_id', area);
+                if (method) url.searchParams.set('method', method);
                 if (startDate) url.searchParams.set('start_date', startDate);
                 if (endDate) url.searchParams.set('end_date', endDate);
-                if (perPageSelect.value) url.searchParams.set('per_page', perPageSelect.value);
-                window.location.href = url.toString();
+                if (perPage && perPage !== '10') url.searchParams.set('per_page', perPage); // Only add if not default
+
+                // If no filters, clear all parameters except per_page
+                if (!customer && !status && !category && !tariff && !lga && !ward && !area && !method && !startDate && !endDate) {
+                    const newUrl = new URL(url.origin + url.pathname);
+                    if (perPage && perPage !== '10') newUrl.searchParams.set('per_page', perPage);
+                    window.location.href = newUrl.toString();
+                } else {
+                    window.location.href = url.toString();
+                }
             }
 
             function handleInput() {
@@ -252,6 +278,7 @@
             lgaSelect.addEventListener('change', handleInput);
             wardSelect.addEventListener('change', handleInput);
             areaSelect.addEventListener('change', handleInput);
+            methodSelect.addEventListener('change', handleInput);
             startDateInput.addEventListener('change', handleInput);
             endDateInput.addEventListener('change', handleInput);
             perPageSelect.addEventListener('change', handleInput);

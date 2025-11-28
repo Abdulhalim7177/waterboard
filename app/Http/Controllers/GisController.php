@@ -19,6 +19,14 @@ use App\Services\BreadcrumbService;
 
 class GisController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:staff', 'permission:manage-gis'])->only(['index']);
+        $this->middleware(['auth:staff', 'permission:view-gis-data'])->only(['filter']);
+        $this->middleware(['auth:staff', 'permission:export-gis'])->only(['exportCsv', 'exportExcel']);
+        $this->middleware(['auth:staff', 'permission:update-gis-data'])->only(['update']);
+    }
+
     public function index()
     {
         // Set breadcrumbs

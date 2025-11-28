@@ -16,6 +16,10 @@ class AssetController extends Controller
     public function __construct(DolibarrService $dolibarrService)
     {
         $this->dolibarrService = $dolibarrService;
+        $this->middleware(['auth:staff', 'permission:manage-assets'])->only(['index', 'show']);
+        $this->middleware(['auth:staff', 'permission:create-asset'])->only(['create', 'store']);
+        $this->middleware(['auth:staff', 'permission:edit-asset'])->only(['edit', 'update']);
+        $this->middleware(['auth:staff', 'permission:delete-asset'])->only(['destroy']);
     }
 
     public function index(Request $request)

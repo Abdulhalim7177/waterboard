@@ -11,6 +11,16 @@ use App\Services\BreadcrumbService;
 
 class VendorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:staff', 'permission:manage-vendors'])->only(['index', 'show']);
+        $this->middleware(['auth:staff', 'permission:create-vendor'])->only(['create', 'store']);
+        $this->middleware(['auth:staff', 'permission:edit-vendor'])->only(['edit', 'update']);
+        $this->middleware(['auth:staff', 'permission:delete-vendor'])->only(['destroy']);
+        $this->middleware(['auth:staff', 'permission:approve-vendor'])->only(['approve']);
+        $this->middleware(['auth:staff', 'permission:reject-vendor'])->only(['reject']);
+    }
+
     /**
      * Display a listing of vendors.
      */

@@ -18,22 +18,64 @@ class CustomerController extends Controller
         $this->middleware('auth:staff');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('view-customers', Customer::class);
-        
+
         $staff = auth()->guard('staff')->user();
         $accessibleWardIds = $staff->getAccessibleWardIds();
-        
+
         $query = Customer::with(['lga', 'ward', 'area', 'category', 'tariff']);
-        
+
         // If staff has restricted access based on paypoint, filter by accessible wards
         if (!empty($accessibleWardIds)) {
             $query->whereIn('ward_id', $accessibleWardIds);
         }
-        
-        $customers = $query->paginate(10);
-        return view('staff.customers.index', compact('customers'));
+
+        // Apply filters from the request
+        if ($request->filled('status_filter')) {
+            $query->where('status', $request->input('status_filter'));
+        }
+        if ($request->filled('lga_filter')) {
+            $query->where('lga_id', $request->input('lga_filter'));
+        }
+        if ($request->filled('ward_filter')) {
+            $query->where('ward_id', $request->input('ward_filter'));
+        }
+        if ($request->filled('area_filter')) {
+            $query->where('area_id', $request->input('area_filter'));
+        }
+        if ($request->filled('category_filter')) {
+            $query->where('category_id', $request->input('category_filter'));
+        }
+        if ($request->filled('tariff_filter')) {
+            $query->where('tariff_id', $request->input('tariff_filter'));
+        }
+
+        if ($request->has('search_customer') && $request->input('search_customer') != '') {
+            $searchTerm = $request->input('search_customer');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('first_name', 'like', "%{$searchTerm}%")
+                    ->orWhere('surname', 'like', "%{$searchTerm}%")
+                    ->orWhere('email', 'like', "%{$searchTerm}%")
+                    ->orWhere('billing_id', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $customers = $query->paginate($perPage)->appends($request->query());
+        $lgas = Lga::all();
+        $wards = Ward::all();
+        $areas = Area::all();
+
+        $stats = [
+            'total' => Customer::count(),
+            'pending' => Customer::where('status', 'pending')->count(),
+            'approved' => Customer::where('status', 'approved')->count(),
+            'rejected' => Customer::where('status', 'rejected')->count(),
+        ];
+
+        return view('staff.customers.index', compact('customers', 'lgas', 'wards', 'areas', 'stats'));
     }
 
     public function show(Customer $customer)

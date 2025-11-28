@@ -108,16 +108,98 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="w-150px">
+                                <label for="method_filter" class="form-label fs-7 fw-bold text-gray-600">Payment Method</label>
+                                <select name="method_filter" id="method_filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="All Methods">
+                                    <option value="">All Methods</option>
+                                    <option value="NABRoll" {{ request('method_filter') == 'NABRoll' ? 'selected' : '' }}>NABRoll</option>
+                                    <option value="Account Balance" {{ request('method_filter') == 'Account Balance' ? 'selected' : '' }}>Account Balance</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                            <a href="{{ route('staff.analytics.index') }}" class="btn btn-sm btn-light">Reset</a>
+                            <a href="{{ route('staff.analytics.index') }}" class="btn btn-sm btn-light">Reset Filters</a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
         <!--end::Filter Form-->
+
+        <!-- Add JavaScript for analytics filters -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Initialize Select2 for all select elements in analytics filter form
+                document.querySelectorAll('#analytics_filter_form select[data-control="select2"]').forEach(select => {
+                    if (!$(select).hasClass("select2-hidden-accessible")) {
+                        $(select).select2({
+                            placeholder: select.options[0].text,
+                            allowClear: true,
+                            minimumResultsForSearch: 10
+                        });
+                    }
+                });
+
+                // Debounced filter handling for analytics
+                const startDateInput = document.getElementById('start_date');
+                const endDateInput = document.getElementById('end_date');
+                const statusFilterSelect = document.getElementById('status_filter');
+                const lgaFilterSelect = document.getElementById('lga_filter');
+                const wardFilterSelect = document.getElementById('ward_filter');
+                const areaFilterSelect = document.getElementById('area_filter');
+                const methodFilterSelect = document.getElementById('method_filter');
+                let analyticsFilterTimeout;
+
+                function updateAnalyticsURL() {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+                    const status = statusFilterSelect.value;
+                    const lga = lgaFilterSelect.value;
+                    const ward = wardFilterSelect.value;
+                    const area = areaFilterSelect.value;
+                    const method = methodFilterSelect.value;
+                    const url = new URL(window.location);
+
+                    // Only add parameters if they have values
+                    if (startDate) url.searchParams.set('start_date', startDate);
+                    if (endDate) url.searchParams.set('end_date', endDate);
+                    if (status) url.searchParams.set('status_filter', status);
+                    if (lga) url.searchParams.set('lga_id', lga);
+                    if (ward) url.searchParams.set('ward_id', ward);
+                    if (area) url.searchParams.set('area_id', area);
+                    if (method) url.searchParams.set('method_filter', method);
+
+                    // If no filters, clear all parameters
+                    if (!startDate && !endDate && !status && !lga && !ward && !area && !method) {
+                        window.location.href = url.origin + url.pathname;
+                    } else {
+                        window.location.href = url.toString();
+                    }
+                }
+
+                function handleAnalyticsInput() {
+                    clearTimeout(analyticsFilterTimeout);
+                    analyticsFilterTimeout = setTimeout(updateAnalyticsURL, 500);
+                }
+
+                // Add event listeners for analytics filters
+                if (startDateInput) startDateInput.addEventListener('change', handleAnalyticsInput);
+                if (endDateInput) endDateInput.addEventListener('change', handleAnalyticsInput);
+                if (statusFilterSelect) statusFilterSelect.addEventListener('change', handleAnalyticsInput);
+                if (lgaFilterSelect) lgaFilterSelect.addEventListener('change', handleAnalyticsInput);
+                if (wardFilterSelect) wardFilterSelect.addEventListener('change', handleAnalyticsInput);
+                if (areaFilterSelect) areaFilterSelect.addEventListener('change', handleAnalyticsInput);
+                if (methodFilterSelect) methodFilterSelect.addEventListener('change', handleAnalyticsInput);
+
+                // Prevent Select2 keypress events from bubbling
+                document.addEventListener('keydown', function (event) {
+                    if (event.target.classList.contains('select2-search__field')) {
+                        event.stopPropagation();
+                    }
+                });
+            });
+        </script>
 
         <!--begin::Applied Filters-->
         @if (request()->hasAny(['start_date', 'end_date', 'status_filter', 'lga_id', 'ward_id', 'area_id', 'category_filter', 'tariff_filter']))

@@ -49,21 +49,16 @@ class CustomerCreationController extends Controller
                         ->orWhere('billing_id', 'like', "%{$search}%");
         })->when($request->status_filter, function ($query, $status) {
             return $query->where('status', $status);
-        });
-
-        // If staff has restricted access based on paypoint, filter by accessible wards
-        if (!empty($accessibleWardIds)) {
-            $customersQuery->whereIn('ward_id', $accessibleWardIds);
-        }
-        $accessibleWardIds = $staff->getAccessibleWardIdsAttribute;
-
-        $customersQuery = Customer::when($request->search_customer, function ($query, $search) {
-            return $query->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('surname', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('billing_id', 'like', "%{$search}%");
-        })->when($request->status_filter, function ($query, $status) {
-            return $query->where('status', $status);
+        })->when($request->lga_filter, function ($query, $lgaId) {
+            return $query->where('lga_id', $lgaId);
+        })->when($request->ward_filter, function ($query, $wardId) {
+            return $query->where('ward_id', $wardId);
+        })->when($request->area_filter, function ($query, $areaId) {
+            return $query->where('area_id', $areaId);
+        })->when($request->category_filter, function ($query, $categoryId) {
+            return $query->where('category_id', $categoryId);
+        })->when($request->tariff_filter, function ($query, $tariffId) {
+            return $query->where('tariff_id', $tariffId);
         });
 
         // If staff has restricted access based on paypoint, filter by accessible wards
@@ -78,7 +73,13 @@ class CustomerCreationController extends Controller
             $customers = $customersQuery->with(['category', 'tariff', 'lga', 'ward', 'area'])->orderBy('created_at', 'desc')->paginate($perPage);
         }
 
-        return view('staff.customers.index', compact('stats', 'customers'));
+        $lgas = Lga::where('status', 'approved')->get();
+        $wards = Ward::where('status', 'approved')->get();
+        $areas = Area::where('status', 'approved')->get();
+        $categories = Category::where('status', 'approved')->get();
+        $tariffs = Tariff::where('status', 'approved')->get();
+
+        return view('staff.customers.index', compact('stats', 'customers', 'lgas', 'wards', 'areas', 'categories', 'tariffs'));
     }
 
     public function import(Request $request)

@@ -107,8 +107,18 @@ class CustomerController extends Controller
     {
         $customer = Auth::guard('customer')->user();
         $perPage = $request->input('per_page', 10);
+        $method = $request->input('method');
+        $status = $request->input('status');
 
         $paymentsQuery = $customer->payments()->orderBy('payment_date', 'desc');
+
+        // Apply filters
+        if ($method) {
+            $paymentsQuery->where('method', $method);
+        }
+        if ($status) {
+            $paymentsQuery->where('payment_status', $status);
+        }
 
         if ($perPage === 'all') {
             $payments = $paymentsQuery->get();

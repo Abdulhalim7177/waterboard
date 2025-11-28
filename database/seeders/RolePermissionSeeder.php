@@ -31,6 +31,18 @@ class RolePermissionSeeder extends Seeder
             'assign-staff-role', 'revoke-staff-role', 'manage-staff-permissions',
             'manage-district-wards', 'view-location-details',
             'manage-staff', 'manage-tickets', 'approve-actions', 'view-gis',
+            // Billing Officer permissions
+            'manage-billing', 'generate-bills', 'view-bills', 'edit-bill-status', 'print-bill',
+            // Customer Care permissions
+            'manage-customer-care', 'view-customer-requests', 'respond-to-customer', 'update-customer-info',
+            // Zonal/District Manager permissions
+            'manage-zonal', 'view-zonal-reports', 'manage-district-operations', 'view-district-reports',
+            // GIS permissions
+            'manage-gis', 'view-gis-data', 'update-gis-data', 'export-gis',
+            // Supplier/Assets Manager permissions
+            'manage-assets', 'manage-vendors', 'manage-suppliers', 'create-asset', 'edit-asset', 'delete-asset', 'view-assets',
+            'create-vendor', 'edit-vendor', 'delete-vendor', 'view-vendors', 'approve-vendor', 'reject-vendor',
+            'create-supplier', 'edit-supplier', 'delete-supplier', 'view-suppliers',
         ];
 
         foreach ($permissions as $permission) {
@@ -81,6 +93,64 @@ class RolePermissionSeeder extends Seeder
             'view-locations', 'view-categories', 'view-tariffs', 'view-bill', 'view-report',
             'view-staff', 'view-zones', 'view-districts', 'view-paypoints',
             'view-location-details', 'manage-tickets',
+        ]);
+
+        // New Role: Billing Officer
+        $billingOfficer = Role::firstOrCreate([
+            'name' => 'billing-officer',
+            'guard_name' => 'staff'
+        ], ['status' => 'approved']);
+        $billingOfficer->syncPermissions([
+            'manage-billing', 'generate-bills', 'view-bills', 'edit-bill-status', 'print-bill',
+            'view-customers', 'view-customer', 'view-report',
+            'view-locations', 'view-categories', 'view-tariffs', 'view-bill',
+        ]);
+
+        // New Role: Customer Care
+        $customerCare = Role::firstOrCreate([
+            'name' => 'customer-care',
+            'guard_name' => 'staff'
+        ], ['status' => 'approved']);
+        $customerCare->syncPermissions([
+            'manage-customer-care', 'view-customer-requests', 'respond-to-customer', 'update-customer-info',
+            'view-customers', 'view-customer', 'view-locations', 'view-categories', 'view-tariffs',
+            'manage-tickets', 'view-customers', 'view-customer',
+        ]);
+
+        // New Role: Zonal/District Manager
+        $zonalManager = Role::firstOrCreate([
+            'name' => 'zonal-manager',
+            'guard_name' => 'staff'
+        ], ['status' => 'approved']);
+        $zonalManager->syncPermissions([
+            'manage-zonal', 'view-zonal-reports', 'manage-district-operations', 'view-district-reports',
+            'view-customers', 'view-customer', 'view-locations', 'view-categories', 'view-tariffs',
+            'view-report', 'view-analytics',
+            'create-district', 'edit-district', 'view-districts',
+            'create-zone', 'edit-zone', 'view-zones', 'view-paypoints',
+        ]);
+
+        // New Role: GIS
+        $gisRole = Role::firstOrCreate([
+            'name' => 'gis',
+            'guard_name' => 'staff'
+        ], ['status' => 'approved']);
+        $gisRole->syncPermissions([
+            'manage-gis', 'view-gis-data', 'update-gis-data', 'export-gis',
+            'view-customers', 'view-customer', 'view-locations', 'view-categories', 'view-tariffs',
+            'view-zones', 'view-districts', 'view-paypoints', 'view-gis',
+        ]);
+
+        // New Role: Supplier/Assets Manager
+        $assetsManager = Role::firstOrCreate([
+            'name' => 'assets-manager',
+            'guard_name' => 'staff'
+        ], ['status' => 'approved']);
+        $assetsManager->syncPermissions([
+            'manage-assets', 'manage-vendors', 'manage-suppliers', 'create-asset', 'edit-asset', 'delete-asset', 'view-assets',
+            'create-vendor', 'edit-vendor', 'delete-vendor', 'view-vendors', 'approve-vendor', 'reject-vendor',
+            'create-supplier', 'edit-supplier', 'delete-supplier', 'view-suppliers',
+            'view-locations', 'view-categories', 'view-tariffs',
         ]);
 
         $customerRole = Role::firstOrCreate([
