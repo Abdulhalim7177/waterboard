@@ -90,7 +90,10 @@ class VendorController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $vendor = $request->user();
+        if ($vendor) {
+            $vendor->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'success' => true,
@@ -179,5 +182,110 @@ class VendorController extends Controller
             'success' => true,
             'data' => $request->user()
         ]);
+    }
+
+    /**
+     * Update vendor profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $vendor = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|unique:vendors,email,' . $vendor->id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $vendor->update($request->only('email'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'data' => $vendor
+        ]);
+    }
+
+    /**
+     * Change vendor password
+     */
+    public function changePassword(Request $request)
+    {
+        $vendor = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($vendor) {
+                    if (!Hash::check($value, $vendor->password)) {
+                        $fail('The provided password does not match your current password.');
+                    }
+                },
+            ],
+            'new_password' => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->numbers(),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $vendor->password = Hash::make($request->new_password);
+        $vendor->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully'
+        ]);
+    }
+
+    /**
+     * Get customer information by billing ID
+     */
+    public function getCustomerInfo(Request $request, $billingId)
+    {
+        try {
+            $customer = Customer::with(['tariff', 'category'])->where('billing_id', $billingId)->first();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $customer->id,
+                    'first_name' => $customer->first_name ?? '',
+                    'surname' => $customer->surname ?? '',
+                    'billing_id' => $customer->billing_id ?? '',
+                    'tariff' => $customer->tariff ? $customer->tariff->name : 'N/A',
+                    'category' => $customer->category ? $customer->category->name : 'N/A',
+                    'account_balance' => $customer->account_balance ?? 0,
+                    'total_bill' => $customer->total_bill ?? 0,
+                    'status' => $customer->status ?? 'inactive',
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching customer information: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
