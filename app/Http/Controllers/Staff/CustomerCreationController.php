@@ -610,8 +610,8 @@ class CustomerCreationController extends Controller
                 'lga_id' => 'required|exists:lgas,id',
                 'ward_id' => 'required|exists:wards,id',
                 'area_id' => 'required|exists:areas,id',
-                'street_name' => 'required|string|max:255',
-                'house_number' => 'required|string|max:255',
+                'street_name' => 'nullable|string|max:255',
+                'house_number' => 'nullable|string|max:255',
                 'landmark' => 'required|string|max:255',
             ]);
 
@@ -938,8 +938,8 @@ class CustomerCreationController extends Controller
                 'lga_id' => 'required|exists:lgas,id',
                 'ward_id' => 'required|exists:wards,id',
                 'area_id' => 'required|exists:areas,id',
-                'street_name' => 'required|string|max:255',
-                'house_number' => 'required|string|max:255',
+                'street_name' => 'nullable|string|max:255',
+                'house_number' => 'nullable|string|max:255',
                 'landmark' => 'required|string|max:255',
             ]);
 
@@ -1553,8 +1553,8 @@ class CustomerCreationController extends Controller
                     'lga_id' => 'required|exists:lgas,id',
                     'ward_id' => 'required|exists:wards,id',
                     'area_id' => 'required|exists:areas,id',
-                    'street_name' => 'required|string|max:255',
-                    'house_number' => 'required|string|max:255',
+                    'street_name' => 'nullable|string|max:255',
+                    'house_number' => 'nullable|string|max:255',
                     'landmark' => 'required|string|max:255',
                 ],
                 'extraValidation' => function ($validated) {

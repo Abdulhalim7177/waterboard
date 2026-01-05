@@ -86,16 +86,16 @@
                         
                         <div class="row">
                             <div class="col-md-6 mb-4">
-                                <label for="street_name" class="required form-label">Street Name</label>
-                                <input type="text" class="form-control form-control-solid" name="street_name" id="street_name" value="{{ old('street_name', $customer->street_name) }}" required>
+                                <label for="street_name" class="form-label">Street Name</label>
+                                <input type="text" class="form-control form-control-solid" name="street_name" id="street_name" value="{{ old('street_name', $customer->street_name) }}">
                                 @error('street_name')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
                             <div class="col-md-6 mb-4">
-                                <label for="house_number" class="required form-label">House Number</label>
-                                <input type="text" class="form-control form-control-solid" name="house_number" id="house_number" value="{{ old('house_number', $customer->house_number) }}" required>
+                                <label for="house_number" class="form-label">House Number</label>
+                                <input type="text" class="form-control form-control-solid" name="house_number" id="house_number" value="{{ old('house_number', $customer->house_number) }}">
                                 @error('house_number')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror

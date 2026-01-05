@@ -188,15 +188,15 @@
                         </div>
                     </div>
                     <div class="fv-row mb-7">
-                        <label for="street_name" class="fs-6 fw-semibold mb-2 required">Street Name</label>
-                        <input type="text" name="street_name" id="street_name" class="form-control form-control-solid @error('street_name') is-invalid @enderror" value="{{ old('street_name', session('customer_creation.address.street_name')) }}" required>
+                        <label for="street_name" class="fs-6 fw-semibold mb-2">Street Name</label>
+                        <input type="text" name="street_name" id="street_name" class="form-control form-control-solid @error('street_name') is-invalid @enderror" value="{{ old('street_name', session('customer_creation.address.street_name')) }}">
                         @error('street_name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="fv-row mb-7">
-                        <label for="house_number" class="fs-6 fw-semibold mb-2 required">House Number</label>
-                        <input type="text" name="house_number" id="house_number" class="form-control form-control-solid @error('house_number') is-invalid @enderror" value="{{ old('house_number', session('customer_creation.address.house_number')) }}" required>
+                        <label for="house_number" class="fs-6 fw-semibold mb-2">House Number</label>
+                        <input type="text" name="house_number" id="house_number" class="form-control form-control-solid @error('house_number') is-invalid @enderror" value="{{ old('house_number', session('customer_creation.address.house_number')) }}">
                         @error('house_number')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

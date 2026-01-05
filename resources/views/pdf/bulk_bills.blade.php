@@ -206,7 +206,7 @@
             <!-- Header -->
             <div class="header">
                 <div class="company-info">
-                    <h1>Water Board Inc.</h1>
+                    <h1>Katsina State Water Board (KTSWB)</h1>
                     <p>123 Water Lane</p>
                     <p>City, State, Nigeria</p>
                 </div>
@@ -254,7 +254,7 @@
                     <div style="background-color: #dbeafe; border: 1px solid #93c5fd; padding: 2mm; margin-top: 2mm;">
                         <div class="section-title" style="color: #1e40af; font-size: 9px;">Payment Details</div>
                         <div class="info-item">Payment Method: NABRoll / Account Balance</div>
-                        <div class="info-item">Issued By: Water Board Inc.</div>
+                        <div class="info-item">Issued By: Katsina State Water Board (KTSWB)</div>
                     </div>
                 </div>
 

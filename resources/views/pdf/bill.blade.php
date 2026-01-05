@@ -181,7 +181,7 @@
         <!-- Header -->
         <div class="header">
             <div class="company-info">
-                <h1>Katsina State Water Board (KSWB)</h1>
+                <h1>Katsina State Water Board (KTSWB)</h1>
                 <p>No. 1 Olusegun Obasanjo Drive, P.M.B 2022, Katsina - Nigeria</p>
                 <p>Email: katsinastatewaterboard@yahoo.com | Phone: +234 (0) 814 4689 489</p>
             </div>
@@ -225,7 +225,7 @@
                 <div style="background-color: #dbeafe; border: 1px solid #93c5fd; padding: 10px; margin-top: 15px;">
                     <div class="section-title" style="color: #1e40af;">Payment Details</div>
                     <div class="info-item">Payment Method: NABRoll / Account Balance</div>
-                    <div class="info-item">Issued By: Katsina State Water Board (KSWB)</div>
+                    <div class="info-item">Issued By: Katsina State Water Board (KTSWB)</div>
                     @if($bill->status !== 'paid')
                         <div style="margin-top: 5px;">
                             <span style="background-color: #22c55e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Pay Now</span>
