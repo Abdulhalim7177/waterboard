@@ -16,79 +16,103 @@ class TariffSeeder extends Seeder
     public function run()
     {
         $domestic = Category::where('code', 'DC')->first();
-        $private = Category::where('code', 'PWC')->first();
-        $commercial = Category::where('code', 'CWC')->first();
+        $industrial = Category::where('code', 'IC')->first();
+        $public = Category::where('code', 'PI')->first();
+        $royalties = Category::where('code', 'RY')->first();
+        $rawWater = Category::where('code', 'RW')->first();
+        $waterTanker = Category::where('code', 'WT')->first();
 
         $tariffs = [
             // DOMESTIC CONSUMERS
             [
                 'name' => 'House with single tap',
                 'category_id' => $domestic->id,
-                'amount' => 550,
+                'amount' => 1650,
             ],
             [
                 'name' => 'House with internal water system',
                 'category_id' => $domestic->id,
-                'amount' => 1600,
+                'amount' => 3536,
             ],
             [
                 'name' => 'House with integral water & garden',
                 'category_id' => $domestic->id,
-                'amount' => 1900,
+                'amount' => 4199,
             ],
 
-            // PRIVATE WATER CONNECTIONS
+            // INDUSTRIAL/COMMERCIALS
             [
-                'name' => '12.5mm (1/2 inch)',
-                'category_id' => $private->id,
-                'amount' => 5100,
+                'name' => 'Domestic with floor',
+                'category_id' => $industrial->id,
+                'amount' => 1650,
             ],
             [
-                'name' => '20mm (3/4 inch)',
-                'category_id' => $private->id,
-                'amount' => 7800,
+                'name' => 'Commercial with floor',
+                'category_id' => $industrial->id,
+                'amount' => 3536,
             ],
             [
-                'name' => '25mm (1 inch)',
-                'category_id' => $private->id,
+                'name' => 'Commercial',
+                'category_id' => $industrial->id,
+                'amount' => 4199,
+            ],
+            [
+                'name' => 'Industrial with floor',
+                'category_id' => $industrial->id,
+                'amount' => 0, // Amount not specified, setting to 0
+            ],
+            [
+                'name' => 'Standing PAIPE (Public) PSP',
+                'category_id' => $industrial->id,
+                'amount' => 0, // Amount not specified, setting to 0
+            ],
+
+            // PUBLIC INSTITUTIONS
+            [
+                'name' => 'Federal Government',
+                'category_id' => $public->id,
+                'amount' => 300,
+            ],
+            [
+                'name' => 'State Government',
+                'category_id' => $public->id,
+                'amount' => 350,
+            ],
+            [
+                'name' => 'Local Government',
+                'category_id' => $public->id,
+                'amount' => 450,
+            ],
+
+            // ROYALTIES
+            [
+                'name' => 'Company/Commercial venture borehole',
+                'category_id' => $royalties->id,
+                'amount' => 5000.0,
+            ],
+            [
+                'name' => 'Demand charge on industrial & construction site',
+                'category_id' => $royalties->id,
                 'amount' => 10000,
             ],
             [
-                'name' => '37mm (11/2 inch)',
-                'category_id' => $private->id,
-                'amount' => 123550,
-            ],
-            [
-                'name' => '50mm (2 inch)',
-                'category_id' => $private->id,
-                'amount' => 125905,
+                'name' => 'NAFDAC registered pure water producer',
+                'category_id' => $royalties->id,
+                'amount' => 10000,
             ],
 
-            // COMMERCIAL WATER CONNECTIONS
+            // RAW WATER
             [
-                'name' => '20mm (3/4 inch)',
-                'category_id' => $commercial->id,
-                'amount' => 45000,
+                'name' => 'Raw Water',
+                'category_id' => $rawWater->id,
+                'amount' => 250,
             ],
+
+            // WATER TANKER
             [
-                'name' => '25mm (1 inch)',
-                'category_id' => $commercial->id,
-                'amount' => 65000,
-            ],
-            [
-                'name' => '37mm (11/4 inch)',
-                'category_id' => $commercial->id,
-                'amount' => 95000,
-            ],
-            [
-                'name' => '37mm (11/2 inch)',
-                'category_id' => $commercial->id,
-                'amount' => 145000,
-            ],
-            [
-                'name' => '50mm (2 inch)',
-                'category_id' => $commercial->id,
-                'amount' => 250000,
+                'name' => '4,500 lifter capacity/trip at lifting point',
+                'category_id' => $waterTanker->id,
+                'amount' => 320,
             ],
         ];
 

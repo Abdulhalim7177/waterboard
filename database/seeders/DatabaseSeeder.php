@@ -20,12 +20,12 @@ class DatabaseSeeder extends Seeder
         $this->call(AreaSeeder::class);
       
         $domestic = \App\Models\Category::where('code', 'DC')->first();
-        $private = \App\Models\Category::where('code', 'PWC')->first();
-        $commercial = \App\Models\Category::where('code', 'CWC')->first();
+        $industrial = \App\Models\Category::where('code', 'IC')->first();
+        $public = \App\Models\Category::where('code', 'PI')->first();
 
         Customer::factory()->count(400)->state(['category_id' => $domestic->id])->create();
-        Customer::factory()->count(70)->state(['category_id' => $private->id])->create();
-        Customer::factory()->count(30)->state(['category_id' => $commercial->id])->create();
+        Customer::factory()->count(70)->state(['category_id' => $industrial->id])->create();
+        Customer::factory()->count(30)->state(['category_id' => $public->id])->create();
         
         
         

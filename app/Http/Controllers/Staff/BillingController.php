@@ -161,9 +161,14 @@ class BillingController extends Controller
 
         DB::beginTransaction();
         try {
-            $customers = Customer::where('status', 'approved')->with('tariff')->get();
+            // Exclude customers with non-functional water supply status
+            $customers = Customer::where('status', 'approved')
+                ->where('water_supply_status', '!=', 'non functional')
+                ->with('tariff')
+                ->get();
+
             if ($customers->isEmpty()) {
-                return redirect()->back()->with('error', 'No approved customers found to generate bills');
+                return redirect()->back()->with('error', 'No approved customers with functional water supply found to generate bills');
             }
 
             foreach ($customers as $customer) {
@@ -192,7 +197,7 @@ class BillingController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('staff.bills.index')->with('success', 'Bills generated successfully');
+            return redirect()->route('staff.bills.index')->with('success', 'Bills generated successfully for ' . $customers->count() . ' customers');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Bill generation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
