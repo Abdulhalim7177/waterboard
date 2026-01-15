@@ -111,13 +111,7 @@ class PaymentController extends Controller
                 'total_bill_after_payment' => $customer->total_bill,
             ]);
 
-            // Redirect to appropriate page based on payment type
-            $redirectRoute = 'customer.bills';
-            if (session('payment_type') === 'connection_fee') {
-                $redirectRoute = 'customer.connections';
-            }
-
-            return redirect()->route($redirectRoute)->with('success', 'Payment processed successfully.');
+            return redirect()->route('customer.bills')->with('success', 'Payment processed successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             $payment->update(['payment_status' => 'FAILED', 'status' => 'failed']);

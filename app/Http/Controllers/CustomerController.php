@@ -21,7 +21,7 @@ class CustomerController extends Controller
     public function __construct()
     {
         $this->middleware(['auth:customer', 'restrict.login'])->only([
-            'dashboard', 'profile', 'updateProfile', 'bills', 'initiateNABRollPayment', 'payments', 'complaints', 'storeComplaint', 'connectionFees', 'initiateConnectionFeePayment'
+            'dashboard', 'profile', 'updateProfile', 'bills', 'initiateNABRollPayment', 'payments', 'complaints', 'storeComplaint'
         ]);
         $this->baseUrl = config('services.nabroll.base_url');
         $this->apiKey = config('services.nabroll.api_key');
@@ -129,138 +129,19 @@ class CustomerController extends Controller
         return view('customer.payments.index', compact('payments'));
     }
 
-    public function connectionFees()
-    {
-        $customer = Auth::guard('customer')->user();
-        
-        // Get all available connection types and their fees
-        $connectionTypes = \App\Models\ConnectionType::where('is_active', true)->get();
-        $connectionFees = \App\Models\ConnectionFee::with(['connectionType', 'connectionSize'])->get();
-        
-        // Get customer's connection history
-        $customerConnections = $customer->connections()->with(['connectionType', 'connectionSize'])->get();
-
-        return view('customer.connections.fees', compact('customer', 'connectionTypes', 'connectionFees', 'customerConnections'));
-    }
-
-    public function initiateConnectionFeePayment(Request $request)
-    {
-        $customer = Auth::guard('customer')->user();
-        $request->validate([
-            'connection_fee_id' => 'required|exists:connection_fees,id',
-        ]);
-
-        $connectionFee = \App\Models\ConnectionFee::findOrFail($request->connection_fee_id);
-        
-        $amount = number_format($connectionFee->fee_amount, 2, '.', '');
-        $payerRefNo = 'CONN_FEE_' . now()->format('YmdHis') . '_' . Str::random(10);
-
-        // Generate hash for NABRoll - format: PayerRefNo + Amount + ApiKey
-        $hashString = $payerRefNo . $amount . $this->apiKey;
-        $hash = hash_hmac('sha256', $hashString, $this->secret);
-
-        // Create temporary payment record
-        DB::beginTransaction();
-        try {
-            $payment = Payment::create([
-                'customer_id' => $customer->id,
-                'bill_id' => null,
-                'bill_ids' => null,
-                'amount' => $amount,
-                'payment_date' => now(),
-                'method' => 'NABRoll',
-                'payer_ref_no' => $payerRefNo,
-                'status' => 'pending',
-                'payment_status' => 'pending',
-            ]);
-
-            // Initiate NABRoll transaction
-            $metadata = "payment_id:{$payment->id}|connection_fee_id:{$connectionFee->id}";
-            $payload = [
-                'ApiKey' => $this->apiKey,
-                'Hash' => $hash,
-                'Amount' => $amount,
-                'PayerRefNo' => $payerRefNo,
-                'PayerName' => $customer->first_name . ' ' . $customer->surname,
-                'Email' => $customer->email,
-                'Mobile' => $customer->phone_number ?? '08000000000',
-                'Description' => 'Payment for ' . $connectionFee->connectionType->name . ($connectionFee->connectionSize ? ' (' . $connectionFee->connectionSize->name . ')' : ''),
-                'ResponseUrl' => route('payments.callback'),
-                'FeeBearer' => 'Customer', // Options: Customer, Merchant
-                'MetaData' => $metadata,
-            ];
-
-            Log::debug('Initiating NABRoll transaction for connection fee', ['payload' => $payload]);
-
-            $response = Http::asForm()->timeout(30)->retry(2, 500)->post("{$this->baseUrl}/transactions/initiate", $payload);
-
-            // Log the raw response for debugging
-            Log::debug('NABRoll response details for connection fee', [
-                'status_code' => $response->status(),
-                'body' => (string)$response->body(),
-                'headers' => $response->headers(),
-            ]);
-
-            $result = $response->json();
-
-            // Check if response is valid JSON
-            if ($response->failed() || is_null($result) || !isset($result['status']) || $result['status'] !== 'SUCCESSFUL') {
-                Log::error('NABRoll transaction initiation failed for connection fee', [
-                    'customer_id' => $customer->id,
-                    'payment_id' => $payment->id,
-                    'status_code' => $response->status(),
-                    'response_body' => (string)$response->body(),
-                    'result' => $result,
-                ]);
-
-                $payment->update(['payment_status' => 'FAILED', 'status' => 'failed']);
-                DB::commit();
-
-                $errorMessage = $result['msg'] ?? $this->getSpecificErrorMessage((string)$response->body(), $response->status());
-                return redirect()->route('customer.connections.fees')->with('error', 'Failed to initiate payment: ' . $errorMessage);
-            }
-
-            $payment->update([
-                'transaction_ref' => $result['TransactionRef'],
-                'payment_code' => $result['PaymentCode'],
-            ]);
-
-            Log::info('NABRoll transaction initiated for connection fee', [
-                'payment_id' => $payment->id,
-                'transaction_ref' => $result['TransactionRef'],
-                'payment_code' => $result['PaymentCode'],
-                'payment_url' => $result['PaymentUrl'],
-            ]);
-
-            // Store payment type in session for callback handling
-            session(['payment_type' => 'connection_fee']);
-
-            DB::commit();
-            return redirect($result['PaymentUrl']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Connection fee payment initiation failed', ['error' => $e->getMessage()]);
-            return redirect()->route('customer.connections.fees')->with('error', 'Payment initiation failed: ' . $e->getMessage());
-        }
-    }
 
     public function initiateNABRollPayment(Request $request)
     {
         $customer = Auth::guard('customer')->user();
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
-            'payment_for' => 'nullable|string|in:bill,connection_fee', // Add payment type
-            'connection_fee_id' => 'nullable|integer', // For connection fee payments
         ]);
 
         $amount = number_format($validated['amount'], 2, '.', '');
         $payerRefNo = 'REF' . now()->format('YmdHis') . '_' . Str::random(10);
 
-        // Determine payment description based on payment type
+        // Payment description for bills
         $description = 'Payment for water bill(s)';
-        if (isset($validated['payment_for']) && $validated['payment_for'] === 'connection_fee') {
-            $description = 'Payment for connection fee';
-        }
 
         // Generate hash for NABRoll - format: PayerRefNo + Amount + ApiKey
         $hashString = $payerRefNo . $amount . $this->apiKey;

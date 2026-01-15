@@ -80,6 +80,7 @@ class Customer extends Authenticatable
             ->sum('balance');
     }
 
+
     public static function generateBillingId($customer)
     {
         try {
@@ -176,11 +177,6 @@ class Customer extends Authenticatable
         }
     }
 
-    // Relationship with customer connections
-    public function connections()
-    {
-        return $this->hasMany(CustomerConnection::class);
-    }
 
     /***
      * Add amount to customer account balance

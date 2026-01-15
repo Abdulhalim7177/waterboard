@@ -43,10 +43,6 @@ class RolePermissionSeeder extends Seeder
             'manage-assets', 'manage-vendors', 'manage-suppliers', 'create-asset', 'edit-asset', 'delete-asset', 'view-assets',
             'create-vendor', 'edit-vendor', 'delete-vendor', 'view-vendors', 'approve-vendor', 'reject-vendor',
             'create-supplier', 'edit-supplier', 'delete-supplier', 'view-suppliers',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection', 'delete-connection',
-            'approve-connection', 'reject-connection', 'view-connection-fees', 'view-connection-fee',
-            'create-connection-fee', 'edit-connection-fee', 'delete-connection-fee',
         ];
 
         foreach ($permissions as $permission) {
@@ -100,10 +96,6 @@ class RolePermissionSeeder extends Seeder
             'manage-assets', 'manage-vendors', 'manage-suppliers', 'create-asset', 'edit-asset', 'delete-asset', 'view-assets',
             'create-vendor', 'edit-vendor', 'delete-vendor', 'view-vendors', 'approve-vendor', 'reject-vendor',
             'create-supplier', 'edit-supplier', 'delete-supplier', 'view-suppliers',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection', 'delete-connection',
-            'approve-connection', 'reject-connection', 'view-connection-fees', 'view-connection-fee',
-            'create-connection-fee', 'edit-connection-fee', 'delete-connection-fee',
         ];
 
         $superAdmin->syncPermissions($allPermissions);
@@ -125,10 +117,6 @@ class RolePermissionSeeder extends Seeder
             'view-zones', 'view-districts', 'view-paypoints',
             'manage-district-wards', 'view-location-details',
             'manage-staff', 'manage-tickets',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection', 'delete-connection',
-            'approve-connection', 'reject-connection', 'view-connection-fees', 'view-connection-fee',
-            'create-connection-fee', 'edit-connection-fee', 'delete-connection-fee',
         ]);
 
         $staffRole = Role::firstOrCreate([
@@ -141,9 +129,6 @@ class RolePermissionSeeder extends Seeder
             'view-locations', 'view-categories', 'view-tariffs', 'view-bill', 'view-report',
             'view-staff', 'view-zones', 'view-districts', 'view-paypoints',
             'view-location-details', 'manage-tickets',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection',
-            'view-connection-fees', 'view-connection-fee', 'create-connection-fee', 'edit-connection-fee',
         ]);
 
         // New Role: Billing Officer
@@ -155,9 +140,6 @@ class RolePermissionSeeder extends Seeder
             'manage-billing', 'generate-bills', 'view-bills', 'edit-bill-status', 'print-bill',
             'view-customers', 'view-customer', 'view-report',
             'view-locations', 'view-categories', 'view-tariffs', 'view-bill',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection',
-            'view-connection-fees', 'view-connection-fee', 'create-connection-fee', 'edit-connection-fee',
         ]);
 
         // New Role: Customer Care
@@ -169,8 +151,6 @@ class RolePermissionSeeder extends Seeder
             'manage-customer-care', 'view-customer-requests', 'respond-to-customer', 'update-customer-info',
             'view-customers', 'view-customer', 'view-locations', 'view-categories', 'view-tariffs',
             'manage-tickets', 'view-customers', 'view-customer',
-            // Connection Management permissions
-            'view-connections', 'view-connection',
         ]);
 
         // New Role: Zonal/District Manager
@@ -184,9 +164,6 @@ class RolePermissionSeeder extends Seeder
             'view-report', 'view-analytics',
             'create-district', 'edit-district', 'view-districts',
             'create-zone', 'edit-zone', 'view-zones', 'view-paypoints',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection',
-            'view-connection-fees', 'view-connection-fee',
         ]);
 
         // New Role: GIS
@@ -198,8 +175,6 @@ class RolePermissionSeeder extends Seeder
             'manage-gis', 'view-gis-data', 'update-gis-data', 'export-gis',
             'view-customers', 'view-customer', 'view-locations', 'view-categories', 'view-tariffs',
             'view-zones', 'view-districts', 'view-paypoints', 'view-gis',
-            // Connection Management permissions
-            'view-connections', 'view-connection',
         ]);
 
         // New Role: Supplier/Assets Manager
@@ -212,9 +187,6 @@ class RolePermissionSeeder extends Seeder
             'create-vendor', 'edit-vendor', 'delete-vendor', 'view-vendors', 'approve-vendor', 'reject-vendor',
             'create-supplier', 'edit-supplier', 'delete-supplier', 'view-suppliers',
             'view-locations', 'view-categories', 'view-tariffs',
-            // Connection Management permissions
-            'view-connections', 'view-connection', 'create-connection', 'edit-connection',
-            'view-connection-fees', 'view-connection-fee', 'create-connection-fee', 'edit-connection-fee',
         ]);
 
         $customerRole = Role::firstOrCreate([

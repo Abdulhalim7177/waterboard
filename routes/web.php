@@ -195,28 +195,6 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
     Route::get('reports/billing', [BillingController::class, 'generateBillingReport'])->name('reports.billing');
     Route::get('reports/payment', [BillingController::class, 'generatePaymentReport'])->name('reports.payment');
 
-    // Connection Management Routes
-    Route::prefix('connections')->name('connections.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'store'])->name('store');
-        Route::get('/{connection}', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'show'])->name('show');
-        Route::get('/{connection}/edit', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'edit'])->name('edit');
-        Route::put('/{connection}', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'update'])->name('update');
-        Route::delete('/{connection}', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'destroy'])->name('destroy');
-        Route::post('/{connection}/approve', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'approve'])->name('approve');
-        Route::post('/{connection}/reject', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'reject'])->name('reject');
-    });
-
-    // Connection Fees Management Routes
-    Route::prefix('connection-fees')->name('connection-fees.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesIndex'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesCreate'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesStore'])->name('store');
-        Route::get('/{fee}/edit', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesEdit'])->name('edit');
-        Route::put('/{fee}', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesUpdate'])->name('update');
-        Route::delete('/{fee}', [\App\Http\Controllers\Staff\ConnectionManagementController::class, 'feesDestroy'])->name('destroy');
-    });
 
     // Vendor Management Routes
     Route::prefix('vendors')->name('vendors.')->group(function () {
@@ -315,9 +293,6 @@ Route::prefix('customer')->middleware(['auth:customer', 'restrict.login'])->grou
     Route::get('/payments', [CustomerController::class, 'payments'])->name('customer.payments');
     Route::get('bills/{bill}/download-pdf', [BillController::class, 'downloadPdf'])->name('customer.bills.download-pdf');
 
-    // Connection fee routes
-    Route::get('/connections/fees', [CustomerController::class, 'connectionFees'])->name('customer.connections.fees');
-    Route::post('/connections/fees/pay', [CustomerController::class, 'initiateConnectionFeePayment'])->name('customer.connections.fees.pay');
 
     Route::get('/tickets', [\App\Http\Controllers\TicketController::class, 'index'])->name('customer.tickets.index');
     Route::get('/tickets/create', [\App\Http\Controllers\TicketController::class, 'create'])->name('customer.tickets.create');
