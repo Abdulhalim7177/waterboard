@@ -19,6 +19,8 @@ use App\Http\Controllers\Staff\AnalyticsController;
 use App\Http\Controllers\Staff\AccountController;
 
 use App\Http\Controllers\Staff\CustomerCreationController;
+use App\Http\Controllers\Web\ConnectionController;
+use App\Http\Controllers\Web\ConnectionTaskController;
 use App\Http\Controllers\Web\Staff\ReservoirController;
 use App\Http\Controllers\Staff\VendorController as StaffVendorController;
 
@@ -249,6 +251,13 @@ Route::prefix('mngr-secure-9374')->name('staff.')->middleware(['auth:staff', 're
 
     // Asset Management Routes
     Route::resource('assets', AssetController::class);
+
+    // Connection Management Routes
+    Route::get('connections/bills', [ConnectionController::class, 'bills'])->name('connections.bills');
+    Route::resource('connections', ConnectionController::class);
+
+    // Connection Task Management Routes
+    Route::resource('connection-tasks', ConnectionTaskController::class);
 
     // Warehouse Management Routes
     Route::resource('warehouses', \App\Http\Controllers\Staff\WarehouseController::class);

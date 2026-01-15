@@ -32,6 +32,8 @@ class TariffController extends Controller
         $tariffs = Tariff::when($request->search_tariff, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
                         ->orWhere('catcode', 'like', "%{$search}%");
+        })->when($request->type, function ($query, $type) {
+            return $query->where('type', $type);
         })->with('category')->paginate(10);
 
         $categories = Category::where('status', 'approved')->get();

@@ -77,7 +77,7 @@ class CustomerCreationController extends Controller
         $wards = Ward::where('status', 'approved')->get();
         $areas = Area::where('status', 'approved')->get();
         $categories = Category::where('status', 'approved')->get();
-        $tariffs = Tariff::where('status', 'approved')->get();
+        $tariffs = Tariff::where('status', 'approved')->where('type', 'billing')->get();
 
         return view('staff.customers.index', compact('stats', 'customers', 'lgas', 'wards', 'areas', 'categories', 'tariffs'));
     }
@@ -377,7 +377,7 @@ class CustomerCreationController extends Controller
             } elseif ($part === 'billing') {
                 // Load all data upfront for client-side filtering
                 $categories = Category::where('status', 'approved')->get();
-                $tariffs = Tariff::where('status', 'approved')->get();
+                $tariffs = Tariff::where('status', 'approved')->where('type', 'billing')->get();
                 $selectedCategoryId = $request->category_id ?? $customer->category_id;
                 $data = array_merge($data, compact('categories', 'tariffs', 'selectedCategoryId'));
             }
@@ -537,7 +537,7 @@ class CustomerCreationController extends Controller
         $wards = $wardQuery->get();
         $areas = $areaQuery->get();
         $categories = Category::where('status', 'approved')->get();
-        $tariffs = Tariff::where('status', 'approved')->get();
+        $tariffs = Tariff::where('status', 'approved')->where('type', 'billing')->get();
 
         return view('staff.customers.create.personal', compact('lgas', 'wards', 'areas', 'categories', 'tariffs'));
     }
@@ -642,7 +642,7 @@ class CustomerCreationController extends Controller
             $this->authorize('create-customer', Customer::class);
             // Load all data upfront for client-side filtering
             $categories = Category::where('status', 'approved')->get();
-            $tariffs = Tariff::where('status', 'approved')->get();
+            $tariffs = Tariff::where('status', 'approved')->where('type', 'billing')->get();
             $selectedCategoryId = $request->category_id;
             return view('staff.customers.create.billing', compact('categories', 'tariffs', 'selectedCategoryId'));
         } catch (AuthorizationException $e) {
@@ -691,7 +691,7 @@ class CustomerCreationController extends Controller
             $customer = Customer::findOrFail($request->customer_id);
             $selectedCategoryId = $request->category_id;
             $categories = Category::where('status', 'approved')->get();
-            $tariffs = Tariff::where('category_id', $selectedCategoryId)->where('status', 'approved')->get();
+            $tariffs = Tariff::where('category_id', $selectedCategoryId)->where('status', 'approved')->where('type', 'billing')->get();
             return response()->json([
                 'html' => view('staff.customers.partials.edit_billing', compact('customer', 'categories', 'tariffs', 'selectedCategoryId'))->render(),
             ]);
@@ -994,7 +994,7 @@ class CustomerCreationController extends Controller
         try {
             $this->authorize('edit-customer', $customer);
             $categories = Category::where('status', 'approved')->get();
-            $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->get() : ($customer->category_id ? Tariff::where('category_id', $customer->category_id)->where('status', 'approved')->get() : collect());
+            $tariffs = $request->category_id ? Tariff::where('category_id', $request->category_id)->where('status', 'approved')->where('type', 'billing')->get() : ($customer->category_id ? Tariff::where('category_id', $customer->category_id)->where('status', 'approved')->where('type', 'billing')->get() : collect());
             $selectedCategoryId = $request->category_id ?? $customer->category_id;
             return view('staff.customers.edit_billing', compact('customer', 'categories', 'tariffs', 'selectedCategoryId'));
         } catch (AuthorizationException $e) {

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(CategorySeeder::class);
         $this->call(TariffSeeder::class);
+        $this->call(ConnectionTariffsSeeder::class);
         $this->call(LgaWardSeeder::class);
         $this->call(AreaSeeder::class);
       

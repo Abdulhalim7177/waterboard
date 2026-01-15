@@ -59,6 +59,13 @@
                     </i>
                     <input type="text" id="search_tariff" class="form-control form-control-solid w-250px ps-13" placeholder="Search Tariffs" value="{{ request('search_tariff') }}" />
                 </div>
+                <form action="{{ route('staff.tariffs.index') }}" method="GET" class="d-flex align-items-center ms-3">
+                    <select name="type" class="form-select form-select-solid w-150px" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        <option value="billing" {{ request('type') == 'billing' ? 'selected' : '' }}>Billing</option>
+                        <option value="service" {{ request('type') == 'service' ? 'selected' : '' }}>Service</option>
+                    </select>
+                </form>
             </div>
             <div class="card-toolbar">
                 <div class="d-flex justify-content-end" data-kt-tariff-table-toolbar="base">
